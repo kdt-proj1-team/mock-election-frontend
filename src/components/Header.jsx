@@ -32,7 +32,7 @@ const Navigation = styled.nav`
   align-items: center;
 
   @media (max-width: 768px) {
-    display: ${props => (props.isOpen ? 'flex' : 'none')};
+    display: ${props => (props.$isOpen ? 'flex' : 'none')};
     flex-direction: column;
     position: absolute;
     top: 60px;
@@ -111,22 +111,22 @@ const Button = styled.button`
   padding: 10px 15px;
   border-radius: 6px;
   border: none;
-  background-color: ${props => (props.outline ? 'transparent' : '#e0e0e0')};
-  color: ${props => (props.outline ? '#333333' : '#333333')};
+  background-color: ${props => (props.$outline ? 'transparent' : '#e0e0e0')};
+  color: ${props => (props.$outline ? '#333333' : '#333333')};
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
   box-shadow: ${props =>
-      props.outline
+      props.$outline
           ? '2px 2px 6px rgba(0, 0, 0, 0.1), -2px -2px 6px rgba(255, 255, 255, 0.7)'
           : 'inset 3px 3px 6px rgba(0, 0, 0, 0.3), inset -3px -3px 6px rgba(255, 255, 255, 0.7)'
   };
   transition: all 0.3s ease;
 
   &:hover {
-    background-color: ${props => (props.outline ? '#f5f5f5' : '#cccccc')};
+    background-color: ${props => (props.$outline ? '#f5f5f5' : '#cccccc')};
     box-shadow: ${props =>
-        props.outline
+        props.$outline
             ? '2px 2px 6px rgba(0, 0, 0, 0.15), -2px -2px 6px rgba(255, 255, 255, 0.9)'  // 강조 효과
             : 'inset 5px 5px 8px rgba(0, 0, 0, 0.2), inset -5px -5px 8px rgba(255, 255, 255, 0.8)'
     };
@@ -134,7 +134,7 @@ const Button = styled.button`
 
   &:active {
     box-shadow: ${props =>
-        props.outline
+        props.$outline
             ? 'inset 1px 1px 3px rgba(0, 0, 0, 0.45), inset -1px -1px 3px rgba(255, 255, 255, 0.6)'  // 눌렸을 때 효과
             : 'inset 2px 2px 5px rgba(0, 0, 0, 0.6), inset -2px -2px 5px rgba(255, 255, 255, 0.7)'
     };
@@ -199,7 +199,7 @@ const Header = () => {
           ☰
         </MobileMenuButton>
 
-        <Navigation isOpen={mobileMenuOpen}>
+        <Navigation $isOpen={mobileMenuOpen}>
           <NavList>
             <NavItem>
               <NavLink to="/candidate-compare">후보비교</NavLink>
@@ -241,7 +241,7 @@ const Header = () => {
                   {profileImgUrl && <UserAvatar src={profileImgUrl} />}
                   <UserName>{displayName}</UserName>
                 </UserInfo>
-                <Button outline onClick={handleLogout}>로그아웃</Button>
+                <Button $outline onClick={handleLogout}>로그아웃</Button>
                 {/*<Button outline onClick={handleDeleteAccount}>회원탈퇴</Button>*/}
               </ButtonGroup>
           ) : (

@@ -1,6 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
-import { Section, Container, Title } from '../ui/StyledComponents';
+import { Section, Container, Title } from '../../ui/StyledComponents';
 
 const StyledNewsSection = styled(Section)`
   background-color: #f5f5f5;

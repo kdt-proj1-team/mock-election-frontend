@@ -46,7 +46,7 @@ const MainNewsCard = ({ news }) => {
         <NewsDate>{date}</NewsDate>
         <h3>{title}</h3>
         <p>{content}</p>
-        <Button primary>자세히 보기</Button>
+        <Button $primary>자세히 보기</Button>
       </NewsContent>
     </NewsCard>
   );

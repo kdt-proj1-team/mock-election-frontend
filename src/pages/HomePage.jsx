@@ -3,10 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import useAuthStore from '../store/authStore';
 import HeroSection from '../components/home/HeroSection';
-import FeaturesSection from '../components/home/FeaturesSection';
-import NewsSection from '../components/home/NewsSection';
-import PollSection from '../components/home/PollSection';
-import KeywordsSection from '../components/home/KeywordsSection';
+import FeaturesSection from '../components/home/feature/FeaturesSection';
+import NewsSection from '../components/home/news/NewsSection';
+import PollSection from '../components/home/poll/PollSection';
+import KeywordsSection from '../components/home/keywords/KeywordsSection';
 import CTASection from '../components/home/CTASection';
 
 // 스타일 컴포넌트 정의

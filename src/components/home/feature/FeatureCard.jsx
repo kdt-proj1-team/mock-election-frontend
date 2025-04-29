@@ -1,6 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
-import { Button } from '../ui/StyledComponents';
+import { Button } from '../../ui/StyledComponents';
 
 const Card = styled.div`
   background-color: white;
@@ -45,7 +45,7 @@ const FeatureCard = ({ icon, title, description, buttonText, onClick }) => {
       <CardContent>
         <CardTitle>{title}</CardTitle>
         <CardText>{description}</CardText>
-        <Button primary onClick={onClick}>{buttonText}</Button>
+        <Button $primary onClick={onClick}>{buttonText}</Button>
       </CardContent>
     </Card>
   );

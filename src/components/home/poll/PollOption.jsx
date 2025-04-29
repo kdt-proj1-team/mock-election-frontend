@@ -7,12 +7,12 @@ const StyledPollOption = styled.label`
   padding: 15px;
   background-color: #f5f5f5;
   border-radius: 10px;
-  cursor: ${props => props.disabled ? 'default' : 'pointer'};
+  cursor: ${props => props.$disabled ? 'default' : 'pointer'};
   transition: background-color 0.3s;
-  opacity: ${props => props.disabled ? 0.7 : 1};
+  opacity: ${props => props.$disabled ? 0.7 : 1};
   
   &:hover {
-    background-color: ${props => props.disabled ? '#f5f5f5' : '#e0e0e0'};
+    background-color: ${props => props.$disabled ? '#f5f5f5' : '#e0e0e0'};
   }
   
   input {
@@ -22,7 +22,7 @@ const StyledPollOption = styled.label`
 
 const PollOption = ({ id, label, checked, onChange, disabled }) => {
   return (
-    <StyledPollOption disabled={disabled}>
+    <StyledPollOption $disabled={disabled}>
       <input 
         type="radio" 
         name="poll" 

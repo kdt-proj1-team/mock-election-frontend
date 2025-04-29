@@ -47,22 +47,22 @@ const Button = styled.button`
   transition: background-color 0.2s;
   
   background-color: ${props => {
-    if (props.accent) return '#999999';
-    if (props.secondary) return '#666666';
-    if (props.admin) return '#4267b2';
+    if (props.$accent) return '#999999';
+    if (props.$secondary) return '#666666';
+    if (props.$admin) return '#4267b2';
     return '#333333';
   }};
   
   color: ${props => {
-    if (props.accent) return '#222222';
+    if (props.$accent) return '#222222';
     return 'white';
   }};
   
   &:hover {
     background-color: ${props => {
-      if (props.accent) return '#888888';
-      if (props.secondary) return '#555555';
-      if (props.admin) return '#365899';
+      if (props.$accent) return '#888888';
+      if (props.$secondary) return '#555555';
+      if (props.$admin) return '#365899';
       return '#222222';
     }};
   }
@@ -97,8 +97,8 @@ const CTASection = ({ isAdmin, onAdminClick }) => {
           간단한 질문에 답하면 당신에게 가장 적합한 정책을 추천해드립니다.
         </CTAText>
         <ButtonGroup>
-          <Button accent onClick={handleTestClick}>정책 성향 테스트</Button>
-          <Button secondary onClick={handleAlertClick}>알림 설정하기</Button>
+          <Button $accent onClick={handleTestClick}>정책 성향 테스트</Button>
+          <Button $secondary onClick={handleAlertClick}>알림 설정하기</Button>
         </ButtonGroup>
         
         {/* 관리자 역할일 경우 관리자 페이지 버튼 표시 */}

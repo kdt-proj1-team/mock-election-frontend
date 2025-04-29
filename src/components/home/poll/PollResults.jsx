@@ -25,7 +25,7 @@ const ResultBar = styled.div`
 const ResultProgress = styled.div`
   height: 100%;
   background-color: #555555;
-  width: ${props => props.width || '0%'};
+  width: ${props => props.$width || '0%'};
 `;
 
 const PollResults = ({ results }) => {

@@ -5,11 +5,11 @@ export const Button = styled.button.attrs(props => ({
     // 여기서 DOM에 전달할 속성들만 지정
     type: props.type || 'button'
   }))`
-    background-color: ${(props) => (props.secondary ? '#ffffff' : '#1877f2')};
-    color: ${(props) => (props.secondary ? '#1877f2' : '#ffffff')};
+    background-color: ${(props) => (props.$secondary ? '#ffffff' : '#1877f2')};
+    color: ${(props) => (props.$secondary ? '#1877f2' : '#ffffff')};
     padding: 10px 15px;
     border-radius: 5px;
-    border: ${(props) => (props.secondary ? '1px solid #1877f2' : 'none')};
+    border: ${(props) => (props.$secondary ? '1px solid #1877f2' : 'none')};
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
@@ -18,7 +18,7 @@ export const Button = styled.button.attrs(props => ({
     margin: 5px 0;
     
     &:hover {
-      background-color: ${(props) => (props.secondary ? '#f0f2f5' : '#166fe5')};
+      background-color: ${(props) => (props.$secondary ? '#f0f2f5' : '#166fe5')};
     }
     
     &:disabled {

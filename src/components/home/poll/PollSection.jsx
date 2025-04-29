@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import { Section, Container, Title } from '../ui/StyledComponents';
+import { Section, Container, Title } from '../../ui/StyledComponents';
 
 const StyledPollSection = styled(Section)`
   padding: 60px 0;
@@ -53,15 +53,15 @@ const Button = styled.button`
   font-weight: 600;
   border: none;
   border-radius: 5px;
-  cursor: ${props => props.disabled ? 'not-allowed' : 'pointer'};
+  cursor: ${props => props.$disabled ? 'not-allowed' : 'pointer'};
   transition: background-color 0.2s;
-  opacity: ${props => props.disabled ? 0.6 : 1};
-  background-color: ${props => props.disabled ? '#aaaaaa' : '#333333'};
+  opacity: ${props => props.$disabled ? 0.6 : 1};
+  background-color: ${props => props.$disabled ? '#aaaaaa' : '#333333'};
   color: white;
   width: 100%;
   
   &:hover {
-    background-color: ${props => props.disabled ? '#aaaaaa' : '#222222'};
+    background-color: ${props => props.$disabled ? '#aaaaaa' : '#222222'};
   }
 `;
 
@@ -89,7 +89,7 @@ const ResultBar = styled.div`
 const ResultProgress = styled.div`
   height: 100%;
   background-color: #555555;
-  width: ${props => props.width || '0%'};
+  width: ${props => props.$width || '0%'};
 `;
 
 // 예시 투표 데이터

@@ -80,67 +80,69 @@ const CountdownLabel = styled.div`
   color: #666;
 `;
 
+
+
 const HeroSection = () => {
   const [countdown, setCountdown] = useState({ days: 127, hours: 14, minutes: 32, seconds: 9 });
-  
+
   const electionDate = new Date('2025-09-03T00:00:00');
-  
+
   useEffect(() => {
     const updateCountdown = () => {
       const now = new Date();
       const difference = electionDate - now;
-      
+
       if (difference > 0) {
         const days = Math.floor(difference / (1000 * 60 * 60 * 24));
         const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
         const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
         const seconds = Math.floor((difference % (1000 * 60)) / 1000);
-        
+
         setCountdown({ days, hours, minutes, seconds });
       }
     };
-    
+
     const timer = setInterval(updateCountdown, 1000);
     updateCountdown();
-    
+
     return () => clearInterval(timer);
   }, []);
 
   return (
-    <Hero>
-      <Container>
-        <HeroTitle>당신의 한 표가 만드는 변화</HeroTitle>
-        <HeroText>
-          올바른 선택을 위한 모든 정보와 도구를 제공합니다. 정책을 비교하고, 가상 투표를 경험하며, 나에게 맞는 후보를 찾아보세요.
-        </HeroText>
-        <ButtonGroup>
-          <Button accent>정책 성향 테스트</Button>
-          <Button secondary>투표소 찾기</Button>
-        </ButtonGroup>
-        
-        <Countdown>
-          <CountdownTitle>제 22대 대통령 선거까지</CountdownTitle>
-          <CountdownTimer>
-            <CountdownItem>
-              <CountdownNumber>{countdown.days}</CountdownNumber>
-              <CountdownLabel>일</CountdownLabel>
-            </CountdownItem>
-            <CountdownItem>
-              <CountdownNumber>{countdown.hours}</CountdownNumber>
-              <CountdownLabel>시간</CountdownLabel>
-            </CountdownItem>
-            <CountdownItem>
-              <CountdownNumber>{countdown.minutes}</CountdownNumber>
-              <CountdownLabel>분</CountdownLabel>
-            </CountdownItem>
-            <CountdownItem>
-              <CountdownNumber>{countdown.seconds}</CountdownNumber>
-              <CountdownLabel>초</CountdownLabel>
-            </CountdownItem>
-          </CountdownTimer>
-        </Countdown>
-      </Container>
-    </Hero>
+      <Hero>
+        <Container>
+          <HeroTitle>당신의 한 표가 만드는 변화</HeroTitle>
+          <HeroText>
+            올바른 선택을 위한 모든 정보와 도구를 제공합니다. 정책을 비교하고, 가상 투표를 경험하며, 나에게 맞는 후보를 찾아보세요.
+          </HeroText>
+          <ButtonGroup>
+            <Button $accent>정책 성향 테스트</Button>
+            <Button $secondary="true">투표소 찾기</Button>
+          </ButtonGroup>
+
+          <Countdown>
+            <CountdownTitle>제 22대 대통령 선거까지</CountdownTitle>
+            <CountdownTimer>
+              <CountdownItem>
+                <CountdownNumber>{countdown.days}</CountdownNumber>
+                <CountdownLabel>일</CountdownLabel>
+              </CountdownItem>
+              <CountdownItem>
+                <CountdownNumber>{countdown.hours}</CountdownNumber>
+                <CountdownLabel>시간</CountdownLabel>
+              </CountdownItem>
+              <CountdownItem>
+                <CountdownNumber>{countdown.minutes}</CountdownNumber>
+                <CountdownLabel>분</CountdownLabel>
+              </CountdownItem>
+              <CountdownItem>
+                <CountdownNumber>{countdown.seconds}</CountdownNumber>
+                <CountdownLabel>초</CountdownLabel>
+              </CountdownItem>
+            </CountdownTimer>
+          </Countdown>
+        </Container>
+      </Hero>
   );
 };
 

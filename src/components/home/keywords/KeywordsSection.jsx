@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import { Section, Container, Title } from '../ui/StyledComponents';
+import { Section, Container, Title } from '../../ui/StyledComponents';
 
 const StyledKeywordsSection = styled(Section)`
   padding: 60px 0;
