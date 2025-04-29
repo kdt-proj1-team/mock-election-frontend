@@ -1,25 +1,69 @@
-import logo from './logo.svg';
-import './App.css';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { ThemeProvider } from 'styled-components';
 
-function App() {
+import HomePage from './pages/HomePage';
+import LoginPage from './pages/LoginPage';
+import AdminPage from './pages/AdminPage';
+import useAuthStore from './store/authStore';
+import MockVoting from './components/mock-voting/MockVoting';
+import MockVotingDetail from './components/mock-voting/MockVotingDetail';
+import Header from './components/Header'
+
+const theme = {
+  colors: {
+    primary: '#4267b2',
+    secondary: '#6c757d',
+    light: '#f8f9fa',
+    dark: '#343a40',
+    background: '#ffffff',
+    text: '#212529'
+  },
+  fonts: {
+    body: "'Noto Sans KR', sans-serif",
+    heading: "'Noto Sans KR', sans-serif"
+  }
+};
+
+const App = () => {
+  const { isAuthenticated, role } = useAuthStore();
+
+  // 관리자 전용 경로 보호를 위한 래퍼 컴포넌트
+  const AdminRoute = ({ children }) => {
+    return isAuthenticated && role === 'ADMIN' ? children : <Navigate to="/" />;
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+      <ThemeProvider theme={theme}>
+        <Router>
+          <Header />
+          <Routes>
+            {/* 기본 경로는 홈페이지로 설정 */}
+            <Route path="/" element={<HomePage />} />
+
+            {/* 로그인 페이지 경로 */}
+            <Route path="/login" element={<LoginPage />} />
+
+            {/* 가상투표 페이지 */}
+            <Route path="/mock-voting" element={<MockVoting />} />
+            <Route path="/mock-voting/:id" element={<MockVotingDetail />} />
+
+            {/* 관리자 페이지 경로 */}
+            <Route
+                path="/admin"
+                element={
+                  <AdminRoute>
+                    <AdminPage />
+                  </AdminRoute>
+                }
+            />
+
+            {/* 존재하지 않는 경로는 홈페이지로 리디렉션 */}
+            <Route path="*" element={<Navigate to="/" />} />
+          </Routes>
+        </Router>
+      </ThemeProvider>
   );
-}
+};
 
 export default App;
