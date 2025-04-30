@@ -202,6 +202,9 @@ const Header = () => {
         <Navigation $isOpen={mobileMenuOpen}>
           <NavList>
             <NavItem>
+              <NavLink to="/#">용어정리</NavLink>
+            </NavItem>
+            <NavItem>
               <NavLink to="/candidate-compare">후보비교</NavLink>
             </NavItem>
             <NavItem>
