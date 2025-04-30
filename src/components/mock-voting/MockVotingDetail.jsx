@@ -287,7 +287,7 @@ const BackButton = styled.button`
 // 샘플 선거 데이터
 const electionData = {
     1: {
-        title: '제21대 대통령선거 가상투표',
+        title: '제21대 대통령선거 모의투표',
         date: '2025년 6월 3일(화)',
         description: '대통령 선거입니다.',
         candidates: [
@@ -342,7 +342,7 @@ const electionData = {
         }
     },
     2: {
-        title: '제22대 국회의원 선거 가상투표',
+        title: '제22대 국회의원 선거 모의투표',
         date: '2028년 4월 예정',
         description: '국민의 대표기관인 국회의 구성원인 국회의원을 선출하는 선거입니다.',
         candidates: [
@@ -397,7 +397,7 @@ const electionData = {
         }
     },
     3: {
-        title: '제8회 전국동시지방선거 가상투표',
+        title: '제8회 전국동시지방선거 모의투표',
         date: '2026년 6월 예정',
         description: '지방선거는 지방자치단체장(시장, 도지사, 군수, 구청장)과 지방의회 의원을 선출하는 선거입니다.',
         candidates: [
@@ -531,7 +531,7 @@ const MockVotingDetail = () => {
                 <PageContainer>
                     <ContentContainer>
                         <PageTitle>선거 정보를 찾을 수 없습니다</PageTitle>
-                        <BackButton onClick={handleBackToList}>가상투표 목록으로</BackButton>
+                        <BackButton onClick={handleBackToList}>모의투표 목록으로</BackButton>
                     </ContentContainer>
                 </PageContainer>
             </>
@@ -543,7 +543,7 @@ const MockVotingDetail = () => {
             <PageContainer>
                 <ContentContainer>
                     <BreadcrumbNav>
-                        <BreadcrumbLink onClick={handleBackToList}>가상투표</BreadcrumbLink>
+                        <BreadcrumbLink onClick={handleBackToList}>모의투표</BreadcrumbLink>
                         <BreadcrumbSeparator>&gt;</BreadcrumbSeparator>
                         <span>{election.title}</span>
                     </BreadcrumbNav>
@@ -604,7 +604,7 @@ const MockVotingDetail = () => {
                             <VoteCard>
                                 <VoteSection>
                                     <SectionTitle>투표 완료</SectionTitle>
-                                    <p>가상투표에 참여해주셔서 감사합니다. 아래에서 현재까지의 투표 결과를 확인하실 수 있습니다.</p>
+                                    <p>모의투표에 참여해주셔서 감사합니다. 아래에서 현재까지의 투표 결과를 확인하실 수 있습니다.</p>
                                 </VoteSection>
 
                                 <ResultChart>
@@ -631,7 +631,7 @@ const MockVotingDetail = () => {
                             </VoteCard>
 
                             <BackButton onClick={handleBackToList}>
-                                가상투표 목록으로
+                                모의투표 목록으로
                             </BackButton>
                         </ResultContainer>
                     )}

@@ -205,7 +205,7 @@ const Header = () => {
               <NavLink to="/candidate-compare">후보비교</NavLink>
             </NavItem>
             <NavItem>
-              <NavLink to="/mock-voting">가상투표</NavLink>
+              <NavLink to="/mock-voting">모의투표</NavLink>
             </NavItem>
             <NavItem>
               <NavLink to="/find-polling-station">투표소찾기</NavLink>
