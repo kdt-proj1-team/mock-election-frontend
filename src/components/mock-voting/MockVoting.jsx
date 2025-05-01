@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import useAuthStore from '../../store/authStore';
 import { useNavigate } from 'react-router-dom';
+import { authAPI } from '../../api/AuthApi';
 import mockVotingImg from '../../assets/images/mock-voting/mock-voting-img.png';
 
 
@@ -155,14 +156,19 @@ const LoginButton = styled.button`
 `;
 
 const ImageContainer = styled.div`
-  display: flex;
-  justify-content: center;
-  margin-bottom: 40px;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 40px;
 `;
 
 const VotingBoothImage = styled.img`
-  max-width: 100%;
-  height: auto;
+    max-width: 100%;
+    height: auto;
+`;
+
+const LoadingContainer = styled.div`
+    text-align: center;
+    padding: 40px;
 `;
 
 // 샘플 선거 데이터
@@ -173,6 +179,7 @@ const sampleElections = [
         date: '2026년 6월 3일(화)',
         active: true,
         participated: false,
+        sgId: '20220309'
     },
     {
         id: 2,
@@ -180,6 +187,7 @@ const sampleElections = [
         date: '2026년 4월 8일(수)',
         active: false,
         participated: false,
+        sgId: '20260408'
     },
     {
         id: 3,
@@ -187,13 +195,47 @@ const sampleElections = [
         date: '2026년 6월 3일 (수)',
         active: false,
         participated: false,
+        sgId: '20260603'
     }
 ];
 
 const MockVoting = () => {
     const { isAuthenticated } = useAuthStore();
     const [elections, setElections] = useState(sampleElections);
+    const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
+
+    // 사용자 투표 상태 확인
+    useEffect(() => {
+        const checkUserVotingStatus = async () => {
+            if (!isAuthenticated) {
+                setLoading(false);
+                return;
+            }
+
+            try {
+                // 사용자 정보 조회
+                const response = await authAPI.getUserInfo();
+                const userData = response.data.data;
+
+                // 사용자가 투표했는지 확인
+                if (userData && userData.isElection) {
+                    // 투표한 경우 선거 데이터 업데이트
+                    setElections(prevElections =>
+                        prevElections.map(election =>
+                            election.active ? { ...election, participated: true } : election
+                        )
+                    );
+                }
+            } catch (error) {
+                console.error('사용자 투표 상태 확인 중 오류:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        checkUserVotingStatus();
+    }, [isAuthenticated]);
 
     // 로그인 페이지로 이동
     const handleLoginClick = () => {
@@ -204,6 +246,19 @@ const MockVoting = () => {
     const handleVoteClick = (electionId) => {
         navigate(`/mock-voting/${electionId}`);
     };
+
+    if (loading) {
+        return (
+            <PageContainer>
+                <ContentContainer>
+                    <LoadingContainer>
+                        <PageTitle>로딩 중...</PageTitle>
+                        <p>모의투표 정보를 불러오고 있습니다.</p>
+                    </LoadingContainer>
+                </ContentContainer>
+            </PageContainer>
+        );
+    }
 
     return (
         <>
