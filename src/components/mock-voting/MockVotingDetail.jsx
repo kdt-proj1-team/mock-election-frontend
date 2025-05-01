@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import useAuthStore from '../../store/authStore';
 import { votingAPI } from '../../api/VotingApi';
-import useVotingStatus from '../../hooks/VotingStatus';
+import useVotingStatus from '../../hooks/useVotingStatus';
 import VoterComponent from './VoterComponent';
 import NonVoterComponent from './NonVoterComponent';
 
