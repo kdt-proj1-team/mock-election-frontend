@@ -9,6 +9,7 @@ import mockVotingImg from '../../assets/images/mock-voting/mock-voting-img.png';
 // 뉴모피즘 스타일의 컨테이너
 const PageContainer = styled.div`
     min-height: calc(100vh - 90px);
+    
     background-color: #f0f0f3;
 `;
 
