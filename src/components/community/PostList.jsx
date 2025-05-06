@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { format, formatDistanceToNowStrict, isBefore, subHours } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import styled from "styled-components";
@@ -111,6 +111,15 @@ const Category = styled(Column)`
 
 const Title = styled(Column)`
   flex: 1;
+  
+  a {
+    color: inherit;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
 `;
 
 const Author = styled(Column)`
@@ -203,6 +212,7 @@ const formatPostTime = (isoString) => {
 };
 
 const PostList = () => {
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { selectedCategory } = useCategoryStore();
 
@@ -275,7 +285,7 @@ const PostList = () => {
             </SearchButton>
           </SearchBox>
         </Controls>
-        <WriteButton>글쓰기</WriteButton>
+        <WriteButton onClick={() => navigate("/community/board/write")}>글쓰기</WriteButton>
       </Header>
 
       <Table>
@@ -296,8 +306,10 @@ const PostList = () => {
               <Num>{post.id}</Num>
               <Category>{post.categoryName}</Category>
               <Title>
-                {post.title} {post.commentCount > 0 && <CommentCount>[{post.commentCount}]</CommentCount>}
-                {post.isNew && <NewTag>N</NewTag>}
+                <Link to={`/community/post/${post.id}`}>
+                  {post.title} {post.commentCount > 0 && <CommentCount>[{post.commentCount}]</CommentCount>}
+                  {post.isNew && <NewTag>N</NewTag>}
+                </Link>
               </Title>
               <Author>{post.authorNickname}</Author>
               <DateCol>{formatPostTime(post.createdAt)}</DateCol>
