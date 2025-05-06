@@ -34,5 +34,11 @@ export const communityAPI = {
             }
         });
         return response.data.data;
-    }
+    },
+
+    // 게시글 상세 조회
+    getPostDetail: async (postId) => {
+        const response = await api.get(`/posts/${postId}`);
+        return response.data.data;
+    },
 };

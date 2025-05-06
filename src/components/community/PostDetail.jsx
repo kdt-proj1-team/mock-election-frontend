@@ -1,8 +1,12 @@
 // PostDetail.jsx (전체 컴포넌트 구조 + styled-components 스타일 포함)
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams } from "react-router-dom";
 import styled from 'styled-components';
-import { FaPencilAlt, FaTrash, FaArrowUp, FaArrowDown, FaFlag, FaReply, FaPen, FaHome, FaList } from 'react-icons/fa';
+import { FaPencilAlt, FaTrash, FaArrowUp, FaArrowDown, FaFlag, FaReply, FaPen, FaHome, FaList, FaEye } from 'react-icons/fa';
+import { communityAPI } from '../../api/CommunityApi';
 
+
+// #region styled-components
 const Container = styled.div`
   max-width: 1200px;
   margin: 30px auto;
@@ -61,6 +65,26 @@ const ActionButton = styled.button`
   gap: 4px;
   &:hover {
     color: #4d82f3;
+  }
+
+  svg {
+    font-size: 14px;
+    position: relative;
+    top: 1px;
+  }
+`;
+
+const ViewCount = styled.div`
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  color: #666;
+  gap: 5px;
+
+  svg {
+    font-size: 16px;
+    position: relative;
+    top: 1px;
   }
 `;
 
@@ -349,38 +373,58 @@ const GrayBtn = styled(ActionBtn)`
     background-color: #e5e5e5;
   }
 `;
+// #endregion
 
 const PostDetail = () => {
+    const navigate = useNavigate();
     const [comment, setComment] = useState("");
+
+    const { id } = useParams();
+    const [post, setPost] = useState(null);
+
+    useEffect(() => {
+        const fetchPostDetail = async () => {
+            try {
+                const data = await communityAPI.getPostDetail(id);
+                setPost(data);
+            } catch (error) {
+                console.error("게시글 조회 실패:", error);
+            }
+        };
+
+        fetchPostDetail();
+    }, [id]);
+
+    if (!post) return null;
     return (
         <Container>
-            <CategoryName>자유게시판</CategoryName>
-            <Title>주말에 다녀온 여행 후기와 추천 장소</Title>
+            <CategoryName>{post.categoryName}</CategoryName>
+            <Title>{post.title}</Title>
             <Meta>
                 <Info>
-                    <span>김선경</span>
-                    <span>2025.05.05 14:23</span>
-                    <span style={{ fontStyle: 'italic' }}>수정됨: 2025.05.06 09:12</span>
+                    <span>{post.authorNickname}</span>
+                    <span>{post.createdAt}</span>
+                    {post.updatedAt && (
+                        <span style={{ fontStyle: 'italic' }}>
+                            수정됨: {post.updatedAt}
+                        </span>
+                    )}
                 </Info>
                 <Actions>
                     <ActionButton><FaPencilAlt /> 수정</ActionButton>
                     <ActionButton><FaTrash /> 삭제</ActionButton>
+                    <ViewCount><FaEye />{post.views}</ViewCount>
                 </Actions>
             </Meta>
 
             <Content>
-                <p>지난 주말에 가족들과 함께 강원도로 여행을 다녀왔습니다...</p>
-                <p>여행 첫 날에는 설악산 케이블카를 타고...</p>
-                <p>둘째 날은 낙산사와 해변을 구경했습니다...</p>
-                <p>마지막 날에는 속초 중앙시장에 들러...</p>
-                <p>숙소는 속초 해수욕장 근처의 펜션을...</p>
-                <p>강원도 여행을 계획하시는 분들에게 이 코스를...</p>
+                {post.content}
             </Content>
 
             <Footer>
                 <VoteButtons>
                     <VoteButton type="up"><FaArrowUp /></VoteButton>
-                    <VoteCount>45</VoteCount>
+                    <VoteCount>{post.voteCount}</VoteCount>
                     <VoteButton type="down"><FaArrowDown /></VoteButton>
                 </VoteButtons>
                 <ReportButton><FaFlag /> 신고</ReportButton>
@@ -479,10 +523,10 @@ const PostDetail = () => {
 
             <PostActionsBar>
                 <LeftActions>
-                    <WriteBtn><FaPen /> 글쓰기</WriteBtn>
+                    <WriteBtn onClick={() => navigate("/community/board/write")}><FaPen /> 글쓰기</WriteBtn>
                 </LeftActions>
                 <RightActions>
-                    <GrayBtn><FaHome /> 커뮤니티 메인</GrayBtn>
+                    <GrayBtn onClick={() => navigate("/community")}><FaHome /> 커뮤니티 메인</GrayBtn>
                     <GrayBtn><FaList /> 목록</GrayBtn>
                     <GrayBtn><FaArrowUp /> TOP</GrayBtn>
                 </RightActions>
