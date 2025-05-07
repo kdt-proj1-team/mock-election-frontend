@@ -1,6 +1,6 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { ThemeProvider } from 'styled-components';
+import {BrowserRouter as Router, Routes, Route, Navigate} from 'react-router-dom';
+import {ThemeProvider} from 'styled-components';
 
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
@@ -9,6 +9,8 @@ import useAuthStore from './store/authStore';
 import MockVoting from './components/mock-voting/MockVoting';
 import MockVotingDetail from './components/mock-voting/MockVotingDetail';
 import Header from './components/Header'
+import CandidatePage from "./pages/CandidatePage";
+import CandidateDetail from "./pages/CandidateDetailPage"
 
 const theme = {
   colors: {
@@ -31,12 +33,12 @@ const theme = {
 };
 
 const App = () => {
-  const { isAuthenticated, role } = useAuthStore();
+    const {isAuthenticated, role} = useAuthStore();
 
-  // 관리자 전용 경로 보호를 위한 래퍼 컴포넌트
-  const AdminRoute = ({ children }) => {
-    return isAuthenticated && role === 'ADMIN' ? children : <Navigate to="/" />;
-  };
+    // 관리자 전용 경로 보호를 위한 래퍼 컴포넌트
+    const AdminRoute = ({children}) => {
+        return isAuthenticated && role === 'ADMIN' ? children : <Navigate to="/"/>;
+    };
 
   // 로그인한 사용자만 접근 가능한 경로 래퍼 컴포넌트
   const PrivateRoute = ({ children }) => {
