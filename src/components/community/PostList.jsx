@@ -4,7 +4,7 @@ import { format, formatDistanceToNowStrict, isBefore, subHours } from 'date-fns'
 import { ko } from 'date-fns/locale';
 import styled from "styled-components";
 import useCategoryStore from "../../store/categoryStore";
-import { communityAPI } from "../../api/CommunityApi";
+import { postAPI } from "../../api/PostApi";
 
 // #region styled-components
 const Section = styled.section`
@@ -244,7 +244,7 @@ const PostList = () => {
 
     const fetchPosts = async () => {
       try {
-        const data = await communityAPI.getPostsByCategory(selectedCategory.code, page, 10); // 10은 페이지 당 게시글 수
+        const data = await postAPI.getPostsByCategory(selectedCategory.code, page, 10); // 10은 페이지 당 게시글 수
         setPosts(data.content);
         setTotalPages(data.totalPages);
 
