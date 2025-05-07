@@ -13,18 +13,23 @@ import CandidatePage from "./pages/CandidatePage";
 import CandidateDetail from "./pages/CandidateDetailPage"
 
 const theme = {
-    colors: {
-        primary: '#4267b2',
-        secondary: '#6c757d',
-        light: '#f8f9fa',
-        dark: '#343a40',
-        background: '#ffffff',
-        text: '#212529'
-    },
-    fonts: {
-        body: "'Noto Sans KR', sans-serif",
-        heading: "'Noto Sans KR', sans-serif"
-    }
+  colors: {
+    primary: '#4267b2',
+    secondary: '#6c757d',
+    light: '#f8f9fa',
+    dark: '#343a40',
+    background: '#ffffff',
+    text: '#212529'
+  },
+  fonts: {
+    body: "'Noto Sans KR', sans-serif",
+    heading: "'Noto Sans KR', sans-serif"
+  },
+  breakpoints: {
+    mobile: "576px",
+    tablet: "768px",
+    desktop: "1200px"
+  }
 };
 
 const App = () => {
@@ -35,34 +40,62 @@ const App = () => {
         return isAuthenticated && role === 'ADMIN' ? children : <Navigate to="/"/>;
     };
 
-    return (
-        <ThemeProvider theme={theme}>
-            <Router>
-                <Header/>
-                <Routes>
-                    {/* 기본 경로는 홈페이지로 설정 */}
-                    <Route path="/" element={<HomePage/>}/>
+  // 로그인한 사용자만 접근 가능한 경로 래퍼 컴포넌트
+  const PrivateRoute = ({ children }) => {
+    return isAuthenticated ? children : <Navigate to="/login" replace />;
+  };
 
-                    {/* 로그인 페이지 경로 */}
-                    <Route path="/login" element={<LoginPage/>}/>
+  return (
+    <ThemeProvider theme={theme}>
+      <Router>
+        <Header />
+        <Routes>
+          {/* 기본 경로는 홈페이지로 설정 */}
+          <Route path="/" element={<HomePage />} />
 
-                    {/* 가상투표 페이지 */}
-                    <Route path="/mock-voting" element={<MockVoting/>}/>
-                    <Route path="/mock-voting/:id" element={<MockVotingDetail/>}/>
+          {/* 로그인 페이지 경로 */}
+          <Route path="/login" element={<LoginPage />} />
 
-                    {/* 후보비교 페이지 */}
-                    <Route path="/candidate-compare" element={<CandidatePage/>}/>
-                    <Route path="/candidate-detail/:sgId/:partyName" element={<CandidateDetail/>}/>
+          {/* 가상투표 페이지 */}
+          <Route path="/mock-voting" element={<MockVoting />} />
+          <Route path="/mock-voting/:id" element={<MockVotingDetail />} />
 
-                        {/* 관리자 페이지 경로 */}
-                    <Route path="/admin" element={<AdminRoute><AdminPage/></AdminRoute>}/>
+          {/* 관리자 페이지 경로 */}
+          <Route
+            path="/admin"
+            element={
+              <AdminRoute>
+                <AdminPage />
+              </AdminRoute>
+            }
+          />
 
-                        {/* 존재하지 않는 경로는 홈페이지로 리디렉션 */}
-                    <Route path="*" element={<Navigate to="/"/>}/>
-                </Routes>
-            </Router>
-        </ThemeProvider>
-    );
+          {/* 커뮤니티 페이지 경로 */}
+          <Route path="/community" element={<CommunityPage />} />
+          <Route
+            path="/community/board/write"
+            element={
+              <PrivateRoute>
+                <PostEditor mode="write" />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/community/board/edit/:postId"
+            element={
+              <PrivateRoute>
+                <PostEditor mode="edit" />
+              </PrivateRoute>
+            }
+          />
+          <Route path="/community/post/:id" element={<PostDetail />} />
+
+          {/* 존재하지 않는 경로는 홈페이지로 리디렉션 */}
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
+      </Router>
+    </ThemeProvider>
+  );
 };
 
 export default App;
