@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from "react-router-dom";
 import styled from 'styled-components';
 import { FaPencilAlt, FaTrash, FaArrowUp, FaArrowDown, FaFlag, FaReply, FaPen, FaHome, FaList, FaEye } from 'react-icons/fa';
-import { communityAPI } from '../../api/CommunityApi';
+import { postAPI } from '../../api/PostApi';
 
 
 // #region styled-components
@@ -385,7 +385,7 @@ const PostDetail = () => {
     useEffect(() => {
         const fetchPostDetail = async () => {
             try {
-                const data = await communityAPI.getPostDetail(id);
+                const data = await postAPI.getPostDetail(id);
                 setPost(data);
             } catch (error) {
                 console.error("게시글 조회 실패:", error);

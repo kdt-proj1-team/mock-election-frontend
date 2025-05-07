@@ -11,7 +11,7 @@ import Color from '@tiptap/extension-color'
 import Image from '@tiptap/extension-image'
 
 import styled from 'styled-components';
-import { communityAPI } from '../../api/CommunityApi';
+import { postAPI } from '../../api/PostApi';
 import useCategoryStore from '../../store/categoryStore';
 
 // #region styled-components
@@ -291,7 +291,7 @@ const PostEditor = () => {
     }, [postId]);
 
     const fetchPost = async (id) => {
-        const data = await communityAPI.getPostById(id);
+        const data = await postAPI.getPostById(id);
         setFormData({
             title: data.title,
             content: data.content,
