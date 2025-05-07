@@ -103,7 +103,7 @@ const CandidateCard = ({ candidate }) => {
             <CardInner flipped={flipped}>
                 <CardFront>
                     <Photo
-                        src={`https://via.placeholder.com/250x150?text=${candidate.name}`}
+                        src={candidate.profileUrl}
                         alt={candidate.name}
                     />
                     <Name>{candidate.name}</Name>
