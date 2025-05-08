@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-    baseURL: process.env.REACT_COMMUNITY_API_URL || 'http://localhost/api/community/posts',
+    baseURL: process.env.REACT_COMMUNITY_POST_API_URL || 'http://localhost/api/community/posts',
     headers: {
         'Content-Type': 'application/json'
     }
@@ -36,4 +36,10 @@ export const postAPI = {
         });
         return response.data.data;
     },
+
+    // 게시글 등록
+    createPost: async (postData) => {
+        const response = await api.post('', postData);
+        return response.data.data;
+    }
 };
