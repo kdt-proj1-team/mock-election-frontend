@@ -16,6 +16,7 @@ import CommunityPage from './pages/CommunityPage';
 import PostEditor from "./components/community/PostEditor";
 import PostDetail from './components/community/PostDetail'
 import ElectionQuiz from "./components/quiz/ElectionQuiz";
+import ChatbotPage from './pages/ChatbotPage';
 
 
 const theme = {
@@ -106,6 +107,8 @@ const App = () => {
                         path="/electionQuiz" element={<ElectionQuiz/>}
                     ></Route>
 
+                    {/* 챗봇 페이지 경로 추가 */}
+                    <Route path="/chatbot" element={<ChatbotPage />} />
 
                     {/* 존재하지 않는 경로는 홈페이지로 리디렉션 */}
                     <Route path="*" element={<Navigate to="/"/>}/>
