@@ -214,7 +214,7 @@ const Header = () => {
               <NavLink to="/find-polling-station">투표소찾기</NavLink>
             </NavItem>
             <NavItem>
-              <NavLink to="/policy-quiz">정책퀴즈</NavLink>
+              <NavLink to="/electionQuiz">정책퀴즈</NavLink>
             </NavItem>
             <NavItem>
               <NavLink to="/community">커뮤니티</NavLink>

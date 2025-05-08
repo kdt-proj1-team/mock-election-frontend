@@ -15,6 +15,8 @@ import CandidateDetail from "./pages/CandidateDetailPage"
 import CommunityPage from './pages/CommunityPage';
 import PostEditor from "./components/community/PostEditor";
 import PostDetail from './components/community/PostDetail'
+import ElectionQuiz from "./components/quiz/ElectionQuiz";
+
 
 const theme = {
     colors: {
@@ -98,6 +100,12 @@ const App = () => {
                         }
                     />
                     <Route path="/community/post/:id" element={<PostDetail/>}/>
+
+                    {/* 정책 퀴즈 페이지 경로*/}
+                    <Route
+                        path="/electionQuiz" element={<ElectionQuiz/>}
+                    ></Route>
+
 
                     {/* 존재하지 않는 경로는 홈페이지로 리디렉션 */}
                     <Route path="*" element={<Navigate to="/"/>}/>
