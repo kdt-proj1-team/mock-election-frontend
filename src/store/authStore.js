@@ -27,21 +27,31 @@ const useAuthStore = create((set, get) => ({
       console.log('구글 로그인 응답:', response.data);
 
       if (response.data.success && response.data.data) {
-        const { token, userId, role } = response.data.data;
+        const { token: authToken, userId, role, email, name, nickname, profileImgUrl } = response.data.data;
 
-        if (token && userId) {
-          localStorage.setItem('token', token);
+        if (authToken && userId) {
+          // 토큰과 기본 정보 저장
+          localStorage.setItem('token', authToken);
           localStorage.setItem('userId', userId);
           localStorage.setItem('role', role || 'USER');
 
+          // 사용자 프로필 정보가 응답에 있다면 함께 저장
+          if (email) localStorage.setItem('email', email);
+          if (name) localStorage.setItem('name', name);
+          if (nickname) localStorage.setItem('nickname', nickname);
+          if (profileImgUrl) localStorage.setItem('profileImgUrl', profileImgUrl);
+
+          // 상태 업데이트 - 모든 사용자 정보 포함
           set({
             isAuthenticated: true,
-            userId: userId,
+            userId,
             role: role || 'USER',
+            email: email || null,
+            name: name || null,
+            nickname: nickname || null,
+            profileImgUrl: profileImgUrl || null,
+            userInfoRefreshed: true
           });
-
-          // 로그인 성공 후 사용자 정보 가져오기
-          get().refreshUserInfo();
 
           return { success: true };
         } else {
@@ -127,22 +137,23 @@ const useAuthStore = create((set, get) => ({
 
     try {
       const response = await authAPI.getUserInfo();
+      console.log('사용자 정보 응답:', response.data);
 
       if (response.data && response.data.data) {
         const userData = response.data.data;
 
         // 사용자 정보를 localStorage에 저장
-        localStorage.setItem('email', userData.email || '');
-        localStorage.setItem('name', userData.name || '');
-        localStorage.setItem('nickname', userData.nickname || '');
-        localStorage.setItem('profileImgUrl', userData.profileImgUrl || '');
+        if (userData.email) localStorage.setItem('email', userData.email);
+        if (userData.name) localStorage.setItem('name', userData.name);
+        if (userData.nickname) localStorage.setItem('nickname', userData.nickname);
+        if (userData.profileImgUrl) localStorage.setItem('profileImgUrl', userData.profileImgUrl);
 
         // 상태 업데이트
         set({
-          email: userData.email,
-          name: userData.name,
-          nickname: userData.nickname,
-          profileImgUrl: userData.profileImgUrl,
+          email: userData.email || get().email,
+          name: userData.name || get().name,
+          nickname: userData.nickname || get().nickname,
+          profileImgUrl: userData.profileImgUrl || get().profileImgUrl,
           userInfoRefreshed: true,
           isLoading: false
         });

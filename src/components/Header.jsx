@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import styled from 'styled-components';
 import useAuthStore from '../store/authStore';
@@ -163,15 +163,24 @@ const Header = () => {
     profileImgUrl,
     role,
     logout,
-    deleteAccount
+    refreshUserInfo
   } = useAuthStore();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // 컴포넌트 마운트 시, 로그인 상태라면 사용자 정보 새로고침
+  useEffect(() => {
+    if (isAuthenticated) {
+      refreshUserInfo();
+    }
+  }, [isAuthenticated, refreshUserInfo]);
 
   const handleLogout = useCallback(() => {
     logout();
     navigate('/login');
   }, [logout, navigate]);
 
+  // 사용하지 않는 함수는 주석 처리 (no-unused-vars 경고 해결)
+  /*
   const handleDeleteAccount = useCallback(async () => {
     if (window.confirm('정말로 회원 탈퇴하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
       const result = await deleteAccount();
@@ -180,16 +189,21 @@ const Header = () => {
       }
     }
   }, [deleteAccount, navigate]);
+  */
 
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
   };
 
+  // 사용하지 않는 함수는 주석 처리 (no-unused-vars 경고 해결)
+  /*
   const handleAdminPageClick = () => {
     navigate('/admin');
   };
+  */
 
-  const displayName = nickname || name || userId;
+  // 이름 표시 우선순위: 닉네임 > 이름 > 아이디
+  const displayName = nickname || name || userId || '';
 
   return (
       <HeaderContainer>
@@ -201,9 +215,9 @@ const Header = () => {
 
         <Navigation $isOpen={mobileMenuOpen}>
           <NavList>
-            <NavItem>
-              <NavLink to="/#">용어정리</NavLink>
-            </NavItem>
+            {/*<NavItem>*/}
+            {/*  <NavLink to="/#">용어정리</NavLink>*/}
+            {/*</NavItem>*/}
             <NavItem>
               <NavLink to="/candidate-compare">후보비교</NavLink>
             </NavItem>
@@ -245,11 +259,11 @@ const Header = () => {
                   <UserName>{displayName}</UserName>
                 </UserInfo>
                 <Button $outline onClick={handleLogout}>로그아웃</Button>
-                {/*<Button outline onClick={handleDeleteAccount}>회원탈퇴</Button>*/}
+                {/*<Button $outline onClick={handleDeleteAccount}>회원탈퇴</Button>*/}
               </ButtonGroup>
           ) : (
               <ButtonGroup>
-                {/*<Button outline onClick={() => navigate('/login')}>로그인</Button>*/}
+                {/*<Button $outline onClick={() => navigate('/login')}>로그인</Button>*/}
                 <Button onClick={() => navigate('/login')}>간편로그인</Button>
               </ButtonGroup>
           )}
