@@ -12,6 +12,7 @@ import Image from '@tiptap/extension-image'
 
 import styled from 'styled-components';
 import { postAPI } from '../../api/PostApi';
+import { fileAPI } from '../../api/FileApi';
 import useCategoryStore from '../../store/categoryStore';
 
 // #region styled-components
@@ -283,9 +284,9 @@ const PostEditor = () => {
         attachments: [],
     });
 
+    // postId로 게시글 불러오기
     useEffect(() => {
         if (isEdit) {
-            // postId로 게시글 불러오기
             fetchPost(postId);
         }
     }, [postId]);
@@ -300,7 +301,7 @@ const PostEditor = () => {
         });
     };
 
-
+    // 텍스트 에디터 글씨 크기 설정
     const FontSize = Mark.create({
         name: 'fontSize',
 
@@ -357,7 +358,7 @@ const PostEditor = () => {
         },
     });
 
-
+    // 텍스트 에디터 설정
     const editor = useEditor({
         extensions: [
             StarterKit,
@@ -387,8 +388,6 @@ const PostEditor = () => {
                     };
                 },
             })
-
-
         ],
         content: formData.content || '',
         onUpdate: ({ editor }) => {
@@ -399,6 +398,7 @@ const PostEditor = () => {
         },
     });
 
+    // 사진 리사이즈 UI
     useEffect(() => {
         if (!editor) return;
 
@@ -423,21 +423,20 @@ const PostEditor = () => {
         return () => document.removeEventListener('click', handleClick);
     }, [editor]);
 
+    // 사진 리사이즈 UI 클릭 이벤트
     const handleResizeClick = (width) => {
         if (!editor) return;
-        // 1) 이미지 노드의 속성만 updateAttributes로 간단히 변경
+
         editor
             .chain()
             .focus()
             .updateAttributes('image', { width })
             .run();
 
-        // 2) UI 숨기기
         setImageResizeUI({ visible: false, top: 0, left: 0, pos: null });
     };
 
-
-
+    // 텍스트 에디터 툴바 클릭 이벤트
     const handleToolbarClick = (action) => {
         if (!editor) return;
 
@@ -477,9 +476,40 @@ const PostEditor = () => {
         }
     };
 
+    // 게시글 submit 핸들러
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        if (!formData.title || !selectedCategory || !editor) {
+            alert("제목, 카테고리, 내용을 모두 입력해주세요.");
+            return;
+        }
+
+        const contentHTML = editor.getHTML();
+
+        // 첫 번째 이미지 추출
+        const match = contentHTML.match(/<img[^>]+src="([^">]+)"/);
+        const thumbnailUrl = match?.[1] ?? null;
+
+        try {
+            const postId = await postAPI.createPost({
+                categoryId: selectedCategory.id,
+                title: formData.title,
+                content: contentHTML,
+                authorId: localStorage.getItem("userId"),
+                thumbnailUrl: thumbnailUrl
+            });
+            
+            navigate(`/community/${postId}`);
+        } catch (err) {
+            console.error("게시글 등록 실패", err);
+            alert("게시글 등록에 실패했습니다.");
+        }
+    };
+
     return (
         <Container>
-            <WriteForm>
+            <WriteForm onSubmit={handleSubmit}>
                 <FormHeader>
                     <h1>게시글 작성하기</h1>
                     <p>여러분의 생각을 자유롭게 작성해주세요. 건전한 토론 문화를 만들어갑니다.</p>
@@ -487,7 +517,14 @@ const PostEditor = () => {
 
                 <FormGroup>
                     <Label htmlFor="title">제목</Label>
-                    <Input id="title" placeholder="제목을 입력해주세요" />
+                    <Input
+                        id="title"
+                        placeholder="제목을 입력해주세요"
+                        value={formData.title}
+                        onChange={(e) =>
+                            setFormData((prev) => ({ ...prev, title: e.target.value }))
+                        }
+                    />
                 </FormGroup>
 
                 <FormGroup>
@@ -550,17 +587,20 @@ const PostEditor = () => {
 
                         <UploadLabel>
                             <i>📁</i>
-                            <HiddenFileInput onChange={(e) => {
-                                const file = e.target.files?.[0];
-                                if (!file || !editor) return;
+                            <HiddenFileInput
+                                onChange={async (e) => {
+                                    const file = e.target.files?.[0];
+                                    if (!file || !editor) return;
 
-                                const reader = new FileReader();
-                                reader.onload = () => {
-                                    const base64 = reader.result;
-                                    editor.chain().focus().setImage({ src: base64, width: '100%' }).run();  // width 설정
-                                };
-                                reader.readAsDataURL(file);
-                            }} />
+                                    try {
+                                        const url = await fileAPI.upload("post_images", file); // GCS 업로드 후 URL 받아옴
+                                        editor.chain().focus().setImage({ src: url, width: '100%' }).run(); // 에디터에 이미지 삽입
+                                    } catch (err) {
+                                        console.error("이미지 업로드 실패", err);
+                                        alert("이미지 업로드에 실패");
+                                    }
+                                }}
+                            />
                             이미지 추가
                         </UploadLabel>
                     </EditorToolbar>
