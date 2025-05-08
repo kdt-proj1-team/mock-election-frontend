@@ -5,6 +5,7 @@ import {ThemeProvider} from 'styled-components';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import AdminPage from './pages/AdminPage';
+import MyPage from "./pages/MyPage";
 import useAuthStore from './store/authStore';
 import MockVoting from './components/mock-voting/MockVoting';
 import MockVotingDetail from './components/mock-voting/MockVotingDetail';
@@ -62,6 +63,9 @@ const App = () => {
                     {/* 가상투표 페이지 */}
                     <Route path="/mock-voting" element={<MockVoting/>}/>
                     <Route path="/mock-voting/:id" element={<MockVotingDetail/>}/>
+
+                    {/* 마이 페이지 경로 */}
+                    <Route path="/mypage" element={<MyPage/>}/>
 
                     {/* 관리자 페이지 경로 */}
                     <Route
