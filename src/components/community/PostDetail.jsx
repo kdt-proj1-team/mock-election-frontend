@@ -417,9 +417,7 @@ const PostDetail = () => {
                 </Actions>
             </Meta>
 
-            <Content>
-                {post.content}
-            </Content>
+            <Content dangerouslySetInnerHTML={{ __html: post.content }} />
 
             <Footer>
                 <VoteButtons>
