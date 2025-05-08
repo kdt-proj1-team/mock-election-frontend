@@ -18,31 +18,31 @@ const useAuthStore = create((set, get) => ({
   ...getInitialState(),
   isLoading: false,
   error: null,
-  
+
   // 구글 로그인
   googleLogin: async (token) => {
     set({ isLoading: true, error: null });
     try {
       const response = await authAPI.googleLogin(token);
       console.log('구글 로그인 응답:', response.data);
-      
+
       if (response.data.success && response.data.data) {
         const { token, userId, role } = response.data.data;
-        
+
         if (token && userId) {
           localStorage.setItem('token', token);
           localStorage.setItem('userId', userId);
           localStorage.setItem('role', role || 'USER');
-          
+
           set({
             isAuthenticated: true,
             userId: userId,
             role: role || 'USER',
           });
-          
+
           // 로그인 성공 후 사용자 정보 가져오기
           get().refreshUserInfo();
-          
+
           return { success: true };
         } else {
           throw new Error('토큰 또는 사용자 ID가 누락되었습니다.');
@@ -52,7 +52,7 @@ const useAuthStore = create((set, get) => ({
       }
     } catch (error) {
       console.error('구글 로그인 에러:', error);
-      set({ 
+      set({
         error: error.response?.data?.message || error.message || '구글 로그인 중 오류가 발생했습니다.'
       });
       return { success: false };
@@ -60,7 +60,7 @@ const useAuthStore = create((set, get) => ({
       set({ isLoading: false });
     }
   },
-  
+
   // 로그아웃
   logout: async () => {
     set({ isLoading: true });
@@ -78,7 +78,7 @@ const useAuthStore = create((set, get) => ({
       localStorage.removeItem('nickname');
       localStorage.removeItem('profileImgUrl');
       localStorage.removeItem('role');
-      
+
       // 상태 초기화
       set({
         isAuthenticated: false,
@@ -93,19 +93,19 @@ const useAuthStore = create((set, get) => ({
       });
     }
   },
-  
+
   // 회원 탈퇴
   deleteAccount: async () => {
     set({ isLoading: true, error: null });
     try {
       await authAPI.deleteAccount();
-      
+
       // 회원 탈퇴 성공 후 로그아웃 처리
       get().logout();
-      
+
       return { success: true };
     } catch (error) {
-      set({ 
+      set({
         error: error.response?.data?.message || '회원 탈퇴 중 오류가 발생했습니다.'
       });
       return { success: false };
@@ -113,32 +113,32 @@ const useAuthStore = create((set, get) => ({
       set({ isLoading: false });
     }
   },
-  
+
   // 사용자 정보 새로고침
-refreshUserInfo: async () => {
+  refreshUserInfo: async () => {
     const { isLoading, isAuthenticated } = get();
-    
+
     // 이미 로딩 중이거나 인증되지 않은 경우 API 호출 방지
     if (isLoading || !isAuthenticated) {
       return;
     }
-    
+
     set({ isLoading: true });
-    
+
     try {
       const response = await authAPI.getUserInfo();
-      
+
       if (response.data && response.data.data) {
         const userData = response.data.data;
-        
+
         // 사용자 정보를 localStorage에 저장
         localStorage.setItem('email', userData.email || '');
         localStorage.setItem('name', userData.name || '');
         localStorage.setItem('nickname', userData.nickname || '');
         localStorage.setItem('profileImgUrl', userData.profileImgUrl || '');
-        
+
         // 상태 업데이트
-        set({ 
+        set({
           email: userData.email,
           name: userData.name,
           nickname: userData.nickname,
@@ -149,21 +149,39 @@ refreshUserInfo: async () => {
       }
     } catch (error) {
       console.error('사용자 정보 가져오기 오류:', error);
-      
+
       // 토큰이 유효하지 않은 경우 로그아웃
       if (error.response?.status === 401) {
         get().logout();
       }
-      
+
       set({ isLoading: false });
     }
   },
-  
+
+  // 사용자 프로필 정보 업데이트 (새로 추가된 함수)
+  updateUserProfile: (updatedData) => {
+    // 로컬 스토리지 업데이트
+    if (updatedData.nickname) {
+      localStorage.setItem('nickname', updatedData.nickname);
+    }
+    if (updatedData.profileImgUrl) {
+      localStorage.setItem('profileImgUrl', updatedData.profileImgUrl);
+    }
+
+    // 상태 업데이트
+    set((state) => ({
+      ...state,
+      nickname: updatedData.nickname || state.nickname,
+      profileImgUrl: updatedData.profileImgUrl || state.profileImgUrl
+    }));
+  },
+
   // 사용자가 관리자인지 확인하는 헬퍼 함수
   isAdmin: () => {
     return get().role === 'ADMIN';
   },
-  
+
   // 에러 초기화
   clearError: () => set({ error: null }),
 }));

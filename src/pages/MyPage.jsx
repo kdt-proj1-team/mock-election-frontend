@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { authAPI } from '../api/AuthApi';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
+import useAuthStore from '../store/authStore'; // auth 스토어 가져오기
 
 // 스타일 컴포넌트 정의
 const PageContainer = styled.div`
@@ -132,6 +133,8 @@ const DangerZone = styled.div`
   border-top: 1px dashed #ddd;
 `;
 
+
+
 const MyPage = () => {
     const [userInfo, setUserInfo] = useState(null);
     const [editing, setEditing] = useState(false);
@@ -140,7 +143,15 @@ const MyPage = () => {
     const [selectedFile, setSelectedFile] = useState(null);
     const navigate = useNavigate();
 
+    const { updateUserProfile, deleteAccount, isAuthenticated } = useAuthStore();
+
     useEffect(() => {
+
+        if (!isAuthenticated) {
+            navigate('/login');
+            return;
+        }
+
         const fetchUserInfo = async () => {
             try {
                 const res = await authAPI.getUserInfo();
@@ -153,7 +164,7 @@ const MyPage = () => {
             }
         };
         fetchUserInfo();
-    }, [navigate]);
+    }, [navigate, isAuthenticated]);
 
     const handleFileChange = (e) => {
         const file = e.target.files[0];
@@ -169,9 +180,20 @@ const MyPage = () => {
             form.append('nickname', nickname);
             if (selectedFile) form.append('profileImage', selectedFile);
 
-            await authAPI.updateUserInfo(form);
+            const response = await authAPI.updateUserInfo(form);
+
+            // 서버로부터 받은 업데이트된 정보
+            const updatedData = response.data.data;
+
+            // 글로벌 상태 업데이트 (헤더에 바로 반영하기 위해)
+            updateUserProfile({
+                nickname: updatedData.nickname,
+                profileImgUrl: updatedData.profileImgUrl
+            });
+
             alert('닉네임과 프로필이 수정되었습니다.');
             setEditing(false);
+
             // 업데이트된 정보 재조회
             const res = await authAPI.getUserInfo();
             setUserInfo(res.data.data);
@@ -186,9 +208,13 @@ const MyPage = () => {
     const handleDeleteAccount = async () => {
         if (window.confirm('정말로 회원 탈퇴하시겠습니까?')) {
             try {
-                await authAPI.deleteAccount();
-                localStorage.removeItem('token');
-                navigate('/signup');
+                // 스토어의 deleteAccount 함수 사용 (전역 상태 관리 및 로그아웃 처리 포함)
+                const result = await deleteAccount();
+                if (result.success) {
+                    navigate('/signup');
+                } else {
+                    alert('회원 탈퇴 중 오류 발생: ' + (result.error || '알 수 없는 오류'));
+                }
             } catch (err) {
                 console.error('회원 탈퇴 실패:', err);
                 alert('회원 탈퇴 중 오류 발생');
