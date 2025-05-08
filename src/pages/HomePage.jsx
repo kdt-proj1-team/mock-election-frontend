@@ -8,6 +8,7 @@ import NewsSection from '../components/home/news/NewsSection';
 import PollSection from '../components/home/poll/PollSection';
 import KeywordsSection from '../components/home/keywords/KeywordsSection';
 import CTASection from '../components/home/CTASection';
+import YoutubeSection from "../components/home/youtube/YoutubeSection";
 
 // 스타일 컴포넌트 정의
 const PageContainer = styled.div`
@@ -75,6 +76,7 @@ const HomePage = () => {
         <HeroSection />
         <FeaturesSection />
         <NewsSection />
+          <YoutubeSection/>
         <PollSection />
         <KeywordsSection />
         <CTASection/>

@@ -88,7 +88,12 @@ export const authAPI = {
 
       throw error;
     }
-  }
+  },
+    updateUserInfo: async (formData) => {
+        return await api.patch('/me', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+        });
+    }
 };
 
 export default api;
