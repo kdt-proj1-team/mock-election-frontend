@@ -110,21 +110,6 @@ const FileButton = styled.label`
   }
 `;
 
-const PreviewImages = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 10px;
-`;
-
-const PreviewImage = styled.img`
-  width: 100px;
-  height: 100px;
-  border-radius: 4px;
-  object-fit: cover;
-  border: 1px solid #eee;
-`;
-
 const EditorContainer = styled.div`
   border: 1px solid #ddd;
   border-radius: 4px;
@@ -273,7 +258,7 @@ const PostEditor = () => {
     const { postId } = useParams();
     const isEdit = !!postId;
 
-    const { categories, selectedCategory, setSelectedCategory } = useCategoryStore();
+    const { categories, selectedCategory, setSelectedCategory, fetchCategories } = useCategoryStore();
     const [imageResizeUI, setImageResizeUI] = useState({ visible: false, top: 0, left: 0, pos: null });
 
 
@@ -283,6 +268,13 @@ const PostEditor = () => {
         category: "",
         attachments: [],
     });
+
+    useEffect(() => {
+        // 카테고리가 비어 있다면 서버에서 다시 불러옴
+        if (categories.length === 0) {
+            fetchCategories();
+        }
+    }, []);
 
     // postId로 게시글 불러오기
     useEffect(() => {
@@ -499,7 +491,7 @@ const PostEditor = () => {
                 authorId: localStorage.getItem("userId"),
                 thumbnailUrl: thumbnailUrl
             });
-            
+
             navigate(`/community/${postId}`);
         } catch (err) {
             console.error("게시글 등록 실패", err);
@@ -548,9 +540,6 @@ const PostEditor = () => {
                         <i>📎</i> 파일 선택하기
                         <input type="file" id="file-upload" multiple style={{ display: 'none' }} />
                     </FileButton>
-                    <PreviewImages>
-                        <PreviewImage src="/api/placeholder/100/100" alt="미리보기" />
-                    </PreviewImages>
                 </FileUpload>
 
                 <EditorContainer>
