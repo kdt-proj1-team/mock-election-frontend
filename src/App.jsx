@@ -17,7 +17,7 @@ import PostEditor from "./components/community/PostEditor";
 import PostDetail from './components/community/PostDetail'
 import ElectionQuiz from "./components/quiz/ElectionQuiz";
 import ChatbotPage from './pages/ChatbotPage';
-
+import GlossaryPopup from "./components/glossary/GlossaryPopup";
 
 const theme = {
     colors: {
@@ -54,6 +54,7 @@ const App = () => {
 
     return (
         <ThemeProvider theme={theme}>
+            <GlossaryPopup/>
             <Router>
                 <Header/>
                 <Routes>
