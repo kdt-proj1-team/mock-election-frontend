@@ -549,7 +549,7 @@ const PostEditor = () => {
                 formDataObj.append("attachments", file);
             });
 
-            const postId = await postAPI.createPost(formDataObj);
+            const postId = await postAPI.create(formDataObj);
             
             navigate(`/community/post/${postId}`);
         } catch (err) {

@@ -22,7 +22,7 @@ export const postAPI = {
 
     // 게시글 상세 조회
     getPostDetail: async (postId) => {
-        const response = await api.get(`/${postId}`, {withCredentials: true});
+        const response = await api.get(`/${postId}`, { withCredentials: true });
         return response.data.data;
     },
 
@@ -38,7 +38,7 @@ export const postAPI = {
     },
 
     // 게시글 등록
-    createPost: async (postData) => {
+    create: async (postData) => {
         const response = await api.post('', postData, {
             headers: {
                 'Content-Type': 'multipart/form-data',
@@ -46,5 +46,11 @@ export const postAPI = {
         });
 
         return response.data.data;
-    }
+    },
+
+    // 게시글 삭제
+    delete: async (postId) => {
+        const response = await api.delete(`/${postId}`);
+        return response.data.data;
+    },
 };
