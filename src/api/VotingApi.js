@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // API 인스턴스 생성
 const api = axios.create({
-    baseURL: process.env.REACT_APP_API_URL || 'http://localhost/api/votings',
+    baseURL: process.env.REACT_VOTING_API_URL || 'http://localhost/api/votings',
     headers: {
         'Content-Type': 'application/json',
     },

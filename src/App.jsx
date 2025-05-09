@@ -5,6 +5,7 @@ import {ThemeProvider} from 'styled-components';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import AdminPage from './pages/AdminPage';
+import MyPage from "./pages/MyPage";
 import useAuthStore from './store/authStore';
 import MockVoting from './components/mock-voting/MockVoting';
 import MockVotingDetail from './components/mock-voting/MockVotingDetail';
@@ -14,6 +15,9 @@ import CandidateDetail from "./pages/CandidateDetailPage"
 import CommunityPage from './pages/CommunityPage';
 import PostEditor from "./components/community/PostEditor";
 import PostDetail from './components/community/PostDetail'
+import ElectionQuiz from "./components/quiz/ElectionQuiz";
+import ChatbotPage from './pages/ChatbotPage';
+
 
 const theme = {
     colors: {
@@ -63,6 +67,9 @@ const App = () => {
                     <Route path="/mock-voting" element={<MockVoting/>}/>
                     <Route path="/mock-voting/:id" element={<MockVotingDetail/>}/>
 
+                    {/* 마이 페이지 경로 */}
+                    <Route path="/mypage" element={<MyPage/>}/>
+
                     {/* 관리자 페이지 경로 */}
                     <Route
                         path="/admin"
@@ -94,6 +101,14 @@ const App = () => {
                         }
                     />
                     <Route path="/community/post/:id" element={<PostDetail/>}/>
+
+                    {/* 정책 퀴즈 페이지 경로*/}
+                    <Route
+                        path="/electionQuiz" element={<ElectionQuiz/>}
+                    ></Route>
+
+                    {/* 챗봇 페이지 경로 추가 */}
+                    <Route path="/chatbot" element={<ChatbotPage />} />
 
                     {/* 존재하지 않는 경로는 홈페이지로 리디렉션 */}
                     <Route path="*" element={<Navigate to="/"/>}/>
