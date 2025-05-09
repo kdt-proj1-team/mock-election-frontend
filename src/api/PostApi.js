@@ -22,7 +22,7 @@ export const postAPI = {
 
     // 게시글 상세 조회
     getPostDetail: async (postId) => {
-        const response = await api.get(`/${postId}`);
+        const response = await api.get(`/${postId}`, {withCredentials: true});
         return response.data.data;
     },
 
@@ -39,7 +39,12 @@ export const postAPI = {
 
     // 게시글 등록
     createPost: async (postData) => {
-        const response = await api.post('', postData);
+        const response = await api.post('', postData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+
         return response.data.data;
     }
 };
