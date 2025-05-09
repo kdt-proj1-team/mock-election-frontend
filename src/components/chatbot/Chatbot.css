@@ -1,0 +1,124 @@
+/* src/components/chatbot/Chatbot.css */
+@keyframes typing {
+    0%, 60%, 100% {
+        transform: translateY(0);
+    }
+    30% {
+        transform: translateY(-6px);
+    }
+}
+
+/* 애니메이션 추가 */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 사용자 메시지 말풍선 애니메이션 */
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* 봇 메시지 말풍선 애니메이션 */
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* 메시지 부모 컨테이너에 애니메이션 적용 */
+.user-message-container {
+    animation: slideInRight 0.3s ease-out forwards;
+}
+
+.bot-message-container {
+    animation: slideInLeft 0.3s ease-out forwards;
+}
+
+/* 말풍선 스타일 개선 */
+.message-bubble {
+    word-break: break-word;
+    hyphens: auto;
+}
+
+.user-message {
+    background-color: #e0e0e3 !important;
+    color: #333 !important;
+    border-bottom-right-radius: 4px !important;
+    align-self: flex-end !important;
+    box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.1), inset -2px -2px 5px rgba(255, 255, 255, 0.7) !important;
+}
+
+.bot-message {
+    background-color: #ffffff !important;
+    color: #333 !important;
+    border-bottom-left-radius: 4px !important;
+    align-self: flex-start !important;
+    box-shadow: 3px 3px 6px rgba(0, 0, 0, 0.1), -3px -3px 6px rgba(255, 255, 255, 0.7) !important;
+}
+
+/* 소스 링크 스타일 */
+.source-link {
+    color: #3366cc;
+    text-decoration: underline;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.source-link:hover {
+    color: #1a4aad;
+}
+
+/* 반응형 조정 */
+@media (max-width: 768px) {
+    .chatbot-container {
+        height: calc(100vh - 80px);
+        margin: 10px;
+        border-radius: 10px;
+    }
+
+    .message-bubble {
+        max-width: 85%;
+    }
+
+    .chatbot-messages {
+        padding: 10px;
+    }
+}
+
+/* 스크롤바 커스터마이징 */
+.chatbot-messages::-webkit-scrollbar {
+    width: 8px;
+}
+
+.chatbot-messages::-webkit-scrollbar-track {
+    background: #f0f0f3;
+    border-radius: 10px;
+}
+
+.chatbot-messages::-webkit-scrollbar-thumb {
+    background: #d0d0d5;
+    border-radius: 10px;
+}
+
+.chatbot-messages::-webkit-scrollbar-thumb:hover {
+    background: #b0b0b5;
+}

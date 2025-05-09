@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import styled from 'styled-components';
 import {useNavigate} from "react-router-dom";
 
@@ -17,7 +17,7 @@ const CardInner = styled.div`
     position: relative;
     transition: transform 0.6s;
     transform-style: preserve-3d;
-    transform: ${({ flipped }) => (flipped ? 'rotateY(180deg)' : 'rotateY(0deg)')};
+    transform: ${({flipped}) => (flipped ? 'rotateY(180deg)' : 'rotateY(0deg)')};
 `;
 
 const Side = styled.div`
@@ -25,7 +25,7 @@ const Side = styled.div`
     height: 100%;
     padding: 16px;
     border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     background-color: white;
     position: absolute;
     backface-visibility: hidden;
@@ -47,7 +47,7 @@ const CardBack = styled(Side)`
 
 const Photo = styled.img`
     width: 100%;
-    height: 150px;
+    height: 80%;
     object-fit: cover;
     border-radius: 8px;
 `;
@@ -77,7 +77,7 @@ const DetailButton = styled.button`
 `;
 
 
-const CandidateCard = ({ candidate }) => {
+const CandidateCard = ({candidate}) => {
     const [flipped, setFlipped] = useState(false);
     const navigate = useNavigate(); // 추가
 
@@ -96,6 +96,7 @@ const CandidateCard = ({ candidate }) => {
         const day = raw.substring(6, 8);
         return `${year}년 ${month}월 ${day}일`;
     };
+    const defaultProfileUrl = "https://tse4.mm.bing.net/th?id=OIP.8V2TgiQxl7jLPiWNnM6v7AHaHa&pid=Api\n";
 
 
     return (
@@ -103,7 +104,7 @@ const CandidateCard = ({ candidate }) => {
             <CardInner flipped={flipped}>
                 <CardFront>
                     <Photo
-                        src={candidate.profileUrl}
+                        src={candidate.profileUrl ? candidate.profileUrl : defaultProfileUrl}
                         alt={candidate.name}
                     />
                     <Name>{candidate.name}</Name>
@@ -119,7 +120,7 @@ const CandidateCard = ({ candidate }) => {
                         <li>경력1: {candidate.career1}</li>
                         <li>경력2: {candidate.career2}</li>
                     </DetailList>
-                    <DetailButton onClick={handleDetailClick}>공략 보기</DetailButton>
+                    <DetailButton onClick={handleDetailClick}>공약 보기</DetailButton>
                 </CardBack>
             </CardInner>
         </Card>
