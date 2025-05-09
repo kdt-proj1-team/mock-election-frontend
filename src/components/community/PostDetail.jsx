@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from "react-router-dom";
 import styled from 'styled-components';
-import { FaPencilAlt, FaTrash, FaArrowUp, FaArrowDown, FaFlag, FaReply, FaPen, FaHome, FaList, FaEye } from 'react-icons/fa';
+import { FaPencilAlt, FaTrash, FaArrowUp, FaArrowDown, FaFlag, FaReply, FaPen, FaHome, FaList, FaEye, FaCommentDots } from 'react-icons/fa';
 import { postAPI } from '../../api/PostApi';
 import { format, parseISO } from 'date-fns';
 
@@ -52,7 +52,8 @@ const Info = styled.div`
 
 const Actions = styled.div`
   display: flex;
-  gap: 10px;
+  gap: 15px;
+  padding-right: 5px;
 `;
 
 const ActionButton = styled.button`
@@ -63,7 +64,7 @@ const ActionButton = styled.button`
   font-size: 14px;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
   &:hover {
     color: #4d82f3;
   }
@@ -75,7 +76,7 @@ const ActionButton = styled.button`
   }
 `;
 
-const ViewCount = styled.div`
+const PostStats = styled.div`
   display: flex;
   align-items: center;
   font-size: 14px;
@@ -90,15 +91,23 @@ const ViewCount = styled.div`
 `;
 
 const AttachmentSection = styled.div`
-  padding-bottom: 15px;
+  padding-bottom: 10px;
   margin-bottom: 30px;
-  font-size: 15px;
   border-bottom: 1px solid #eee;
+  display: flex;
 `;
+
+const AttachmentLabel = styled.div`
+  font-weight: bold;
+  color: ${({ theme }) => theme.colors.dark};
+  margin-right: 15px;
+  font-size: 13px;
+`
 
 const AttachmentList = styled.ul`
   color: #444;
   display: flex;
+  font-size: 12px;
 `;
 
 const AttachmentItem = styled.li`
@@ -113,6 +122,12 @@ const AttachmentItem = styled.li`
 const AttachmentLink = styled.a`
   color: ${({ theme }) => theme.colors.dark};
   text-decoration: none;
+  max-width: 175px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: inline-block;
+  vertical-align: bottom;
 
   &:hover {
   color: ${({ theme }) => theme.colors.secondary};
@@ -121,8 +136,8 @@ const AttachmentLink = styled.a`
 
 const AttachmentSize = styled.span`
   color: ${({ theme }) => theme.colors.dark};
-  margin-left: 3px;
-  font-size: 12px;
+  margin-left: 1px;
+  font-size: 11px;
 `;
 
 const Content = styled.div`
@@ -432,6 +447,22 @@ const PostDetail = () => {
 
   const { id } = useParams();
   const [post, setPost] = useState(null);
+  const userId = localStorage.getItem("userId");
+  const isAuthor = post && post.authorId === userId;
+
+  // 게시글 삭제 핸들러
+  const handleDelete = async () => {
+    if (!window.confirm("게시글을 삭제하시겠습니까?")) return;
+  
+    try {
+      await postAPI.delete(id);
+      navigate("/community");
+    } catch (error) {
+      console.error("게시글 삭제 실패:", error);
+      alert("삭제에 실패했습니다. 다시 시도해주세요.");
+    }
+  };
+
 
   useEffect(() => {
     const fetchPostDetail = async () => {
@@ -462,18 +493,24 @@ const PostDetail = () => {
           )}
         </Info>
         <Actions>
-          <ActionButton><FaPencilAlt /> 수정</ActionButton>
-          <ActionButton><FaTrash /> 삭제</ActionButton>
-          <ViewCount><FaEye />{post.views}</ViewCount>
+          {isAuthor && (
+            <>
+            <ActionButton><FaPencilAlt /> 수정</ActionButton>
+            <ActionButton onClick={handleDelete}><FaTrash /> 삭제</ActionButton>
+            </>
+          )}
+          <PostStats><FaEye />{post.views} </PostStats>
+          <PostStats><FaCommentDots /> {post.commentCount}</PostStats>
         </Actions>
       </Meta>
 
       {post.attachments && post.attachments.length > 0 && (
         <AttachmentSection>
+          <AttachmentLabel>첨부파일</AttachmentLabel>
           <AttachmentList>
             {post.attachments.map((file, idx) => (
               <AttachmentItem key={idx}>
-                <AttachmentLink href={file.url} download target="_blank" rel="noopener noreferrer">
+                <AttachmentLink href={file.url} download target="_blank" rel="noopener noreferrer" title={file.name}>
                   · {file.name}
                 </AttachmentLink>
                 <AttachmentSize>({formatFileSize(file.size)})</AttachmentSize>
