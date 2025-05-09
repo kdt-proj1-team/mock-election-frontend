@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { votingAPI } from '../../api/VotingApi';
-import { authAPI } from '../../api/AuthApi';
+import useWalletStore from "../../store/walletStore";
 
-// 스타일 컴포넌트들
+// 스타일 컴포넌트들 - 기존 코드 유지
 const VoteCard = styled.div`
     background-color: #f0f0f3;
     border-radius: 20px;
@@ -37,8 +37,8 @@ const CandidateCard = styled.div`
     border-radius: 15px;
     padding: 20px;
     box-shadow: ${props => props.selected
-    ? 'inset 3px 3px 6px rgba(0, 0, 0, 0.1), inset -3px -3px 6px rgba(255, 255, 255, 0.7)'
-    : '6px 6px 12px rgba(0, 0, 0, 0.1), -6px -6px 12px rgba(255, 255, 255, 0.7)'};
+            ? 'inset 3px 3px 6px rgba(0, 0, 0, 0.1), inset -3px -3px 6px rgba(255, 255, 255, 0.7)'
+            : '6px 6px 12px rgba(0, 0, 0, 0.1), -6px -6px 12px rgba(255, 255, 255, 0.7)'};
     cursor: pointer;
     transition: all 0.3s ease;
     transform: ${props => props.selected ? 'scale(0.98)' : 'scale(1)'};
@@ -82,21 +82,21 @@ const CandidateParty = styled.div`
     font-size: 12px;
     font-weight: 500;
     background-color: ${props => {
-    switch(props.party) {
-        case '더불어민주당': return '#0050c8';
-        case '국민의힘': return '#e61e2b';
-        case '정의당': return '#ffcc00';
-        case '기본소득당': return '#7f2da0';
-        case '녹색당': return '#00b05d';
-        default: return '#888888';
-    }
-}};
+        switch(props.party) {
+            case '더불어민주당': return '#0050c8';
+            case '국민의힘': return '#e61e2b';
+            case '정의당': return '#ffcc00';
+            case '기본소득당': return '#7f2da0';
+            case '녹색당': return '#00b05d';
+            default: return '#888888';
+        }
+    }};
     color: ${props => {
-    switch(props.party) {
-        case '정의당': return '#000';
-        default: return '#fff';
-    }
-}};
+        switch(props.party) {
+            case '정의당': return '#000';
+            default: return '#fff';
+        }
+    }};
 `;
 
 const CandidateDetails = styled.div`
@@ -159,6 +159,7 @@ const NonVoterComponent = ({ election, candidates, onVoteComplete, onBackClick }
     const [selectedCandidate, setSelectedCandidate] = useState(null);
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState(null);
+    const { deductToken, tokenBalance } = useWalletStore();
 
     // 후보자 선택 핸들러
     const handleCandidateSelect = (candidateId) => {
@@ -180,6 +181,11 @@ const NonVoterComponent = ({ election, candidates, onVoteComplete, onBackClick }
         setError(null);
 
         try {
+            // 토큰 잔액 확인 (투표 전 최종 확인)
+            if (tokenBalance < 1) {
+                throw new Error('투표에 필요한 토큰이 부족합니다.');
+            }
+
             // 유효한 sgId 확인
             const sgId = election?.sgId;
             if (!sgId) {
@@ -188,11 +194,17 @@ const NonVoterComponent = ({ election, candidates, onVoteComplete, onBackClick }
 
             console.log(`투표 제출: sgId=${sgId}, candidateId=${selectedCandidate}`);
 
-            // 투표 제출 시도
-            let voteResult;
+            // 백엔드에서 토큰 차감 및 투표 처리가 일관성 있게 이루어짐
+            // 여기서는 직접 토큰을 차감하지 않고 백엔드에서 처리됨
             try {
-                voteResult = await votingAPI.submitVote(sgId, selectedCandidate);
+                const voteResult = await votingAPI.submitVote(sgId, selectedCandidate);
                 console.log('투표 제출 성공:', voteResult);
+
+                // 로컬 상태의 토큰 잔액 업데이트 (백엔드와 동기화를 위해)
+                deductToken(1);
+
+                // 결과 화면으로 전환
+                onVoteComplete(voteResult);
             } catch (voteError) {
                 // 서버 에러 응답 상세 로깅
                 console.error('투표 제출 중 오류:', voteError);
@@ -201,38 +213,26 @@ const NonVoterComponent = ({ election, candidates, onVoteComplete, onBackClick }
                     console.log('오류 상태 코드:', voteError.response.status);
                     console.log('오류 메시지:', voteError.response.data?.message);
 
+                    // 이미 투표한 경우 처리
                     if (voteError.response?.status === 400 &&
                         voteError.response?.data?.message?.includes('이미 투표')) {
                         console.log('이미 투표한 사용자입니다.');
-
-                        // 중요: 여기서 투표 완료 처리를 적절히 수행해야 함
-                        await authAPI.updateElectionStatus(true);
-
-                        // 부모 컴포넌트에 통지하여 UI 업데이트
                         onVoteComplete({ success: true });
                         return;
                     }
 
+                    // 토큰 부족 오류
+                    if (voteError.response?.data?.message?.includes('토큰 잔액이 부족')) {
+                        throw new Error('투표에 필요한 토큰이 부족합니다. 지갑을 확인해주세요.');
+                    }
                 }
 
                 // 다른 오류는 표시
                 throw voteError;
             }
-
-            // 사용자 투표 상태 업데이트
-            try {
-                await authAPI.updateElectionStatus(true);
-            } catch (updateError) {
-                console.error('사용자 투표 상태 업데이트 중 오류:', updateError);
-                // 투표 자체는 성공했으므로 계속 진행
-            }
-
-            // 결과 화면으로 전환
-            onVoteComplete(voteResult);
-
         } catch (error) {
             console.error('투표 처리 중 오류 발생:', error);
-            setError('투표 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+            setError(error.message || '투표 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
         } finally {
             setSubmitting(false);
         }
@@ -251,6 +251,7 @@ const NonVoterComponent = ({ election, candidates, onVoteComplete, onBackClick }
                     <SectionTitle>선거 안내</SectionTitle>
                     <p>{election?.description}</p>
                     <p>각 정당의 정책만 확인하고 투표하는 블라인드 투표입니다. 정책을 잘 읽고 투표해주세요.</p>
+                    <p><strong>참고:</strong> 투표에는 1개의 토큰이 사용됩니다. 현재 보유 토큰: {tokenBalance} 개</p>
                 </VoteSection>
 
                 <VoteSection>
@@ -289,7 +290,7 @@ const NonVoterComponent = ({ election, candidates, onVoteComplete, onBackClick }
                     onClick={handleSubmitVote}
                     disabled={!selectedCandidate || submitting}
                 >
-                    {submitting ? '처리 중...' : '투표하기'}
+                    {submitting ? '처리 중...' : '투표하기 (1 토큰 사용)'}
                 </SubmitButton>
             </VoteCard>
         </>

@@ -316,6 +316,12 @@ const WarningText = styled.p`
   margin-top: 15px;
 `;
 
+const InfoText = styled.p`
+  color: #3498db;
+  font-size: 14px;
+  margin-top: 15px;
+`;
+
 const Header = () => {
   const navigate = useNavigate();
   const {
@@ -337,7 +343,7 @@ const Header = () => {
     connectMetaMask,
     createNewWallet,
     disconnectWallet,
-    checkWalletStatus
+    checkWalletStatus,
   } = useWalletStore();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -345,6 +351,7 @@ const Header = () => {
   const [newWalletInfo, setNewWalletInfo] = useState(null);
   const [isLoadingWallet, setIsLoadingWallet] = useState(false);
   const [walletError, setWalletError] = useState(null);
+  const [walletMessage, setWalletMessage] = useState("");
 
   // 컴포넌트 마운트 시, 로그인 상태라면 사용자 정보 새로고침
   useEffect(() => {
@@ -379,6 +386,7 @@ const Header = () => {
     setShowWalletModal(true);
     setNewWalletInfo(null); // 이전 지갑 정보 초기화
     setWalletError(null); // 에러 초기화
+    setWalletMessage(""); // 메시지 초기화
   };
 
   // 지갑 모달 닫기
@@ -394,11 +402,22 @@ const Header = () => {
       setIsLoadingWallet(true);
       setWalletError(null);
 
-      await connectMetaMask();
+      // 메타마스크 연결 시작
+      const { address } = await connectMetaMask();
+      console.log("메타마스크 연결 성공:", address);
+
+      // 토큰 발급 상태에 따라 메시지 설정
+      // 이 부분은 백엔드 응답으로 판단 (토큰 발급 여부에 따라 응답이 달라짐)
+      setWalletMessage("지갑이 성공적으로 연결되었습니다.");
       closeWalletModal();
     } catch (error) {
       console.error('메타마스크 연결 오류:', error);
-      setWalletError(error.message || "메타마스크 연결에 실패했습니다. 메타마스크가 설치되어 있는지 확인해주세요.");
+      // 오류 응답 상세 로깅
+      if (error.response) {
+        console.log('상태 코드:', error.response.status);
+        console.log('응답 데이터:', error.response.data);
+      }
+      setWalletError(error.response?.data?.message || error.message || "메타마스크 연결에 실패했습니다. 메타마스크가 설치되어 있는지 확인해주세요.");
     } finally {
       setIsLoadingWallet(false);
     }
@@ -410,16 +429,25 @@ const Header = () => {
       setIsLoadingWallet(true);
       setWalletError(null);
 
+      // 지갑 생성 결과에는 address, mnemonic 정보가 들어있음
       const result = await createNewWallet();
+      console.log("새 지갑 생성 성공:", result);
 
       // 생성된 지갑 정보 표시
       setNewWalletInfo({
         address: result.address,
-        mnemonic: result.mnemonic
+        mnemonic: result.mnemonic,
+        tokenBalance: tokenBalance,
+        alreadyReceived: tokenBalance === 0 // 토큰이 0이면 이미 받은 것으로 간주
       });
     } catch (error) {
       console.error('지갑 생성 오류:', error);
-      setWalletError(error.message || "지갑 생성에 실패했습니다.");
+      // 오류 응답 상세 로깅
+      if (error.response) {
+        console.log('상태 코드:', error.response.status);
+        console.log('응답 데이터:', error.response.data);
+      }
+      setWalletError(error.response?.data?.message || error.message || "지갑 생성에 실패했습니다.");
     } finally {
       setIsLoadingWallet(false);
     }
@@ -479,6 +507,18 @@ const Header = () => {
 
           {isAuthenticated ? (
               <ButtonGroup>
+                {/*{isWalletConnected ? (*/}
+                {/*    <>*/}
+                {/*      <WalletBadge>*/}
+                {/*        <WalletIcon>💰</WalletIcon>*/}
+                {/*        <WalletAddress>{MetaMaskUtil.shortenAddress(walletAddress)}</WalletAddress>*/}
+                {/*        <TokenAmount>{tokenBalance} VT</TokenAmount>*/}
+                {/*      </WalletBadge>*/}
+                {/*      <Button $outline onClick={handleDisconnectWallet}>지갑해제</Button>*/}
+                {/*    </>*/}
+                {/*) : (*/}
+                {/*    <Button onClick={openWalletModal}>지갑연결</Button>*/}
+                {/*)}*/}
                 {isWalletConnected ? (
                     <>
                       <WalletBadge>
@@ -486,7 +526,7 @@ const Header = () => {
                         <WalletAddress>{MetaMaskUtil.shortenAddress(walletAddress)}</WalletAddress>
                         <TokenAmount>{tokenBalance} VT</TokenAmount>
                       </WalletBadge>
-                      <Button $outline onClick={handleDisconnectWallet}>지갑해제</Button>
+                      {/* 지갑 해제 버튼 제거 */}
                     </>
                 ) : (
                     <Button onClick={openWalletModal}>지갑연결</Button>
@@ -520,6 +560,13 @@ const Header = () => {
                     </div>
                 )}
 
+                {/* 성공 메시지 */}
+                {walletMessage && (
+                    <div style={{ color: 'green', marginBottom: '15px', fontSize: '14px' }}>
+                      {walletMessage}
+                    </div>
+                )}
+
                 {/* 새 지갑 정보 */}
                 {newWalletInfo ? (
                     <>
@@ -532,9 +579,23 @@ const Header = () => {
                           <InfoLabel>복구 구문 (니모닉)</InfoLabel>
                           <InfoValue>{newWalletInfo.mnemonic}</InfoValue>
                         </InfoItem>
+                        <InfoItem>
+                          <InfoLabel>토큰 잔액</InfoLabel>
+                          <InfoValue>
+                            {newWalletInfo.alreadyReceived ?
+                                "0 VT (이미 토큰을 발급받은 계정입니다)" :
+                                `${newWalletInfo.tokenBalance} VT (초기 토큰이 발급되었습니다!)`
+                            }
+                          </InfoValue>
+                        </InfoItem>
                         <WarningText>
                           중요: 복구 구문을 안전한 곳에 보관하세요. 이 정보는 지갑 복구에 필요하며, 이 창을 닫으면 다시 볼 수 없습니다!
                         </WarningText>
+                        {newWalletInfo.alreadyReceived && (
+                            <InfoText>
+                              참고: 토큰은 계정당 최초 1회만 발급됩니다. 이미 토큰을 발급받은 계정은 추가 토큰이 발급되지 않습니다.
+                            </InfoText>
+                        )}
                       </NewWalletInfo>
                       <Button
                           onClick={closeWalletModal}

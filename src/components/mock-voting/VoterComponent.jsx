@@ -183,9 +183,13 @@ const VoterComponent = ({ election, candidates, onBackClick }) => {
             setLoading(true);
             try {
                 const statsResponse = await votingAPI.getVoteStats(election.sgId);
+                console.log("투표 통계 로드 성공:", statsResponse);
                 setVoteStats(statsResponse);
             } catch (error) {
                 console.error('투표 통계 조회 중 오류 발생:', error);
+
+                // 오류가 발생해도 대체 통계 데이터를 생성하여 표시
+                console.log("대체 투표 통계 생성");
                 setUseFallbackStats(true);
                 setVoteStats(generateFallbackStats(candidates));
             } finally {
