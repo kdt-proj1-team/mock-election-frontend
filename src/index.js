@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import { createGlobalStyle } from 'styled-components';
+import { setupAxiosInterceptors } from './utils/AxiosInterceptor';
 
 // 전역 스타일 설정
 const GlobalStyle = createGlobalStyle`
@@ -21,6 +22,8 @@ const GlobalStyle = createGlobalStyle`
     font-family: inherit;
   }
 `;
+
+setupAxiosInterceptors();
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(

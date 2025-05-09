@@ -2,6 +2,8 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import styled from 'styled-components';
 import useAuthStore from '../store/authStore';
+import useWalletStore from '../store/walletStore';
+import MetaMaskUtil from '../utils/MetaMaskUtil';
 
 // Neumorphism 스타일 적용
 const HeaderContainer = styled.header`
@@ -141,6 +143,131 @@ const Button = styled.button`
   }
 `;
 
+// 지갑 연결 상태를 표시하는 뱃지 스타일
+const WalletBadge = styled.div`
+  display: flex;
+  align-items: center;
+  background-color: #eefbf5;
+  border-radius: 20px;
+  padding: 5px 10px;
+  margin-right: 10px;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.05), -2px -2px 5px rgba(255, 255, 255, 0.5);
+`;
+
+const WalletIcon = styled.span`
+  font-size: 16px;
+  margin-right: 5px;
+  color: #2ecc71;
+`;
+
+const WalletAddress = styled.span`
+  font-size: 12px;
+  color: #333;
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+`;
+
+const TokenAmount = styled.span`
+  font-size: 12px;
+  color: #2ecc71;
+  margin-left: 8px;
+  font-weight: 600;
+`;
+
+// 모달 관련 스타일
+const ModalOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+`;
+
+const ModalContent = styled.div`
+  background-color: #f0f0f3;
+  border-radius: 15px;
+  padding: 30px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 10px 10px 20px rgba(0, 0, 0, 0.1), -10px -10px 20px rgba(255, 255, 255, 0.8);
+`;
+
+const ModalHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+`;
+
+const ModalTitle = styled.h2`
+  font-size: 20px;
+  color: #333;
+  margin: 0;
+`;
+
+const CloseButton = styled.button`
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+`;
+
+const WalletOption = styled.div`
+  padding: 15px;
+  margin: 10px 0;
+  border-radius: 10px;
+  background-color: #f0f0f3;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.1), -4px -4px 8px rgba(255, 255, 255, 0.9);
+  transition: all 0.3s ease;
+
+  &:hover {
+    box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.1), -6px -6px 12px rgba(255, 255, 255, 1);
+    transform: translateY(-2px);
+  }
+`;
+
+const WalletLogo = styled.div`
+  width: 40px;
+  height: 40px;
+  margin-right: 15px;
+  background-image: ${props => props.src ? `url(${props.src})` : 'none'};
+  background-size: cover;
+  background-position: center;
+  border-radius: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 24px;
+  color: #FF6B00;
+`;
+
+const WalletInfo = styled.div`
+  flex: 1;
+`;
+
+const WalletName = styled.h3`
+  font-size: 16px;
+  color: #333;
+  margin: 0 0 5px 0;
+`;
+
+const WalletDesc = styled.p`
+  font-size: 12px;
+  color: #666;
+  margin: 0;
+`;
+
 const MobileMenuButton = styled.button`
   display: none;
   background: none;
@@ -151,6 +278,42 @@ const MobileMenuButton = styled.button`
   @media (max-width: 768px) {
     display: block;
   }
+`;
+
+// 지갑 생성 결과 모달 스타일
+const NewWalletInfo = styled.div`
+  margin-top: 20px;
+  padding: 15px;
+  background-color: #f8f8f8;
+  border-radius: 8px;
+  box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.05), inset -2px -2px 5px rgba(255, 255, 255, 0.5);
+`;
+
+const InfoItem = styled.div`
+  margin-bottom: 10px;
+`;
+
+const InfoLabel = styled.div`
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 4px;
+`;
+
+const InfoValue = styled.div`
+  font-family: monospace;
+  font-size: 14px;
+  color: #333;
+  word-break: break-all;
+  background-color: #fff;
+  padding: 8px;
+  border-radius: 4px;
+  box-shadow: inset 1px 1px 3px rgba(0, 0, 0, 0.1), inset -1px -1px 3px rgba(255, 255, 255, 0.7);
+`;
+
+const WarningText = styled.p`
+  color: #e74c3c;
+  font-size: 12px;
+  margin-top: 15px;
 `;
 
 const Header = () => {
@@ -165,7 +328,23 @@ const Header = () => {
     logout,
     refreshUserInfo
   } = useAuthStore();
+
+  // 지갑 관련 상태 관리
+  const {
+    isWalletConnected,
+    walletAddress,
+    tokenBalance,
+    connectMetaMask,
+    createNewWallet,
+    disconnectWallet,
+    checkWalletStatus
+  } = useWalletStore();
+
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showWalletModal, setShowWalletModal] = useState(false);
+  const [newWalletInfo, setNewWalletInfo] = useState(null);
+  const [isLoadingWallet, setIsLoadingWallet] = useState(false);
+  const [walletError, setWalletError] = useState(null);
 
   // 컴포넌트 마운트 시, 로그인 상태라면 사용자 정보 새로고침
   useEffect(() => {
@@ -174,33 +353,82 @@ const Header = () => {
     }
   }, [isAuthenticated, refreshUserInfo]);
 
+  // 컴포넌트 마운트 시, 지갑 상태 확인
+  useEffect(() => {
+    if (isAuthenticated) {
+      const checkWallet = async () => {
+        await checkWalletStatus();
+      };
+
+      checkWallet();
+    }
+  }, [isAuthenticated, checkWalletStatus]);
+
   const handleLogout = useCallback(() => {
+    disconnectWallet(); // 지갑도 함께 연결 해제
     logout();
     navigate('/login');
-  }, [logout, navigate]);
-
-  // 사용하지 않는 함수는 주석 처리 (no-unused-vars 경고 해결)
-  /*
-  const handleDeleteAccount = useCallback(async () => {
-    if (window.confirm('정말로 회원 탈퇴하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
-      const result = await deleteAccount();
-      if (result.success) {
-        navigate('/login');
-      }
-    }
-  }, [deleteAccount, navigate]);
-  */
+  }, [logout, navigate, disconnectWallet]);
 
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
   };
 
-  // 사용하지 않는 함수는 주석 처리 (no-unused-vars 경고 해결)
-  /*
-  const handleAdminPageClick = () => {
-    navigate('/admin');
+  // 지갑 모달 열기
+  const openWalletModal = () => {
+    setShowWalletModal(true);
+    setNewWalletInfo(null); // 이전 지갑 정보 초기화
+    setWalletError(null); // 에러 초기화
   };
-  */
+
+  // 지갑 모달 닫기
+  const closeWalletModal = () => {
+    setShowWalletModal(false);
+    setNewWalletInfo(null);
+    setWalletError(null);
+  };
+
+  // 메타마스크 연결 처리
+  const handleConnectMetaMask = async () => {
+    try {
+      setIsLoadingWallet(true);
+      setWalletError(null);
+
+      await connectMetaMask();
+      closeWalletModal();
+    } catch (error) {
+      console.error('메타마스크 연결 오류:', error);
+      setWalletError(error.message || "메타마스크 연결에 실패했습니다. 메타마스크가 설치되어 있는지 확인해주세요.");
+    } finally {
+      setIsLoadingWallet(false);
+    }
+  };
+
+  // 새 지갑 생성 처리
+  const handleCreateWallet = async () => {
+    try {
+      setIsLoadingWallet(true);
+      setWalletError(null);
+
+      const result = await createNewWallet();
+
+      // 생성된 지갑 정보 표시
+      setNewWalletInfo({
+        address: result.address,
+        mnemonic: result.mnemonic
+      });
+    } catch (error) {
+      console.error('지갑 생성 오류:', error);
+      setWalletError(error.message || "지갑 생성에 실패했습니다.");
+    } finally {
+      setIsLoadingWallet(false);
+    }
+  };
+
+  // 지갑 연결 해제 처리
+  const handleDisconnectWallet = () => {
+    disconnectWallet();
+  };
 
   // 이름 표시 우선순위: 닉네임 > 이름 > 아이디
   const displayName = nickname || name || userId || '';
@@ -215,9 +443,6 @@ const Header = () => {
 
         <Navigation $isOpen={mobileMenuOpen}>
           <NavList>
-            {/*<NavItem>*/}
-            {/*  <NavLink to="/#">용어정리</NavLink>*/}
-            {/*</NavItem>*/}
             <NavItem>
               <NavLink to="/candidate-compare">후보비교</NavLink>
             </NavItem>
@@ -254,20 +479,108 @@ const Header = () => {
 
           {isAuthenticated ? (
               <ButtonGroup>
+                {isWalletConnected ? (
+                    <>
+                      <WalletBadge>
+                        <WalletIcon>💰</WalletIcon>
+                        <WalletAddress>{MetaMaskUtil.shortenAddress(walletAddress)}</WalletAddress>
+                        <TokenAmount>{tokenBalance} VT</TokenAmount>
+                      </WalletBadge>
+                      <Button $outline onClick={handleDisconnectWallet}>지갑해제</Button>
+                    </>
+                ) : (
+                    <Button onClick={openWalletModal}>지갑연결</Button>
+                )}
                 <UserInfo>
                   {profileImgUrl && <UserAvatar src={profileImgUrl} />}
                   <UserName>{displayName}</UserName>
                 </UserInfo>
                 <Button $outline onClick={handleLogout}>로그아웃</Button>
-                {/*<Button $outline onClick={handleDeleteAccount}>회원탈퇴</Button>*/}
               </ButtonGroup>
           ) : (
               <ButtonGroup>
-                {/*<Button $outline onClick={() => navigate('/login')}>로그인</Button>*/}
                 <Button onClick={() => navigate('/login')}>간편로그인</Button>
               </ButtonGroup>
           )}
         </Navigation>
+
+        {/* 지갑 연결 모달 */}
+        {showWalletModal && (
+            <ModalOverlay>
+              <ModalContent>
+                <ModalHeader>
+                  <ModalTitle>지갑 연결하기</ModalTitle>
+                  <CloseButton onClick={closeWalletModal}>&times;</CloseButton>
+                </ModalHeader>
+
+                {/* 에러 메시지 */}
+                {walletError && (
+                    <div style={{ color: 'red', marginBottom: '15px', fontSize: '14px' }}>
+                      {walletError}
+                    </div>
+                )}
+
+                {/* 새 지갑 정보 */}
+                {newWalletInfo ? (
+                    <>
+                      <NewWalletInfo>
+                        <InfoItem>
+                          <InfoLabel>지갑 주소</InfoLabel>
+                          <InfoValue>{newWalletInfo.address}</InfoValue>
+                        </InfoItem>
+                        <InfoItem>
+                          <InfoLabel>복구 구문 (니모닉)</InfoLabel>
+                          <InfoValue>{newWalletInfo.mnemonic}</InfoValue>
+                        </InfoItem>
+                        <WarningText>
+                          중요: 복구 구문을 안전한 곳에 보관하세요. 이 정보는 지갑 복구에 필요하며, 이 창을 닫으면 다시 볼 수 없습니다!
+                        </WarningText>
+                      </NewWalletInfo>
+                      <Button
+                          onClick={closeWalletModal}
+                          style={{ width: '100%', marginTop: '20px' }}
+                      >
+                        확인하고 닫기
+                      </Button>
+                    </>
+                ) : (
+                    <>
+                      <WalletOption
+                          onClick={handleConnectMetaMask}
+                          disabled={isLoadingWallet}
+                      >
+                        <WalletLogo>
+                          <span role="img" aria-label="MetaMask">🦊</span>
+                        </WalletLogo>
+                        <WalletInfo>
+                          <WalletName>MetaMask</WalletName>
+                          <WalletDesc>기존 메타마스크 지갑을 연결합니다</WalletDesc>
+                        </WalletInfo>
+                      </WalletOption>
+
+                      <WalletOption
+                          onClick={handleCreateWallet}
+                          disabled={isLoadingWallet}
+                      >
+                        <WalletLogo>
+                          <span role="img" aria-label="New Wallet">🔐</span>
+                        </WalletLogo>
+                        <WalletInfo>
+                          <WalletName>새 지갑 생성</WalletName>
+                          <WalletDesc>모의투표용 새 지갑을 생성합니다</WalletDesc>
+                        </WalletInfo>
+                      </WalletOption>
+
+                      {isLoadingWallet && (
+                          <div style={{ textAlign: 'center', marginTop: '20px' }}>
+                            <p>처리 중입니다...</p>
+                          </div>
+                      )}
+                    </>
+                )}
+              </ModalContent>
+            </ModalOverlay>
+        )}
       </HeaderContainer>
   );
 };

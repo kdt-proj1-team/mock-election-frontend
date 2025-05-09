@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { authAPI } from '../api/AuthApi';
+import useWalletStore from "./walletStore";
 
 // localStorage에서 초기 값 가져오는 함수
 const getInitialState = () => ({
@@ -101,6 +102,20 @@ const useAuthStore = create((set, get) => ({
         error: null,
         isLoading: false
       });
+
+      // 지갑 스토어 리셋 (순환 참조 없이)
+      // 동기적으로 임포트 대신 런타임에 필요할 때만 참조
+      try {
+        const walletStore = require('./walletStore').default;
+        if (walletStore) {
+          const resetState = walletStore.getState().resetState;
+          if (typeof resetState === 'function') {
+            resetState();
+          }
+        }
+      } catch (e) {
+        console.error('지갑 상태 리셋 중 오류:', e);
+      }
     }
   },
 
