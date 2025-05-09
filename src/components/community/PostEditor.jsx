@@ -603,17 +603,25 @@ const PostEditor = () => {
                             disabled={selectedFiles.length >= 5}
                             onChange={(e) => {
                                 const maxSize = Number(process.env.REACT_APP_MAX_FILE_SIZE_MB || 10) * 1024 * 1024;
+                                const maxNameLength = 50;
+
                                 const files = Array.from(e.target.files || []);
-                                const validFiles = files.filter(file => file.size <= maxSize);
+                                const tooLong = files.filter(file => file.name.length > maxNameLength);
+                                const validFiles = files.filter(file => file.name.length <= maxNameLength && file.size <= maxSize);
 
                                 const combined = [...selectedFiles, ...validFiles].slice(0, 5); // 최대 5개 제한
 
                                 setSelectedFiles(combined);
+                                   
+                                if (tooLong.length > 0) {
+                                    alert(`파일 이름은 최대 ${maxNameLength}자까지만 가능합니다.`);
+                                }
 
                                 const rejected = files.filter(file => file.size > maxSize);
                                 if (rejected.length > 0) {
                                     alert(`파일 크기는 최대 ${process.env.REACT_APP_MAX_FILE_SIZE_MB || 10}MB까지만 업로드할 수 있습니다.`);
                                 }
+
                                 e.target.value = "";
                             }}
                         />
