@@ -102,12 +102,47 @@ const FileButton = styled.label`
   cursor: pointer;
   font-size: 14px;
   color: #555;
+  opacity: ${({ disabled }) => disabled ? 0.5 : 1};
+  pointer-events: ${({ disabled }) => disabled ? 'none' : 'auto'};
+
   &:hover {
-    background-color: #eee;
+    background-color: ${({ disabled }) => disabled ? '#f5f5f5' : '#eee'};
   }
+
   i {
     margin-right: 8px;
   }
+`;
+
+const FileList = styled.div`
+  margin-top: 10px;
+  font-size: 14px;
+  color: #555;
+`;
+
+const FileItem = styled.div`
+  display: flex;
+  align-items: center;
+  padding: 4px 0;
+`;
+
+const FileName = styled.span`
+
+`;
+
+const RemoveButton = styled.button`
+  margin-left: 10px;
+  background: none;
+  border: none;
+  color: #d33;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+`;
+
+const FileLimitNotice = styled.div`
+  color: #d33;
+  margin-top: 5px;
 `;
 
 const EditorContainer = styled.div`
@@ -216,6 +251,16 @@ const HiddenFileInput = styled.input.attrs({ type: 'file', accept: 'image/*' })`
   display: none;
 `
 
+// 이미지 삽입 전용 (에디터 툴바)
+const HiddenImageInput = styled.input.attrs({ type: 'file', accept: 'image/*' })`
+  display: none;
+`
+
+// 일반 첨부파일 전용 (폼 아래)
+const HiddenAttachmentInput = styled.input.attrs({ type: 'file' })`
+  display: none;
+`
+
 // 파일 업로드 레이블
 const UploadLabel = styled.label`
   display: inline-flex;
@@ -260,7 +305,7 @@ const PostEditor = () => {
 
     const { categories, selectedCategory, setSelectedCategory, fetchCategories } = useCategoryStore();
     const [imageResizeUI, setImageResizeUI] = useState({ visible: false, top: 0, left: 0, pos: null });
-
+    const [selectedFiles, setSelectedFiles] = useState([]);
 
     const [formData, setFormData] = useState({
         title: "",
@@ -479,20 +524,34 @@ const PostEditor = () => {
 
         const contentHTML = editor.getHTML();
 
-        // 첫 번째 이미지 추출
+        // 썸네일용 첫 번째 이미지 추출
         const match = contentHTML.match(/<img[^>]+src="([^">]+)"/);
         const thumbnailUrl = match?.[1] ?? null;
 
         try {
-            const postId = await postAPI.createPost({
+            const dto = {
                 categoryId: selectedCategory.id,
                 title: formData.title,
-                content: contentHTML,
+                content: formData.content,
                 authorId: localStorage.getItem("userId"),
-                thumbnailUrl: thumbnailUrl
+                thumbnailUrl,
+            };
+
+            // 2) FormData에 JSON 블롭으로 추가
+            const formDataObj  = new FormData();
+            formDataObj .append(
+                "dto",
+                new Blob([JSON.stringify(dto)], { type: "application/json" })
+            );
+
+            // 3) attachments 파트로 파일들 추가
+            selectedFiles.forEach(file => {
+                formDataObj.append("attachments", file);
             });
 
-            navigate(`/community/${postId}`);
+            const postId = await postAPI.createPost(formDataObj);
+            
+            navigate(`/community/post/${postId}`);
         } catch (err) {
             console.error("게시글 등록 실패", err);
             alert("게시글 등록에 실패했습니다.");
@@ -536,10 +595,50 @@ const PostEditor = () => {
 
                 <FileUpload>
                     <Label>파일 첨부</Label>
-                    <FileButton>
+                    <FileButton disabled={selectedFiles.length >= 5}>
                         <i>📎</i> 파일 선택하기
-                        <input type="file" id="file-upload" multiple style={{ display: 'none' }} />
+                        <HiddenAttachmentInput
+                            id="file-upload"
+                            multiple
+                            disabled={selectedFiles.length >= 5}
+                            onChange={(e) => {
+                                const maxSize = Number(process.env.REACT_APP_MAX_FILE_SIZE_MB || 10) * 1024 * 1024;
+                                const files = Array.from(e.target.files || []);
+                                const validFiles = files.filter(file => file.size <= maxSize);
+
+                                const combined = [...selectedFiles, ...validFiles].slice(0, 5); // 최대 5개 제한
+
+                                setSelectedFiles(combined);
+
+                                const rejected = files.filter(file => file.size > maxSize);
+                                if (rejected.length > 0) {
+                                    alert(`파일 크기는 최대 ${process.env.REACT_APP_MAX_FILE_SIZE_MB || 10}MB까지만 업로드할 수 있습니다.`);
+                                }
+                                e.target.value = "";
+                            }}
+                        />
                     </FileButton>
+
+                    {selectedFiles.length > 0 && (
+                        <FileList>
+                            {selectedFiles.map((file, idx) => (
+                                <FileItem key={idx}>
+                                    <FileName>• {file.name}</FileName>
+                                    <RemoveButton
+                                        type="button"
+                                        onClick={() =>
+                                            setSelectedFiles(prev => prev.filter((_, i) => i !== idx))
+                                        }
+                                    >
+                                        ✕
+                                    </RemoveButton>
+                                </FileItem>
+                            ))}
+                            {selectedFiles.length === 5 && (
+                                <FileLimitNotice>※ 최대 5개 파일까지만 선택할 수 있습니다.</FileLimitNotice>
+                            )}
+                        </FileList>
+                    )}
                 </FileUpload>
 
                 <EditorContainer>
@@ -576,7 +675,7 @@ const PostEditor = () => {
 
                         <UploadLabel>
                             <i>📁</i>
-                            <HiddenFileInput
+                            <HiddenImageInput
                                 onChange={async (e) => {
                                     const file = e.target.files?.[0];
                                     if (!file || !editor) return;
