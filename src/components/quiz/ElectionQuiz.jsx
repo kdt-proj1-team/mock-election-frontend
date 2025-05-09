@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import './ElectionQuiz.css';
 import quizAPI from '../../api/QuizApi'; // 분리된 API 임포트
+import axios from 'axios';
+import PageTranslator from '../translation/PageTranslator';
 
 const ElectionQuiz = () => {
     const [quizData, setQuizData] = useState(null);
@@ -12,6 +14,7 @@ const ElectionQuiz = () => {
     const [allCompleted, setAllCompleted] = useState(false);
     const [totalQuizCount, setTotalQuizCount] = useState(0);
     const [completedCount, setCompletedCount] = useState(0);
+
 
     // 완료 현황 업데이트
     const updateCompletionStatus = async () => {
@@ -54,7 +57,7 @@ const ElectionQuiz = () => {
             setError(null);
         } catch (err) {
             console.error('Error fetching first quiz:', err);
-            setError('첫 번째 퀴즈를 불러오는 중 오류가 발생했습니다: ' + err.message);
+            setError('퀴즈를 불러오는 중 오류가 발생했습니다: ' + err.message);
         } finally {
             setLoading(false);
         }
@@ -196,7 +199,7 @@ const ElectionQuiz = () => {
                     <div className="quiz-main completion-screen">
                         <h1 className="quiz-title">축하합니다!</h1>
                         <div className="completion-message">
-                            <p>모든 퀴즈를 중복 없이 다 풀었습니다.</p>
+                            <p>모든 퀴즈를 다 풀었습니다.</p>
                             <p>수고하셨습니다! 🎉</p>
                             <p className="completion-stats">총 {totalQuizCount}개의 퀴즈를 완료했습니다.</p>
                         </div>
@@ -217,6 +220,8 @@ const ElectionQuiz = () => {
     // 메인 퀴즈 렌더링
     return (
         <div className="quiz-container">
+            {/* 페이지 번역기 추가 */}
+            <PageTranslator />
             <div className="quiz-content">
                 {/* 퀴즈 모드 토글 및 진행 상황 */}
                 <div className="quiz-header">
@@ -234,6 +239,9 @@ const ElectionQuiz = () => {
                             {quizMode === 'random' ? '랜덤 모드 ✓' : '랜덤 모드로 바꾸기'}
                         </button>
                     </div>
+
+
+
 
                     {/* 진행 상황 표시 */}
                     {quizMode === 'sequential' && (
@@ -337,6 +345,7 @@ const ElectionQuiz = () => {
                         </div>
                     </div>
                 )}
+
             </div>
         </div>
     );

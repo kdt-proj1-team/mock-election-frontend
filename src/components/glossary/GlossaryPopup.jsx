@@ -1,20 +1,20 @@
 import React, { useState } from 'react';
-import { glossaryAPI } from '../../api/GlossaryApi'; // 경로는 실제 위치에 맞게 조정
+import { glossaryAPI } from '../../api/GlossaryApi';
+import { GiArchiveResearch } from "react-icons/gi";
 
 
-// CSS를 JSX 파일 내에 style 객체로 포함
 const styles = {
     glossaryToggle: {
         position: 'fixed',
-        bottom: '20px',
-        right: '20px',
-        background: '#007BFF',
+        bottom: '30px',
+        right: '30px',
+        background: '#555',
         color: 'white',
         border: 'none',
         borderRadius: '50%',
-        width: '48px',
-        height: '48px',
-        fontSize: '24px',
+        width: '70px', // 크기 축소
+        height: '70px', // 크기 축소
+        fontSize: '40px', // 폰트 크기 조정
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -23,17 +23,17 @@ const styles = {
         transition: 'background 0.2s, transform 0.2s',
     },
     glossaryToggleHover: {
-        background: '#0056b3',
+        background: '#333', // 호버 색상 변경
         transform: 'scale(1.05)',
     },
     glossaryPopup: {
         position: 'fixed',
-        bottom: '80px',
-        right: '20px',
-        width: '320px',
-        maxHeight: '420px',
+        bottom: '110px', // 버튼 위치 변경에 맞춰 조정
+        right: '40px', // 버튼 위치 변경에 맞춰 조정
+        width: '400px', // 약간 축소
+        maxHeight: '800px', // 약간 축소
         background: 'white',
-        borderRadius: '12px',
+        borderRadius: '10px',
         boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
         padding: '16px',
         display: 'flex',
@@ -73,10 +73,10 @@ const styles = {
         transition: 'border-color 0.2s',
     },
     glossaryInputFocus: {
-        borderColor: '#007BFF',
+        borderColor: '#555',
     },
     glossaryButton: {
-        background: '#007BFF',
+        background: '#555',
         color: 'white',
         border: 'none',
         borderRadius: '8px',
@@ -87,7 +87,7 @@ const styles = {
         transition: 'background 0.2s',
     },
     glossaryButtonHover: {
-        background: '#0056b3',
+        background: '#333',
     },
     glossaryList: {
         flex: 1,
@@ -102,7 +102,7 @@ const styles = {
     },
     glossaryTerm: {
         fontWeight: 600,
-        color: '#007BFF',
+        color: '#555', // 파란색에서 무채색으로 변경
     },
     glossaryDef: {
         margin: '4px 0 0',
@@ -115,7 +115,7 @@ const styles = {
         marginTop: '6px',
     },
     errorMessage: {
-        color: 'red',
+        color: '#D32F2F', // 빨간색 대신 어두운 회색 계열
         fontSize: 13,
     },
     helpMessage: {
@@ -177,13 +177,13 @@ export default function GlossaryPopup() {
                 onMouseLeave={() => setIsHovering({...isHovering, button: false})}
                 title={isOpen ? '사전 닫기' : '사전 열기'}
             >
-                📘
+                <GiArchiveResearch />
             </button>
 
             {isOpen && (
                 <div style={styles.glossaryPopup}>
                     <div style={styles.glossaryHeader}>
-                        <h3 style={styles.glossaryHeaderTitle}>용어 사전</h3>
+                        <h3 style={styles.glossaryHeaderTitle}>정책 용어 사전</h3>
                         <button
                             style={{
                                 ...styles.glossaryClose,
@@ -229,6 +229,7 @@ export default function GlossaryPopup() {
                                                 href={result.pageUrl}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
+                                                style={{ color: '#555' }} // 링크 색상도 무채색으로 변경
                                             >더 보기</a></>
                                         )}
                                     </div>
