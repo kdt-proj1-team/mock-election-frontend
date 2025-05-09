@@ -91,15 +91,23 @@ const PostStats = styled.div`
 `;
 
 const AttachmentSection = styled.div`
-  padding-bottom: 15px;
+  padding-bottom: 10px;
   margin-bottom: 30px;
-  font-size: 15px;
   border-bottom: 1px solid #eee;
+  display: flex;
 `;
+
+const AttachmentLabel = styled.div`
+  font-weight: bold;
+  color: ${({ theme }) => theme.colors.dark};
+  margin-right: 15px;
+  font-size: 13px;
+`
 
 const AttachmentList = styled.ul`
   color: #444;
   display: flex;
+  font-size: 12px;
 `;
 
 const AttachmentItem = styled.li`
@@ -114,6 +122,12 @@ const AttachmentItem = styled.li`
 const AttachmentLink = styled.a`
   color: ${({ theme }) => theme.colors.dark};
   text-decoration: none;
+  max-width: 175px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: inline-block;
+  vertical-align: bottom;
 
   &:hover {
   color: ${({ theme }) => theme.colors.secondary};
@@ -122,8 +136,8 @@ const AttachmentLink = styled.a`
 
 const AttachmentSize = styled.span`
   color: ${({ theme }) => theme.colors.dark};
-  margin-left: 3px;
-  font-size: 12px;
+  margin-left: 1px;
+  font-size: 11px;
 `;
 
 const Content = styled.div`
@@ -433,6 +447,8 @@ const PostDetail = () => {
 
   const { id } = useParams();
   const [post, setPost] = useState(null);
+  const userId = localStorage.getItem("userId");
+  const isAuthor = post && post.authorId === userId;
 
   useEffect(() => {
     const fetchPostDetail = async () => {
@@ -463,8 +479,12 @@ const PostDetail = () => {
           )}
         </Info>
         <Actions>
-          <ActionButton><FaPencilAlt /> 수정</ActionButton>
-          <ActionButton><FaTrash /> 삭제</ActionButton>
+          {isAuthor && (
+            <>
+            <ActionButton><FaPencilAlt /> 수정</ActionButton>
+            <ActionButton><FaTrash /> 삭제</ActionButton>
+            </>
+          )}
           <PostStats><FaEye />{post.views} </PostStats>
           <PostStats><FaCommentDots /> {post.commentCount}</PostStats>
         </Actions>
@@ -472,10 +492,11 @@ const PostDetail = () => {
 
       {post.attachments && post.attachments.length > 0 && (
         <AttachmentSection>
+          <AttachmentLabel>첨부파일</AttachmentLabel>
           <AttachmentList>
             {post.attachments.map((file, idx) => (
               <AttachmentItem key={idx}>
-                <AttachmentLink href={file.url} download target="_blank" rel="noopener noreferrer">
+                <AttachmentLink href={file.url} download target="_blank" rel="noopener noreferrer" title={file.name}>
                   · {file.name}
                 </AttachmentLink>
                 <AttachmentSize>({formatFileSize(file.size)})</AttachmentSize>
