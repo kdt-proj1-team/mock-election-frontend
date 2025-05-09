@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { votingAPI } from '../../api/VotingApi';
 
-// 스타일 컴포넌트들 - 기존 코드 유지
+// 스타일 컴포넌트들
 const ResultContainer = styled.div`
     margin-top: 20px;
 `;
@@ -136,7 +136,7 @@ const LoadingSpinner = styled.div`
     height: 30px;
     animation: spin 1s linear infinite;
     margin: 20px auto;
-    
+
     @keyframes spin {
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
@@ -155,10 +155,10 @@ const ErrorBox = styled.div`
 // 대체 통계 생성 함수
 const generateFallbackStats = (candidates) => {
     // 디버깅 로그 추가
-    console.log("대체 통계 생성, 후보자 목록:", candidates);
+    console.log("[VoterComponent] 대체 통계 생성, 후보자 목록:", candidates);
 
     if (!Array.isArray(candidates) || candidates.length === 0) {
-        console.warn("유효한 후보자 데이터 없음, 기본 통계 반환");
+        console.warn("[VoterComponent] 유효한 후보자 데이터 없음, 기본 통계 반환");
         return {
             votes: [],
             participation: 0,
@@ -167,14 +167,13 @@ const generateFallbackStats = (candidates) => {
     }
 
     const totalVotes = 100 + Math.floor(Math.random() * 200);
-    console.log("대체 통계 - 총 투표수:", totalVotes);
+    console.log("[VoterComponent] 대체 통계 - 총 투표수:", totalVotes);
 
     let remainingVotes = totalVotes;
     const votes = candidates.map((candidate, index, array) => {
         if (index === array.length - 1) {
             return {
                 candidateId: candidate.id,
-                count: remainingVotes,
                 voteCount: remainingVotes,
                 percentage: parseFloat(((remainingVotes / totalVotes) * 100).toFixed(1))
             };
@@ -188,19 +187,18 @@ const generateFallbackStats = (candidates) => {
 
         return {
             candidateId: candidate.id,
-            count: voteCount,
             voteCount: voteCount,
             percentage: parseFloat(((voteCount / totalVotes) * 100).toFixed(1))
         };
     });
 
     votes.sort((a, b) => b.voteCount - a.voteCount);
-    console.log("대체 통계 - 생성된 투표 데이터:", votes);
+    console.log("[VoterComponent] 대체 통계 - 생성된 투표 데이터:", votes);
 
     return {
+        sgId: candidates[0]?.sgId || "unknown",
         votes,
-        participation: parseFloat((60 + Math.random() * 30).toFixed(1)),
-        totalVotes
+        participation: parseFloat((60 + Math.random() * 30).toFixed(1))
     };
 };
 
@@ -232,41 +230,28 @@ const VoterComponent = ({ election, candidates, onBackClick }) => {
             setLoading(true);
 
             try {
-                const response = await votingAPI.getVoteStats(election.sgId);
-                logDebug("투표 통계 API 응답", response);
+                const statsData = await votingAPI.getVoteStats(election.sgId);
+                logDebug("투표 통계 API 응답", statsData);
 
-                // 응답 데이터 구조 확인 및 처리
-                let statsData;
-                if (response && response.votes) {
-                    // 직접 데이터 객체인 경우
-                    statsData = response;
-                } else if (response && response.data && response.data.votes) {
-                    // 중첩된 데이터 구조인 경우
-                    statsData = response.data;
-                } else if (Array.isArray(response) && response.length > 0) {
-                    // 배열 형태로 반환된 경우
-                    statsData = {
-                        votes: response,
-                        participation: 65.0, // 기본값
-                        totalVotes: response.reduce((sum, vote) => sum + (vote.voteCount || 0), 0)
-                    };
-                } else {
-                    throw new Error("투표 통계 데이터 형식이 올바르지 않습니다.");
-                }
-
-                logDebug("파싱된 투표 통계", statsData);
-
-                // 투표 결과에 후보자 정보 매핑 확인
-                const hasValidVotes = statsData.votes && statsData.votes.some(vote =>
-                    candidates.some(c => c.id === vote.candidateId)
-                );
-
-                if (!hasValidVotes) {
-                    logDebug("유효한 투표 데이터 없음, 대체 통계 사용");
+                // 응답 데이터 유효성 검사
+                if (!statsData || !statsData.votes || !Array.isArray(statsData.votes)) {
+                    logDebug("유효한 투표 데이터 없음, 대체 통계 사용", statsData);
                     setUseFallbackStats(true);
                     setVoteStats(generateFallbackStats(candidates));
                 } else {
-                    setVoteStats(statsData);
+                    // 투표 결과에 후보자 정보 매핑 확인
+                    const hasValidVotes = statsData.votes.some(vote =>
+                        candidates.some(c => c.id === vote.candidateId)
+                    );
+
+                    if (!hasValidVotes) {
+                        logDebug("후보자와 매핑된 투표 데이터 없음, 대체 통계 사용", statsData);
+                        setUseFallbackStats(true);
+                        setVoteStats(generateFallbackStats(candidates));
+                    } else {
+                        logDebug("유효한 투표 데이터 사용", statsData);
+                        setVoteStats(statsData);
+                    }
                 }
 
                 setInfoMessage("이미 투표에 참여하셨습니다. 투표 결과를 확인하세요.");
@@ -297,28 +282,15 @@ const VoterComponent = ({ election, candidates, onBackClick }) => {
         );
     }
 
-    if (error) {
+    if (error && !voteStats) {
         return (
             <ResultContainer>
                 <ErrorBox>
                     <p><strong>오류 발생:</strong> {error}</p>
                 </ErrorBox>
-                {voteStats ? (
-                    <VoteCard>
-                        <VoteSection>
-                            <SectionTitle>대체 투표 결과</SectionTitle>
-                            <p>실제 투표 결과를 불러오는 데 문제가 발생하여 임시 데이터를 표시합니다.</p>
-                            <ResultChart>
-                                <ChartTitle>투표 결과 (임시 데이터)</ChartTitle>
-                                {renderVoteResults()}
-                            </ResultChart>
-                        </VoteSection>
-                    </VoteCard>
-                ) : (
-                    <BackButton onClick={onBackClick}>
-                        모의투표 목록으로
-                    </BackButton>
-                )}
+                <BackButton onClick={onBackClick}>
+                    모의투표 목록으로
+                </BackButton>
             </ResultContainer>
         );
     }
@@ -331,8 +303,12 @@ const VoterComponent = ({ election, candidates, onBackClick }) => {
 
         return voteStats.votes.map(vote => {
             const candidate = candidates.find(c => c.id === vote.candidateId);
-            if (!candidate) return null;
+            if (!candidate) {
+                logDebug("후보자 정보 없음", { voteData: vote, candidates });
+                return null;
+            }
 
+            // percentage가 없는 경우를 대비한 기본값 설정
             const percentage = vote.percentage || 0;
 
             return (
@@ -364,6 +340,12 @@ const VoterComponent = ({ election, candidates, onBackClick }) => {
                 </InfoNotification>
             )}
 
+            {error && (
+                <ErrorBox>
+                    <p><strong>오류 발생:</strong> {error}</p>
+                </ErrorBox>
+            )}
+
             <VoteCard>
                 <VoteSection>
                     <SectionTitle>투표 완료</SectionTitle>
@@ -374,7 +356,7 @@ const VoterComponent = ({ election, candidates, onBackClick }) => {
                     <ChartTitle>투표 결과</ChartTitle>
                     {renderVoteResults()}
                     <ParticipationInfo>
-                        투표 참여율: {voteStats ? voteStats.participation?.toFixed(1) : '63.5'}%
+                        투표 참여율: {voteStats ? voteStats.participation?.toFixed(1) : '0.0'}%
                     </ParticipationInfo>
                 </ResultChart>
             </VoteCard>

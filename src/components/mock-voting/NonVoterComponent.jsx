@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { votingAPI } from '../../api/VotingApi';
 import useWalletStore from "../../store/walletStore";
 
-// 스타일 컴포넌트들 - 기존 코드 유지
+// 스타일 컴포넌트들
 const VoteCard = styled.div`
     background-color: #f0f0f3;
     border-radius: 20px;
@@ -23,6 +23,18 @@ const SectionTitle = styled.h3`
     margin-bottom: 15px;
     padding-bottom: 10px;
     border-bottom: 1px solid #ddd;
+`;
+
+const TokenInfo = styled.div`
+    display: inline-block;
+    padding: 8px 15px;
+    border-radius: 30px;
+    font-size: 14px;
+    font-weight: 500;
+    background-color: #eefbf5;
+    color: #16a34a;
+    box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.05), inset -2px -2px 5px rgba(255, 255, 255, 0.5);
+    margin-bottom: 15px;
 `;
 
 const CandidateList = styled.div`
@@ -152,14 +164,35 @@ const ErrorNotification = styled.div`
     box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
 `;
 
+const LoadingSpinner = styled.div`
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: #333;
+    animation: spin 1s linear infinite;
+    margin-left: 10px;
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+`;
+
 /**
  * 아직 투표하지 않은 사용자를 위한 컴포넌트 - 투표 화면 표시
  */
-const NonVoterComponent = ({ election, candidates, onVoteComplete, onBackClick }) => {
+const NonVoterComponent = ({ election, candidates, onVoteComplete, onBackClick, tokenBalance = 0 }) => {
     const [selectedCandidate, setSelectedCandidate] = useState(null);
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState(null);
-    const { deductToken, tokenBalance } = useWalletStore();
+    const { refreshTokenBalance } = useWalletStore();
+
+    // 디버깅 로그 함수
+    const logDebug = (message, data) => {
+        console.log(`[NonVoterComponent] ${message}:`, data);
+    };
 
     // 후보자 선택 핸들러
     const handleCandidateSelect = (candidateId) => {
@@ -192,22 +225,21 @@ const NonVoterComponent = ({ election, candidates, onVoteComplete, onBackClick }
                 throw new Error('유효하지 않은 선거 ID입니다.');
             }
 
-            console.log(`투표 제출: sgId=${sgId}, candidateId=${selectedCandidate}`);
+            logDebug('투표 제출 시작', { sgId, candidateId: selectedCandidate });
 
-            // 백엔드에서 토큰 차감 및 투표 처리가 일관성 있게 이루어짐
-            // 여기서는 직접 토큰을 차감하지 않고 백엔드에서 처리됨
+            // 백엔드에 투표 제출 요청 - 백엔드에서 토큰 차감 및 투표 처리를 모두 수행
             try {
                 const voteResult = await votingAPI.submitVote(sgId, selectedCandidate);
-                console.log('투표 제출 성공:', voteResult);
+                logDebug('투표 제출 성공', voteResult);
 
-                // 로컬 상태의 토큰 잔액 업데이트 (백엔드와 동기화를 위해)
-                deductToken(1);
+                // 토큰 잔액 새로고침 (백엔드에서 토큰 차감 후 최신 잔액 반영)
+                await refreshTokenBalance();
 
-                // 결과 화면으로 전환
+                // 투표 완료 처리 및 결과 화면으로 전환
                 onVoteComplete(voteResult);
             } catch (voteError) {
                 // 서버 에러 응답 상세 로깅
-                console.error('투표 제출 중 오류:', voteError);
+                logDebug('투표 제출 오류', voteError);
 
                 if (voteError.response) {
                     console.log('오류 상태 코드:', voteError.response.status);
@@ -249,9 +281,11 @@ const NonVoterComponent = ({ election, candidates, onVoteComplete, onBackClick }
             <VoteCard>
                 <VoteSection>
                     <SectionTitle>선거 안내</SectionTitle>
-                    <p>{election?.description}</p>
+                    <p>{election?.description || '모의투표에 참여합니다.'}</p>
                     <p>각 정당의 정책만 확인하고 투표하는 블라인드 투표입니다. 정책을 잘 읽고 투표해주세요.</p>
-                    <p><strong>참고:</strong> 투표에는 1개의 토큰이 사용됩니다. 현재 보유 토큰: {tokenBalance} 개</p>
+                    <TokenInfo>
+                        <span role="img" aria-label="token">💰</span> 현재 보유 토큰: {tokenBalance} 개 (투표 시 1개 사용)
+                    </TokenInfo>
                 </VoteSection>
 
                 <VoteSection>
@@ -290,7 +324,11 @@ const NonVoterComponent = ({ election, candidates, onVoteComplete, onBackClick }
                     onClick={handleSubmitVote}
                     disabled={!selectedCandidate || submitting}
                 >
-                    {submitting ? '처리 중...' : '투표하기 (1 토큰 사용)'}
+                    {submitting ? (
+                        <>처리 중...<LoadingSpinner /></>
+                    ) : (
+                        <>투표하기 (1 토큰 사용)</>
+                    )}
                 </SubmitButton>
             </VoteCard>
         </>
