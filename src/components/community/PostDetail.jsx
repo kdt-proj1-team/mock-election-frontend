@@ -450,6 +450,20 @@ const PostDetail = () => {
   const userId = localStorage.getItem("userId");
   const isAuthor = post && post.authorId === userId;
 
+  // 게시글 삭제 핸들러
+  const handleDelete = async () => {
+    if (!window.confirm("게시글을 삭제하시겠습니까?")) return;
+  
+    try {
+      await postAPI.delete(id);
+      navigate("/community");
+    } catch (error) {
+      console.error("게시글 삭제 실패:", error);
+      alert("삭제에 실패했습니다. 다시 시도해주세요.");
+    }
+  };
+
+
   useEffect(() => {
     const fetchPostDetail = async () => {
       try {
@@ -482,7 +496,7 @@ const PostDetail = () => {
           {isAuthor && (
             <>
             <ActionButton><FaPencilAlt /> 수정</ActionButton>
-            <ActionButton><FaTrash /> 삭제</ActionButton>
+            <ActionButton onClick={handleDelete}><FaTrash /> 삭제</ActionButton>
             </>
           )}
           <PostStats><FaEye />{post.views} </PostStats>
