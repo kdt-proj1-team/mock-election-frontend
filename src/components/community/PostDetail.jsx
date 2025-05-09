@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from "react-router-dom";
 import styled from 'styled-components';
-import { FaPencilAlt, FaTrash, FaArrowUp, FaArrowDown, FaFlag, FaReply, FaPen, FaHome, FaList, FaEye } from 'react-icons/fa';
+import { FaPencilAlt, FaTrash, FaArrowUp, FaArrowDown, FaFlag, FaReply, FaPen, FaHome, FaList, FaEye, FaCommentDots } from 'react-icons/fa';
 import { postAPI } from '../../api/PostApi';
 import { format, parseISO } from 'date-fns';
 
@@ -52,7 +52,8 @@ const Info = styled.div`
 
 const Actions = styled.div`
   display: flex;
-  gap: 10px;
+  gap: 15px;
+  padding-right: 5px;
 `;
 
 const ActionButton = styled.button`
@@ -63,7 +64,7 @@ const ActionButton = styled.button`
   font-size: 14px;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
   &:hover {
     color: #4d82f3;
   }
@@ -75,7 +76,7 @@ const ActionButton = styled.button`
   }
 `;
 
-const ViewCount = styled.div`
+const PostStats = styled.div`
   display: flex;
   align-items: center;
   font-size: 14px;
@@ -464,7 +465,8 @@ const PostDetail = () => {
         <Actions>
           <ActionButton><FaPencilAlt /> 수정</ActionButton>
           <ActionButton><FaTrash /> 삭제</ActionButton>
-          <ViewCount><FaEye />{post.views}</ViewCount>
+          <PostStats><FaEye />{post.views} </PostStats>
+          <PostStats><FaCommentDots /> {post.commentCount}</PostStats>
         </Actions>
       </Meta>
 
