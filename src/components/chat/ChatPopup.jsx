@@ -146,6 +146,7 @@ export default function ChatPopup() {
     const fetchChatHistory = async () => {
         try {
             const data = await chatAPI.getChatHistory();
+            console.log("받아온 채팅 기록 : " + data);
             setMessages(data);
         } catch (error) {
             console.error('Error fetching chat history:', error);
@@ -167,17 +168,17 @@ export default function ChatPopup() {
         }
 
         // 메시지 객체 생성
-        const chatMessage = {
-            type: 'text',
-            content: message,
-            userId: userId,
-            sender_nickname: nickname,
-            chatroomId: 1,
-            sentAt: new Date()
-        };
+        // const chatMessage = {
+        //     type: 'text',
+        //     content: message,
+        //     userId: userId,
+        //     sender_nickname: nickname,
+        //     chatroomId: 1,
+        //     sentAt: new Date()
+        // };
 
         // 로컬에 즉시 반영 (화면에 바로 표시)
-        setMessages(prevMessages => [...prevMessages, chatMessage]);
+        // setMessages(prevMessages => [...prevMessages, chatMessage]);
 
 
         // chatAPI를 사용하여 메시지 전송

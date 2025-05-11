@@ -95,12 +95,15 @@ export const chatAPI = {
             userId: userId,
             sender_nickname: nickname,
             chatroomId: chatroomId,
-            sentAt: new Date()
+            sentAt: new Date().toISOString() // ISO 형식으로 변환 (서버와 형식 통일)
         };
+
+        console.log('STOMP: 메시지 전송 시도', chatMessage);
 
         stompClient.publish({
             destination: '/app/chat.send',
-            body: JSON.stringify(chatMessage)
+            body: JSON.stringify(chatMessage),
+            headers: { 'content-type' : 'application/json'}
         });
 
         return true;

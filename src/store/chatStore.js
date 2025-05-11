@@ -3,7 +3,7 @@ import { create } from 'zustand';
 
 const useChatStore = create((set) => ({
     messages: [],
-    activeRoom: 'policy',
+    activeRoom: 1,
     nickname: '',
     connected: false,
 
