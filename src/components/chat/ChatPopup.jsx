@@ -80,9 +80,9 @@ export default function ChatPopup() {
     const stompClientRef = useRef(null); // useRef로 stompClient 참조 관리
     const messagesEndRef = useRef(null);
 
-    // 사용자 정보 (실제로는 로그인 시스템이나 Zustand 등에서 가져와야 합니다)
-    const userId = "user123"; // 예시 사용자 ID
-    const nickname = "사용자"; // 예시 닉네임
+    // 사용자 정보 가져오기
+    const userId = localStorage.getItem("userId"); 
+    const nickname = localStorage.getItem("nickname"); 
 
     // 스크롤을 최하단으로 이동하는 함수
     const scrollToBottom = () => {
