@@ -1,6 +1,5 @@
 import { create } from 'zustand';
 import { authAPI } from '../api/AuthApi';
-import useWalletStore from "./walletStore";
 
 // localStorage에서 초기 값 가져오는 함수
 const getInitialState = () => ({

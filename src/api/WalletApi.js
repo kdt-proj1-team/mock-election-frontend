@@ -3,7 +3,7 @@ import axios from 'axios';
 
 // API 인스턴스 생성
 const api = axios.create({
-    baseURL: process.env.REACT_APP_WALLET_API_URL || 'http://localhost/api/wallet',
+    baseURL: process.env.REACT_APP_API_URL || 'http://localhost/api/wallet',
     headers: {
         'Content-Type': 'application/json',
     },
@@ -17,25 +17,37 @@ api.interceptors.request.use(
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }
+        // 디버깅 로그 추가
+        console.log(`지갑 API 요청: ${config.method.toUpperCase()} ${config.url}`, config.data || '');
         return config;
     },
     (error) => Promise.reject(error)
 );
 
-// 응답 인터셉터 - CORS 오류 로깅
+// 응답 인터셉터 - 자세한 오류 로깅
 api.interceptors.response.use(
-    response => response,
+    response => {
+        // 디버깅 로그 추가
+        console.log(`지갑 API 응답: ${response.config.method.toUpperCase()} ${response.config.url}`, response.data);
+        return response;
+    },
     error => {
+        // 상세 에러 로깅
         if (error.response) {
-            console.log('Wallet API Error Response:', error.response.status, error.response.data);
-        } else if (error.request) {
-            console.log('Wallet API Error Request:', error.request);
-            // CORS 오류일 가능성이 높음
-            if (error.message && error.message.includes('Network Error')) {
-                console.log('Possible CORS issue');
+            console.error(`지갑 API 오류 응답: ${error.config?.method?.toUpperCase()} ${error.config?.url}`, {
+                status: error.response.status,
+                data: error.response.data
+            });
+
+            // 401 오류 처리 (인증 만료)
+            if (error.response.status === 401) {
+                localStorage.removeItem('token');
+                window.location.href = '/login';
             }
+        } else if (error.request) {
+            console.error(`지갑 API 요청 오류: ${error.config?.method?.toUpperCase()} ${error.config?.url}`, error.request);
         } else {
-            console.log('Wallet API Error Message:', error.message);
+            console.error(`지갑 API 설정 오류: ${error.message}`);
         }
         return Promise.reject(error);
     }
@@ -44,32 +56,142 @@ api.interceptors.response.use(
 export const walletAPI = {
     // 지갑 연결
     connectWallet: async (walletAddress) => {
-        return await api.post('/connect', { walletAddress });
+        try {
+            console.log('지갑 연결 요청:', walletAddress);
+            const response = await api.post('/connect', { walletAddress });
+            console.log('지갑 연결 응답:', response.data);
+
+            // 토큰 잔액 로깅
+            if (response.data.success && response.data.data) {
+                console.log('지갑 연결 후 토큰 잔액:', response.data.data.tokenBalance);
+            }
+
+            return response;
+        } catch (error) {
+            console.error('지갑 연결 API 호출 오류:', error);
+            throw error;
+        }
     },
 
     // 새 지갑 생성
     createWallet: async (walletAddress, privateKey) => {
-        return await api.post('/create', { walletAddress, privateKey });
+        try {
+            console.log('지갑 생성 요청:', walletAddress);
+            const response = await api.post('/create', { walletAddress, privateKey });
+            console.log('지갑 생성 응답:', response.data);
+
+            // 토큰 잔액 로깅
+            if (response.data.success && response.data.data) {
+                console.log('지갑 생성 후 토큰 잔액:', response.data.data.tokenBalance);
+            }
+
+            return response;
+        } catch (error) {
+            console.error('지갑 생성 API 호출 오류:', error);
+            throw error;
+        }
     },
 
     // 지갑 상태 조회
     getWalletStatus: async () => {
-        return await api.get('/status');
+        try {
+            console.log('지갑 상태 조회 요청');
+            const response = await api.get('/status');
+            console.log('지갑 상태 조회 응답:', response.data);
+
+            // 토큰 잔액 로깅
+            if (response.data.success && response.data.data) {
+                console.log('현재 토큰 잔액:', response.data.data.tokenBalance);
+            }
+
+            return response;
+        } catch (error) {
+            console.error('지갑 상태 조회 API 호출 오류:', error);
+            throw error;
+        }
     },
 
     // 토큰 잔액 조회
-    getTokenBalance: async (walletAddress) => {
-        return await api.get('/balance');
+    getTokenBalance: async () => {
+        try {
+            console.log('토큰 잔액 조회 요청');
+            const response = await api.get('/balance');
+            console.log('토큰 잔액 조회 응답:', response.data);
+
+            // 잔액 값 로깅
+            if (response.data.success && response.data.data) {
+                console.log('조회된 토큰 잔액:', response.data.data.balance);
+            }
+
+            return response;
+        } catch (error) {
+            console.error('토큰 잔액 조회 API 호출 오류:', error);
+            throw error;
+        }
     },
 
     // 지갑 주소 업데이트
     updateWallet: async (walletAddress) => {
-        return await api.patch('/update', { walletAddress });
+        try {
+            console.log('지갑 주소 업데이트 요청:', walletAddress);
+            const response = await api.patch('/update', { walletAddress });
+            console.log('지갑 주소 업데이트 응답:', response.data);
+            return response;
+        } catch (error) {
+            console.error('지갑 주소 업데이트 API 호출 오류:', error);
+            throw error;
+        }
     },
 
     // 지갑 연결 해제
     disconnectWallet: async () => {
-        return await api.delete('/disconnect');
+        try {
+            console.log('지갑 연결 해제 요청');
+            const response = await api.delete('/disconnect');
+            console.log('지갑 연결 해제 응답:', response.data);
+            return response;
+        } catch (error) {
+            console.error('지갑 연결 해제 API 호출 오류:', error);
+            throw error;
+        }
+    },
+
+    // 토큰 차감 요청
+    deductToken: async (amount) => {
+        try {
+            console.log('토큰 차감 요청:', amount);
+            const response = await api.post('/deduct', { amount });
+            console.log('토큰 차감 응답:', response.data);
+
+            // 차감 후 잔액 로깅
+            if (response.data.success && response.data.data) {
+                console.log('차감 후 토큰 잔액:', response.data.data.tokenBalance);
+            }
+
+            return response;
+        } catch (error) {
+            console.error('토큰 차감 API 호출 오류:', error);
+            throw error;
+        }
+    },
+
+    // 최초 토큰 발급 요청
+    issueInitialToken: async (walletAddress, privateKey) => {
+        try {
+            console.log('토큰 발급 요청:', walletAddress);
+            const response = await api.post('/issue-token', { walletAddress, privateKey });
+            console.log('토큰 발급 응답:', response.data);
+
+            // 발급된 토큰 잔액 로깅
+            if (response.data.success && response.data.data) {
+                console.log('발급된 토큰 잔액:', response.data.data.tokenBalance);
+            }
+
+            return response;
+        } catch (error) {
+            console.error('토큰 발급 API 호출 오류:', error);
+            throw error;
+        }
     }
 };
 
