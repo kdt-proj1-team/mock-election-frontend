@@ -185,6 +185,29 @@ export const votingAPI = {
         }
     },
 
+    // votingAPI에 메타마스크 내부 처리용 함수 추가
+    submitMetaMaskVoteInternal: async (electionId, candidateId) => {
+        try {
+            console.log(`메타마스크 지갑 내부 투표 제출: 선거 ID ${electionId}, 후보 ID ${candidateId}`);
+
+            // transactionHash를 "INTERNAL"로 설정하여 백엔드에서 내부 처리하도록 함
+            const response = await api.post(`/${electionId}/vote/metamask`, {
+                candidateId,
+                transactionHash: "INTERNAL"
+            });
+
+            if (!response.data || !response.data.data) {
+                console.warn('내부 투표 제출 후 결과 데이터 없음:', response.data);
+                return null;
+            }
+
+            return response.data.data;
+        } catch (error) {
+            console.error('내부 투표 제출 실패:', error);
+            throw error;
+        }
+    },
+
     // 사용자 투표 가능 여부 확인
     checkVotingEligibility: async (electionId) => {
         try {

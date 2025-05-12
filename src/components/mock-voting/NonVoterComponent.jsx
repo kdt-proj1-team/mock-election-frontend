@@ -227,19 +227,18 @@ const NonVoterComponent = ({ election, candidates, onVoteComplete, onBackClick, 
         }
 
         if (submitting) {
-            return; // 이미 제출 중이면 중복 제출 방지
+            return;
         }
 
         setSubmitting(true);
         setError(null);
 
         try {
-            // 토큰 잔액 확인 (투표 전 최종 확인)
+            // 토큰 잔액 확인
             if (tokenBalance < 1) {
                 throw new Error('투표에 필요한 토큰이 부족합니다.');
             }
 
-            // 유효한 sgId 확인
             const sgId = election?.sgId;
             if (!sgId) {
                 throw new Error('유효하지 않은 선거 ID입니다.');
@@ -247,99 +246,71 @@ const NonVoterComponent = ({ election, candidates, onVoteComplete, onBackClick, 
 
             logDebug('투표 제출 시작', { sgId, candidateId: selectedCandidate, walletType });
 
-            // 지갑 타입에 따라 다른 처리
+            // 지갑 타입 확인 및 블록체인 토큰 확인
             if (walletType === "METAMASK") {
                 try {
-                    // 네트워크 확인
-                    await refreshTokenBalance();
+                    // 블록체인에서 실제 토큰 잔액 확인
+                    const { hasBlockchainToken } = useWalletStore.getState();
+                    const blockchainTokenBalance = await hasBlockchainToken();
 
-                    // 트랜잭션 제출 전 사용자에게 설명
-                    const isConfirmed = window.confirm(
-                        "메타마스크 지갑으로 투표하시면 블록체인에 트랜잭션이 기록됩니다. " +
-                        "메타마스크 팝업창이 뜨면 트랜잭션을 승인해주세요. " +
-                        "가스비는 Amoy 테스트넷 MATIC으로 지불됩니다."
-                    );
+                    if (blockchainTokenBalance > 0) {
+                        // 블록체인에 토큰이 있는 경우 - 기존 메타마스크 방식 사용
+                        logDebug('블록체인 토큰 확인됨, 메타마스크 투표 진행');
 
-                    if (!isConfirmed) {
-                        throw new Error("사용자가 트랜잭션을 취소했습니다.");
+                        const isConfirmed = window.confirm(
+                            "메타마스크 지갑으로 투표하시면 블록체인에 트랜잭션이 기록됩니다. " +
+                            "메타마스크 팝업창이 뜨면 트랜잭션을 승인해주세요."
+                        );
+
+                        if (!isConfirmed) {
+                            throw new Error("사용자가 트랜잭션을 취소했습니다.");
+                        }
+
+                        const txResult = await submitVoteTransaction(selectedCandidate);
+
+                        if (!txResult.success) {
+                            throw new Error(txResult.error || '메타마스크 투표 트랜잭션에 실패했습니다.');
+                        }
+
+                        const voteResult = await votingAPI.submitMetaMaskVote(
+                            sgId,
+                            selectedCandidate,
+                            txResult.transactionHash
+                        );
+
+                        await refreshTokenBalance();
+                        onVoteComplete(voteResult);
+
+                    } else {
+                        // 블록체인에 토큰이 없는 경우 - 내부 지갑 방식으로 처리
+                        logDebug('블록체인에 토큰 없음, 내부 방식으로 투표 진행');
+
+                        const voteResult = await votingAPI.submitVote(sgId, selectedCandidate);
+                        await refreshTokenBalance();
+                        onVoteComplete(voteResult);
                     }
+                } catch (error) {
+                    // 블록체인 토큰 확인 실패 시 내부 방식으로 처리
+                    if (error.message.includes('Insufficient token balance')) {
+                        logDebug('블록체인 토큰 부족, 내부 방식으로 전환');
 
-                    // 메타마스크 투표 트랜잭션 전송 시작
-                    logDebug('메타마스크 투표 트랜잭션 전송 시작');
-                    const txResult = await submitVoteTransaction(selectedCandidate);
-
-                    if (!txResult.success) {
-                        throw new Error(txResult.error || '메타마스크 투표 트랜잭션에 실패했습니다.');
+                        const voteResult = await votingAPI.submitVote(sgId, selectedCandidate);
+                        await refreshTokenBalance();
+                        onVoteComplete(voteResult);
+                    } else {
+                        throw error;
                     }
-
-                    logDebug('메타마스크 투표 트랜잭션 성공', txResult);
-
-                    // 블록체인 트랜잭션 성공 후 백엔드에 알림
-                    const voteResult = await votingAPI.submitMetaMaskVote(
-                        sgId,
-                        selectedCandidate,
-                        txResult.transactionHash
-                    );
-
-                    logDebug('메타마스크 투표 백엔드 등록 성공', voteResult);
-
-                    // 토큰 잔액 새로고침
-                    await refreshTokenBalance();
-
-                    // 투표 완료 처리
-                    onVoteComplete(voteResult);
-                } catch (metaMaskError) {
-                    // 상세 오류 로깅
-                    console.error('메타마스크 투표 오류 상세:', metaMaskError);
-
-                    // 사용자가 거부한 경우는 특별 처리
-                    if (metaMaskError.message.includes('사용자가 트랜잭션을 거부') ||
-                        metaMaskError.message.includes('User denied') ||
-                        metaMaskError.code === 4001) {
-                        logDebug('사용자가 메타마스크 트랜잭션을 거부함');
-                        throw new Error('트랜잭션이 거부되었습니다. 투표를 완료하려면 메타마스크 트랜잭션을 승인해주세요.');
-                    }
-
-                    // 가스 부족 오류 특별 처리
-                    if (metaMaskError.message.includes('insufficient funds') ||
-                        (metaMaskError.code === -32603 && metaMaskError.data?.message?.includes('insufficient funds'))) {
-                        throw new Error('가스비가 부족합니다. Amoy 테스트넷 MATIC을 충전해주세요.');
-                    }
-
-                    throw metaMaskError;
                 }
             } else {
                 // 내부 지갑은 기존 방식으로 투표
-                try {
-                    logDebug('내부 지갑 투표 요청 시작');
-                    const voteResult = await votingAPI.submitVote(sgId, selectedCandidate);
-                    logDebug('내부 지갑 투표 성공', voteResult);
-
-                    // 토큰 잔액 새로고침
-                    await refreshTokenBalance();
-
-                    // 투표 완료 처리
-                    onVoteComplete(voteResult);
-                } catch (internalError) {
-                    // 이미 투표한 경우 처리
-                    if (internalError.response?.status === 400 &&
-                        internalError.response?.data?.message?.includes('이미 투표')) {
-                        logDebug('이미 투표한 사용자입니다.');
-                        onVoteComplete({ success: true });
-                        return;
-                    }
-
-                    // 토큰 부족 오류
-                    if (internalError.response?.data?.message?.includes('토큰 잔액이 부족')) {
-                        throw new Error('투표에 필요한 토큰이 부족합니다. 지갑을 확인해주세요.');
-                    }
-
-                    throw internalError;
-                }
+                logDebug('내부 지갑 투표 요청 시작');
+                const voteResult = await votingAPI.submitVote(sgId, selectedCandidate);
+                await refreshTokenBalance();
+                onVoteComplete(voteResult);
             }
         } catch (error) {
             console.error('투표 처리 중 오류 발생:', error);
-            setError(error.message || '투표 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+            setError(error.message || '투표 처리 중 오류가 발생했습니다.');
         } finally {
             setSubmitting(false);
         }
