@@ -79,6 +79,15 @@ const InfoNotification = styled.div`
     box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
 `;
 
+const WarningNotification = styled.div`
+    padding: 15px;
+    background-color: #fffbeb;
+    border-left: 4px solid #eab308;
+    margin-bottom: 20px;
+    border-radius: 4px;
+    box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
+`;
+
 const LoadingSpinner = styled.div`
     border: 4px solid #f3f3f3;
     border-top: 4px solid #3498db;
@@ -114,7 +123,13 @@ const MockVotingDetail = () => {
     const [error, setError] = useState(null);
     const [tokenError, setTokenError] = useState(null);
     const [hasToken, setHasToken] = useState(true);
-    const { tokenBalance, isWalletConnected, checkWalletStatus, refreshTokenBalance } = useWalletStore();
+    const {
+        tokenBalance,
+        isWalletConnected,
+        checkWalletStatus,
+        refreshTokenBalance,
+        walletType
+    } = useWalletStore();
 
     // 투표 상태 관련 상태
     const [hasVoted, setHasVoted] = useState(false);
@@ -257,31 +272,46 @@ const MockVotingDetail = () => {
             setElection(basicElection);
 
             try {
-                // 먼저 사용자 투표 상태 확인 (가장 우선)
+                // 투표 가능 여부 확인 - 새로운 API 사용
                 try {
-                    // 사용자 정보 API로 투표 여부 확인 (가장 확실한 방법)
-                    const userInfoResponse = await authAPI.getUserInfo();
-                    const userData = userInfoResponse.data.data;
+                    const eligibility = await votingAPI.checkVotingEligibility(basicElection.sgId);
+                    logDebug('투표 가능 여부 확인 결과', eligibility);
 
-                    if (userData && userData.isElection === true) {
-                        console.log('사용자가 이미 투표했음 (사용자 정보 기준)');
-                        setHasVoted(true);
-                    } else {
-                        // 선거 ID로 투표 상태 추가 확인
-                        const votingStatus = await votingAPI.checkVoteStatus(basicElection.sgId);
-                        console.log('투표 API 확인 결과:', votingStatus);
+                    setHasVoted(eligibility.hasVoted);
+                    setHasToken(eligibility.canVote || eligibility.hasVoted); // 이미 투표했으면 토큰 있는 것으로 간주
 
-                        if (votingStatus === true) {
-                            console.log('사용자가 이미 투표했음 (투표 API 기준)');
+                    if (!eligibility.canVote && !eligibility.hasVoted) {
+                        setTokenError("투표하려면 지갑을 연결하고 충분한 토큰이 필요합니다.");
+                    }
+                } catch (eligibilityError) {
+                    console.error('투표 가능 여부 확인 중 오류:', eligibilityError);
+
+                    // 이전 방식으로 대체 - 사용자 정보와 투표 상태 확인
+                    try {
+                        // 사용자 정보 API로 투표 여부 확인 (가장 확실한 방법)
+                        const userInfoResponse = await authAPI.getUserInfo();
+                        const userData = userInfoResponse.data.data;
+
+                        if (userData && userData.isElection === true) {
+                            console.log('사용자가 이미 투표했음 (사용자 정보 기준)');
                             setHasVoted(true);
                         } else {
-                            setHasVoted(false);
+                            // 선거 ID로 투표 상태 추가 확인
+                            const votingStatus = await votingAPI.checkVoteStatus(basicElection.sgId);
+                            console.log('투표 API 확인 결과:', votingStatus);
+
+                            if (votingStatus === true) {
+                                console.log('사용자가 이미 투표했음 (투표 API 기준)');
+                                setHasVoted(true);
+                            } else {
+                                setHasVoted(false);
+                            }
                         }
+                    } catch (statusError) {
+                        console.error('투표 상태 확인 중 오류:', statusError);
+                        // 오류 발생 시 기본값으로 false 설정
+                        setHasVoted(false);
                     }
-                } catch (statusError) {
-                    console.error('투표 상태 확인 중 오류:', statusError);
-                    // 오류 발생 시 기본값으로 false 설정
-                    setHasVoted(false);
                 }
 
                 // 정당별 정책 데이터 가져오기 (투표 여부와 관계없이 항상 로드)
@@ -447,6 +477,13 @@ const MockVotingDetail = () => {
                     </InfoNotification>
                 )}
 
+                {/* 메타마스크 지갑 사용자에게 안내 메시지 */}
+                {!hasVoted && walletType === "METAMASK" && (
+                    <WarningNotification>
+                        <p><strong>메타마스크 지갑 안내:</strong> 메타마스크로 투표하는 경우, 블록체인에 트랜잭션이 기록됩니다. 트랜잭션 비용은 테스트넷 ETH로 지불되며, 투표에는 1 VT 토큰이 사용됩니다.</p>
+                    </WarningNotification>
+                )}
+
                 {/* 디버그 정보 */}
                 {process.env.NODE_ENV === 'development' && (
                     <div style={{
@@ -460,6 +497,7 @@ const MockVotingDetail = () => {
                         <p><strong>디버그 정보:</strong></p>
                         <p>투표 여부: {hasVoted ? '예' : '아니오'}</p>
                         <p>지갑 연결: {isWalletConnected ? '예' : '아니오'}</p>
+                        <p>지갑 타입: {walletType || '없음'}</p>
                         <p>토큰 잔액: {tokenBalance}</p>
                         <p>토큰 있음: {hasToken ? '예' : '아니오'}</p>
                         <p>후보자 수: {candidates.length}</p>
