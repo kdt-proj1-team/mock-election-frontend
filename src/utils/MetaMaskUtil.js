@@ -15,6 +15,12 @@ class MetaMaskUtil {
      * 메타마스크 연결 요청
      */
     static async connectMetaMask() {
+
+        console.log("[WalletStore] 환경 변수 확인:");
+        console.log("- REACT_APP_BLOCKCHAIN_CHAIN_ID:", process.env.REACT_APP_BLOCKCHAIN_CHAIN_ID);
+        console.log("- REACT_APP_BLOCKCHAIN_RPC_URL:", process.env.REACT_APP_BLOCKCHAIN_RPC_URL);
+        console.log("- REACT_APP_TOKEN_CONTRACT_ADDRESS:", process.env.REACT_APP_TOKEN_CONTRACT_ADDRESS);
+
         if (!this.isMetaMaskInstalled()) {
             throw new Error("메타마스크가 설치되어 있지 않습니다. 메타마스크를 설치하세요.");
         }
@@ -62,24 +68,46 @@ class MetaMaskUtil {
 
         try {
             const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+            console.log("[MetaMaskUtil] 체인 ID 응답:", chainId);
             return chainId;
         } catch (error) {
-            console.error("체인 ID 가져오기 오류:", error);
+            console.error("[MetaMaskUtil] 체인 ID 조회 오류:", error);
             throw error;
         }
     }
 
-    /**
-     * Polygon Amoy 테스트넷 네트워크 추가하기
-     */
+    static async switchNetwork(chainId) {
+        if (!this.isMetaMaskInstalled()) {
+            throw new Error("메타마스크가 설치되어 있지 않습니다.");
+        }
+
+        console.log("[MetaMaskUtil] 네트워크 전환 시도:", chainId);
+
+        try {
+            await window.ethereum.request({
+                method: 'wallet_switchEthereumChain',
+                params: [{ chainId: chainId }],
+            });
+            console.log("[MetaMaskUtil] 네트워크 전환 성공");
+            return true;
+        } catch (error) {
+            console.error("[MetaMaskUtil] 네트워크 전환 오류:", error);
+            // 요청한 체인이 메타마스크에 추가되어 있지 않은 경우
+            if (error.code === 4902) {
+                throw new Error("해당 네트워크가 메타마스크에 추가되어 있지 않습니다. 먼저 네트워크를 추가하세요.");
+            }
+            throw error;
+        }
+    }
+
     static async addAmoyNetwork() {
         if (!this.isMetaMaskInstalled()) {
             throw new Error("메타마스크가 설치되어 있지 않습니다.");
         }
 
         const amoyNetworkParams = {
-            chainId: '0x13882',
-            chainName: 'Polygon Amoy',
+            chainId: '0x13882', // 80002의 16진수 값
+            chainName: 'Polygon Amoy Testnet',
             nativeCurrency: {
                 name: 'MATIC',
                 symbol: 'MATIC',
@@ -89,46 +117,24 @@ class MetaMaskUtil {
             blockExplorerUrls: ['https://amoy.polygonscan.com/']
         };
 
+        console.log("[MetaMaskUtil] Amoy 네트워크 추가 시도:", amoyNetworkParams);
+
         try {
             await window.ethereum.request({
                 method: 'wallet_addEthereumChain',
                 params: [amoyNetworkParams],
             });
+            console.log("[MetaMaskUtil] Amoy 네트워크 추가 성공");
             return true;
         } catch (error) {
-            console.error("Amoy 네트워크 추가 오류:", error);
+            console.error("[MetaMaskUtil] Amoy 네트워크 추가 오류:", error);
+            console.error("[MetaMaskUtil] 오류 코드:", error.code);
+            console.error("[MetaMaskUtil] 오류 메시지:", error.message);
             throw error;
         }
     }
 
-    /**
-     * 네트워크 전환 요청
-     * @param {string} chainId - 전환할 체인 ID (예: '0x89' for Polygon Amoy)
-     */
-    static async switchNetwork(chainId) {
-        if (!this.isMetaMaskInstalled()) {
-            throw new Error("메타마스크가 설치되어 있지 않습니다.");
-        }
 
-        try {
-            await window.ethereum.request({
-                method: 'wallet_switchEthereumChain',
-                params: [{ chainId }],
-            });
-            return true;
-        } catch (error) {
-            // 요청한 체인이 메타마스크에 추가되어 있지 않은 경우
-            if (error.code === 4902) {
-                // Polygon Amoy 테스트넷인 경우 자동으로 추가 시도
-                if (chainId === '0x89') {
-                    return await this.addAmoyNetwork();
-                }
-                throw new Error("해당 네트워크가 메타마스크에 추가되어 있지 않습니다. 먼저 네트워크를 추가하세요.");
-            }
-            console.error("네트워크 전환 오류:", error);
-            throw error;
-        }
-    }
 
     /**
      * VotingToken 컨트랙트 인스턴스 생성
@@ -212,6 +218,26 @@ class MetaMaskUtil {
         if (!address) return '';
         if (address.length < startLength + endLength + 3) return address;
         return `${address.substring(0, startLength)}...${address.substring(address.length - endLength)}`;
+    }
+
+    /**
+     * 새 지갑 생성
+     * 주의: 이 함수는 프론트엔드에서 지갑을 생성하지만, 실제 서비스에서는 보안상의 이유로 백엔드에서 생성하는 것이 좋습니다. -> 어떻게 하라고요 ~~~아놔
+     */
+    static createNewWallet() {
+        try {
+            // 랜덤 지갑 생성
+            const wallet = ethers.Wallet.createRandom();
+
+            return {
+                address: wallet.address,
+                privateKey: wallet.privateKey,
+                mnemonic: wallet.mnemonic.phrase
+            };
+        } catch (error) {
+            console.error("지갑 생성 오류:", error);
+            throw error;
+        }
     }
 }
 

@@ -7,30 +7,42 @@ import useAuthStore from './authStore';
 import VotingTokenABI from '../contracts/VotingToken.json'; // 컨트랙트 ABI 임포트
 
 const useWalletStore = create((set, get) => {
-    // 네트워크 전환 함수 정의
+
+    // checkAndSwitchNetwork 함수를 더 자세한 디버깅 로그와 함께 수정
     const checkAndSwitchNetwork = async () => {
         try {
             set({ isLoading: true, error: null });
 
             // 현재 체인 ID 확인
-            const chainId = await MetaMaskUtil.getChainId();
-            const AMOY_CHAIN_ID = process.env.REACT_APP_BLOCKCHAIN_CHAIN_ID || '0x13882';
+            const currentChainId = await MetaMaskUtil.getChainId();
+            console.log("[WalletStore] 현재 체인 ID (16진수):", currentChainId);
+            console.log("[WalletStore] 현재 체인 ID (10진수):", parseInt(currentChainId, 16));
+
+            // 환경변수에서 체인 ID 가져오기
+            const expectedChainIdDecimal = process.env.REACT_APP_BLOCKCHAIN_CHAIN_ID || '80002';
+            const expectedChainIdHex = `0x${parseInt(expectedChainIdDecimal).toString(16)}`;
+
+            console.log("[WalletStore] 예상 체인 ID (10진수):", expectedChainIdDecimal);
+            console.log("[WalletStore] 예상 체인 ID (16진수):", expectedChainIdHex);
 
             // Amoy 테스트넷이 아니면 전환 시도
-            if (chainId !== AMOY_CHAIN_ID) {
-                console.log(`[WalletStore] 현재 네트워크(${chainId})를 Amoy 테스트넷(${AMOY_CHAIN_ID})으로 전환합니다.`);
+            if (currentChainId.toLowerCase() !== expectedChainIdHex.toLowerCase()) {
+                console.log(`[WalletStore] 네트워크 전환 필요 - 현재: ${currentChainId}, 예상: ${expectedChainIdHex}`);
 
                 try {
                     // 네트워크 전환 요청
-                    await MetaMaskUtil.switchNetwork(AMOY_CHAIN_ID);
+                    await MetaMaskUtil.switchNetwork(expectedChainIdHex);
                     console.log("[WalletStore] Amoy 테스트넷으로 전환 성공");
                     set({ networkConnected: true });
                     return true;
                 } catch (switchError) {
                     console.error("[WalletStore] 네트워크 전환 실패:", switchError);
+                    console.error("[WalletStore] 에러 코드:", switchError.code);
+                    console.error("[WalletStore] 에러 메시지:", switchError.message);
 
                     // 네트워크가 존재하지 않는 경우 추가 시도
                     if (switchError.code === 4902) {
+                        console.log("[WalletStore] 네트워크가 메타마스크에 없음. 추가 시도...");
                         try {
                             await MetaMaskUtil.addAmoyNetwork();
                             console.log("[WalletStore] Amoy 테스트넷 추가 및 전환 성공");
@@ -38,6 +50,8 @@ const useWalletStore = create((set, get) => {
                             return true;
                         } catch (addError) {
                             console.error("[WalletStore] Amoy 테스트넷 추가 실패:", addError);
+                            console.error("[WalletStore] 추가 에러 코드:", addError.code);
+                            console.error("[WalletStore] 추가 에러 메시지:", addError.message);
                             set({
                                 error: "Polygon Amoy 테스트넷을 추가할 수 없습니다. 메타마스크에서 수동으로 추가해주세요.",
                                 networkConnected: false
@@ -59,6 +73,7 @@ const useWalletStore = create((set, get) => {
             }
         } catch (error) {
             console.error("[WalletStore] 네트워크 확인 오류:", error);
+            console.error("[WalletStore] 오류 스택:", error.stack);
             set({
                 error: "네트워크 상태를 확인할 수 없습니다: " + error.message,
                 networkConnected: false
@@ -83,11 +98,11 @@ const useWalletStore = create((set, get) => {
         networkConnected: false, // Amoy 테스트넷 연결 상태
 
         // Amoy 테스트넷 설정
-        AMOY_CHAIN_ID: process.env.REACT_APP_BLOCKCHAIN_CHAIN_ID || '0x13882', // 137의 16진수 값
+        AMOY_CHAIN_ID: process.env.REACT_APP_BLOCKCHAIN_CHAIN_ID || '0x13882',
         AMOY_RPC_URL: process.env.REACT_APP_BLOCKCHAIN_RPC_URL || 'https://polygon-amoy.g.alchemy.com/v2/Vy2XeYzATQbK82LjRfnR9WOug5RkuwjS',
 
         // 컨트랙트 주소 (실제 배포된 주소)
-        CONTRACT_ADDRESS: process.env.REACT_APP_TOKEN_CONTRACT_ADDRESS || "0xd9145CCE52D386f254917e481eB44e9943F39138",
+        CONTRACT_ADDRESS: process.env.REACT_APP_TOKEN_CONTRACT_ADDRESS || "0x40222A186832906045f158A86f0E28D83D2f674f",
 
         // 상태 초기화
         resetState: () => {
@@ -148,7 +163,7 @@ const useWalletStore = create((set, get) => {
                 const signer = provider.getSigner();
 
                 // VotingToken 컨트랙트 연결
-                const CONTRACT_ADDRESS = process.env.REACT_APP_TOKEN_CONTRACT_ADDRESS || "0xd9145CCE52D386f254917e481eB44e9943F39138";
+                const CONTRACT_ADDRESS = process.env.REACT_APP_TOKEN_CONTRACT_ADDRESS || "0x40222A186832906045f158A86f0E28D83D2f674f";
                 const contract = new ethers.Contract(
                     CONTRACT_ADDRESS,
                     VotingTokenABI,
@@ -244,8 +259,6 @@ const useWalletStore = create((set, get) => {
                 throw error;
             }
         },
-
-        // 나머지 메서드들...
 
 // 새 지갑 생성 함수 (내부 지갑)
         createNewWallet: async () => {
@@ -502,7 +515,7 @@ const useWalletStore = create((set, get) => {
 
                                     if (networkConnected) {
                                         // VotingToken 컨트랙트 연결
-                                        const CONTRACT_ADDRESS = process.env.REACT_APP_TOKEN_CONTRACT_ADDRESS || "0xd9145CCE52D386f254917e481eB44e9943F39138";
+                                        const CONTRACT_ADDRESS = process.env.REACT_APP_TOKEN_CONTRACT_ADDRESS || "0x40222A186832906045f158A86f0E28D83D2f674f";
                                         const contract = new ethers.Contract(
                                             CONTRACT_ADDRESS,
                                             VotingTokenABI,
@@ -672,7 +685,7 @@ const useWalletStore = create((set, get) => {
                 if (walletType === "METAMASK" && provider) {
                     try {
                         const signer = provider.getSigner();
-                        const CONTRACT_ADDRESS = process.env.REACT_APP_TOKEN_CONTRACT_ADDRESS || "0xd9145CCE52D386f254917e481eB44e9943F39138";
+                        const CONTRACT_ADDRESS = process.env.REACT_APP_TOKEN_CONTRACT_ADDRESS || "0x40222A186832906045f158A86f0E28D83D2f674f";
                         const contract = new ethers.Contract(
                             CONTRACT_ADDRESS,
                             VotingTokenABI,
