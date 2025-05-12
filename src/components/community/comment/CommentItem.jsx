@@ -1,7 +1,9 @@
 import styled from 'styled-components';
+import { useState } from 'react';
 import { FaArrowUp, FaArrowDown, FaReply, FaFlag, FaPencilAlt, FaTrash } from 'react-icons/fa';
 import { formatDateTime } from '../../../utils/DateFormatter';
 import { postCommentAPI } from '../../../api/PostCommentApi';
+import CommentForm from './CommentForm';
 
 // # region styled-components
 const Comment = styled.div`
@@ -97,6 +99,7 @@ const Reply = styled.div`
 const CommentItem = ({ comment, onDeleted }) => {
     const userId = localStorage.getItem("userId");
     const isAuthor = comment && comment.authorId === userId;
+    const [showReplyForm, setShowReplyForm] = useState(false);
 
     const CommentItemWrapper = comment.depth === 0 ? Comment : Reply;
     const handleDelete = async () => {
@@ -117,14 +120,21 @@ const CommentItem = ({ comment, onDeleted }) => {
                 <CommentAuthor>{comment.authorNickname}</CommentAuthor>
                 <CommentDateInfo>{comment.updatedAt ? `${formatDateTime(comment.updatedAt)} 수정됨` : formatDateTime(comment.createdAt)}</CommentDateInfo>
             </CommentHeader>
-            <CommentContent>{comment.content}</CommentContent>
+            <CommentContent>
+                {comment.content.split('\n').map((line, idx) => (
+                    <span key={idx}>
+                        {line}
+                        <br />
+                    </span>
+                ))}
+            </CommentContent>
             <CommentActions>
                 <CommentVoteButtons>
                     <CommentVoteButton type="up"><FaArrowUp /></CommentVoteButton>
                     <CommentVoteCount>{comment.voteCount}</CommentVoteCount>
                     <CommentVoteButton type="down"><FaArrowDown /></CommentVoteButton>
                 </CommentVoteButtons>
-                <ActionButton><FaReply /> 답글</ActionButton>
+                <ActionButton onClick={() => setShowReplyForm(prev => !prev)}><FaReply /> 답글</ActionButton>
                 {!isAuthor && (
                     <ActionButton><FaFlag /> 신고</ActionButton>
                 )}
@@ -135,6 +145,19 @@ const CommentItem = ({ comment, onDeleted }) => {
                     </>
                 )}
             </CommentActions>
+
+            {showReplyForm && (
+                <CommentForm
+                    postId={comment.postId}
+                    parentId={comment.id}
+                    variant="reply"
+                    onSuccess={() => {
+                        setShowReplyForm(false);
+                        onDeleted?.();
+                    }}
+                    onCancel={() => setShowReplyForm(false)}
+                />
+            )}
 
             {/* {replies.length > 0 && (
                 <ReplyList>

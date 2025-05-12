@@ -14,14 +14,14 @@ const Container = styled.div`
 
 const CommentAuthor = styled.div`
   font-weight: bold;
-  font-size: 17px;
+  ${({ variant }) => (variant === 'reply' ? '14px' : '17px')};
   margin: 10px;
   color: #000;
 `;
 
 const Textarea = styled.textarea`
   width: 100%;
-  min-height: ${({ variant }) => (variant === 'reply' ? '60px' : '80px')};
+  min-height: ${({ variant }) => (variant === 'reply' ? '40px' : '70px')};
   padding: ${({ variant }) => (variant === 'reply' ? '12px' : '15px')};
   font-size: ${({ variant }) => (variant === 'reply' ? '14px' : '15px')};
   border: none;
@@ -29,7 +29,6 @@ const Textarea = styled.textarea`
 
   &:focus {
     outline: none;
-    
   }
 `;
 
@@ -41,18 +40,37 @@ const CharCounter = styled.div`
   color: #888;
 `;
 
+const ButtonGroup = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+`;
+
+const CancleButton = styled.button`
+  width: ${({ variant }) => (variant === 'reply' ? '60px' : '70px')};
+  height: ${({ variant }) => (variant === 'reply' ? '35px' : '40px')};
+  background-color: #ddd;
+  color: white;
+  border: none;
+  padding: ${({ variant }) => (variant === 'reply' ? '8px 16px' : '10px 20px')};
+  border-radius: 5px;
+  font-size: ${({ variant }) => (variant === 'reply' ? '11px' : '13px')};
+  font-weight: bold;
+  cursor: pointer;
+
+`;
+
 const SubmitButton = styled.button`
-  width: 70px;
-  height: 40px;
+  width: ${({ variant }) => (variant === 'reply' ? '60px' : '70px')};
+  height: ${({ variant }) => (variant === 'reply' ? '35px' : '40px')};
   background-color: #4d82f3;
   color: white;
   border: none;
   padding: ${({ variant }) => (variant === 'reply' ? '8px 16px' : '10px 20px')};
   border-radius: 5px;
-  font-size: 13px;
+  font-size: ${({ variant }) => (variant === 'reply' ? '11px' : '13px')};
   font-weight: bold;
   cursor: pointer;
-  float: right;
 
   &:hover {
     background-color: #3a6ad4;
@@ -68,7 +86,7 @@ const ClearFix = styled.div`
 `;
 // #endregion
 
-const CommentForm = ({ postId, parentId = null, onSuccess, variant = 'comment' }) => {
+const CommentForm = ({ postId, parentId = null, onSuccess, onCancel, variant = 'comment' }) => {
     const [input, setInput] = useState("");
     const nickname = localStorage.getItem("nickname");
     const maxLength = 1000;
@@ -96,7 +114,7 @@ const CommentForm = ({ postId, parentId = null, onSuccess, variant = 'comment' }
             <CommentAuthor>{nickname}</CommentAuthor>
             <Textarea
                 variant={variant}
-                placeholder={variant === 'reply' ? "답글을 입력하세요..." : "댓글을 입력하세요."}
+                placeholder={variant === 'reply' ? "답글을 입력하세요." : "댓글을 입력하세요."}
                 maxLength={maxLength}
                 value={input}
                 onChange={e => {
@@ -108,9 +126,14 @@ const CommentForm = ({ postId, parentId = null, onSuccess, variant = 'comment' }
             <CharCounter variant={variant}>
                 {input.length} / {maxLength}
             </CharCounter>
-            <SubmitButton variant={variant} onClick={handleSubmit} disabled={!input.trim()}>
-                등록
-            </SubmitButton>
+            <ButtonGroup>
+                {variant === 'reply' && (
+                    <CancleButton variant={variant} onClick={onCancel}>취소</CancleButton>
+                )}
+                <SubmitButton variant={variant} onClick={handleSubmit} disabled={!input.trim()}>
+                    등록
+                </SubmitButton>
+            </ButtonGroup>
             <ClearFix />
         </Container>
     );
