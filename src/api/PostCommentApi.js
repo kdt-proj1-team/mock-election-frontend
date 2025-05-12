@@ -20,8 +20,10 @@ api.interceptors.request.use(
 
 export const postCommentAPI = {
     // 최상위 댓글 조회
-    getTopLevelComments: async (postId) => {
-        const response = await api.get(`/${postId}/comments`);
+    getTopLevelComments: async (postId, offset = 0, limit = 20) => {
+        const response = await api.get(`/${postId}/comments`, {
+            params: { offset, limit }
+        });
         return response.data.data;
     },
 
