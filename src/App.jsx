@@ -18,6 +18,7 @@ import PostDetail from './components/community/PostDetail'
 import ElectionQuiz from "./components/quiz/ElectionQuiz";
 import ChatbotPage from './pages/ChatbotPage';
 import GlossaryPopup from "./components/glossary/GlossaryPopup";
+import ChatPopup from './components/chat/ChatPopup';
 
 const theme = {
     colors: {
@@ -55,6 +56,8 @@ const App = () => {
     return (
         <ThemeProvider theme={theme}>
             <GlossaryPopup/>
+            {/* 채팅 팝업 */}
+            <ChatPopup />
             <Router>
                 <Header/>
                 <Routes>
