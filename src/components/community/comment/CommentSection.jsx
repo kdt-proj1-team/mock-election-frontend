@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import styled from 'styled-components';
 import { postCommentAPI } from '../../../api/PostCommentApi';
 import CommentList from './CommentList';
@@ -71,6 +71,7 @@ const ClearFix = styled.div`
 
 const CommentSection = ({postId}) => {
     const [commentInput, setCommentInput] = useState("");
+    const commentListRef = useRef();
 
     const handleSubmit = async () => {
         const trimmed = commentInput.trim();
@@ -83,7 +84,9 @@ const CommentSection = ({postId}) => {
                 parentId: null // 일반 댓글
             });
             setCommentInput("");
-            // 댓글 새로고침 호출 필요 시 여기서 처리
+            
+            // 댓글 목록 리렌더링
+            commentListRef.current?.refetch();
         } catch (error) {
             console.error("댓글 등록 실패:", error);
             alert("댓글 등록에 실패했습니다.");
@@ -109,7 +112,7 @@ const CommentSection = ({postId}) => {
                 <ClearFix></ClearFix>
             </CommentForm>
 
-            <CommentList></CommentList>
+            <CommentList ref={commentListRef} postId={postId}></CommentList>
         </Section>
     );
 };

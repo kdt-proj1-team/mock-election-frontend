@@ -4,7 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import styled from 'styled-components';
 import { FaPencilAlt, FaTrash, FaArrowUp, FaArrowDown, FaFlag, FaReply, FaPen, FaHome, FaList, FaEye, FaCommentDots } from 'react-icons/fa';
 import { postAPI } from '../../api/PostApi';
-import { format, parseISO } from 'date-fns';
+import { formatDateTime } from '../../utils/DateFormatter';
 import CommentSection from './comment/CommentSection';
 
 // #region styled-components
@@ -258,11 +258,6 @@ const formatFileSize = (bytes) => {
   return `${mb.toFixed(1)} MB`;
 }
 
-// 날짜 변환
-const formatDate = (isoString) => {
-  return format(parseISO(isoString), 'yyyy.MM.dd HH:mm');
-};
-
 const PostDetail = () => {
   const navigate = useNavigate();
 
@@ -306,10 +301,10 @@ const PostDetail = () => {
       <Meta>
         <Info>
           <span>{post.authorNickname}</span>
-          <span>{formatDate(post.createdAt)}</span>
+          <span>{formatDateTime(post.createdAt)}</span>
           {post.updatedAt && (
             <span style={{ fontStyle: 'italic' }}>
-              수정됨: {formatDate(post.updatedAt)}
+              수정됨: {formatDateTime(post.updatedAt)}
             </span>
           )}
         </Info>
