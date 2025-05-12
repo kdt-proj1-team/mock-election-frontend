@@ -320,7 +320,7 @@ export default function ChatPopup() {
                                 ...styles.closeButton,
                                 ...(isHovering.close ? styles.closeButtonHover : {})
                             }}
-                            onClick={() => setIsHovering({...setIsHovering, close:true})}
+                            onClick={() => setIsOpen(!isOpen)}
                             onMouseEnter={() => setIsHovering({...isHovering, close: true})}
                             onMouseLeave={() => setIsHovering({...isHovering, close: false})}
                         >
