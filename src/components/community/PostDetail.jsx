@@ -1,6 +1,6 @@
 // PostDetail.jsx (전체 컴포넌트 구조 + styled-components 스타일 포함)
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, Link } from "react-router-dom";
 import styled from 'styled-components';
 import { FaPencilAlt, FaTrash, FaArrowUp, FaArrowDown, FaFlag, FaReply, FaPen, FaHome, FaList, FaEye, FaCommentDots } from 'react-icons/fa';
 import { postAPI } from '../../api/PostApi';
@@ -242,8 +242,14 @@ const GrayBtn = styled(ActionBtn)`
   background-color: #f1f1f1;
   color: #333;
   border: 1px solid #ddd;
+  text-decoration: none;
   &:hover {
     background-color: #e5e5e5;
+  }
+    
+  svg {
+    position: relative;
+    top: 1px;
   }
 `;
 
@@ -355,7 +361,7 @@ const PostDetail = () => {
         </LeftActions>
         <RightActions>
           <GrayBtn onClick={() => navigate("/community")}><FaHome /> 커뮤니티 메인</GrayBtn>
-          <GrayBtn><FaList /> 목록</GrayBtn>
+          <GrayBtn as={Link} to={`/community?category=${post.categoryCode}`}><FaList /> 목록</GrayBtn>
           <GrayBtn><FaArrowUp /> TOP</GrayBtn>
         </RightActions>
       </PostActionsBar>
