@@ -246,7 +246,7 @@ const GrayBtn = styled(ActionBtn)`
   &:hover {
     background-color: #e5e5e5;
   }
-    
+
   svg {
     position: relative;
     top: 1px;
@@ -317,7 +317,7 @@ const PostDetail = () => {
         <Actions>
           {isAuthor && (
             <>
-              <ActionButton><FaPencilAlt /> 수정</ActionButton>
+              <ActionButton onClick={() => navigate(`/community/board/edit/${post.id}`)}><FaPencilAlt /> 수정</ActionButton>
               <ActionButton onClick={handleDelete}><FaTrash /> 삭제</ActionButton>
             </>
           )}

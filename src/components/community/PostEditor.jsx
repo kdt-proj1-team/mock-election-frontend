@@ -78,9 +78,11 @@ const CategoryItem = styled.div`
   border-radius: 50px;
   font-size: 14px;
   color: #666;
-  cursor: pointer;
   background-color: #fff;
   transition: all 0.2s;
+
+  cursor: ${({ $readonly }) => ($readonly ? 'default' : 'pointer')};
+
   &.active {
     background-color: #333;
     color: #fff;
@@ -298,6 +300,8 @@ const ResizeButton = styled.button`
 `;
 // #endregion
 
+const MAX_FILES = 5;    // 최대 파일 개수
+
 const PostEditor = () => {
     const navigate = useNavigate();
     const { postId } = useParams();
@@ -314,26 +318,20 @@ const PostEditor = () => {
         attachments: [],
     });
 
-    useEffect(() => {
-        // 카테고리가 비어 있다면 서버에서 다시 불러옴
-        if (categories.length === 0) {
-            fetchCategories();
-        }
-    }, []);
+    const existingCount = formData.attachments.length;  // 기존에 존재하는 파일 개수(edit용)
+    const totalCount = existingCount + selectedFiles.length;    // 총 파일 개수
+    const remainingSlots = MAX_FILES - totalCount;   // 추가 가능한 파일 개수
+    const [deletedAttachmentIds, setDeletedAttachmentIds] = useState([]);   // 삭제 파일
 
-    // postId로 게시글 불러오기
-    useEffect(() => {
-        if (isEdit) {
-            fetchPost(postId);
-        }
-    }, [postId]);
 
     const fetchPost = async (id) => {
-        const data = await postAPI.getPostById(id);
+        const data = await postAPI.getPostForEdit(id);
+
         setFormData({
             title: data.title,
             content: data.content,
-            category: data.category,
+            categoryCode: data.categoryCode,
+            categoryName: data.categoryName,
             attachments: data.attachments,
         });
     };
@@ -426,7 +424,7 @@ const PostEditor = () => {
                 },
             })
         ],
-        content: formData.content || '',
+        content: '',
         onUpdate: ({ editor }) => {
             setFormData((prev) => ({
                 ...prev,
@@ -434,31 +432,6 @@ const PostEditor = () => {
             }));
         },
     });
-
-    // 사진 리사이즈 UI
-    useEffect(() => {
-        if (!editor) return;
-
-        const handleClick = (event) => {
-            const img = event.target;
-            const el = event.target;
-            if (el.tagName === 'IMG') {
-                const pos = editor.view.posAtDOM(el);
-                // 클릭 위치로 UI 이동
-                setImageResizeUI({
-                    visible: true,
-                    top: event.pageY,
-                    left: event.pageX,
-                    pos,
-                });
-            } else {
-                setImageResizeUI({ visible: false, top: 0, left: 0, pos: null });
-            }
-        };
-
-        document.addEventListener('click', handleClick);
-        return () => document.removeEventListener('click', handleClick);
-    }, [editor]);
 
     // 사진 리사이즈 UI 클릭 이벤트
     const handleResizeClick = (width) => {
@@ -517,7 +490,7 @@ const PostEditor = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        if (!formData.title || !selectedCategory || !editor) {
+        if (!formData.title || !editor || (!isEdit && !selectedCategory)) {
             alert("제목, 카테고리, 내용을 모두 입력해주세요.");
             return;
         }
@@ -529,40 +502,102 @@ const PostEditor = () => {
         const thumbnailUrl = match?.[1] ?? null;
 
         try {
-            const dto = {
-                categoryId: selectedCategory.id,
-                title: formData.title,
-                content: formData.content,
-                authorId: localStorage.getItem("userId"),
-                thumbnailUrl,
-            };
+            const formDataObj = new FormData();
 
-            // 2) FormData에 JSON 블롭으로 추가
-            const formDataObj  = new FormData();
-            formDataObj .append(
+            let dto;
+            if (isEdit) {
+                dto = {
+                    title: formData.title,
+                    content: editor.getHTML(),
+                    thumbnailUrl,
+                    deleteAttachmentIds: deletedAttachmentIds,
+                };
+            } else {
+                dto = {
+                    categoryId: selectedCategory.id,
+                    title: formData.title,
+                    content: editor.getHTML(),
+                    authorId: localStorage.getItem("userId"),
+                    thumbnailUrl,
+                };
+            }
+
+            formDataObj.append(
                 "dto",
                 new Blob([JSON.stringify(dto)], { type: "application/json" })
             );
 
-            // 3) attachments 파트로 파일들 추가
             selectedFiles.forEach(file => {
                 formDataObj.append("attachments", file);
             });
 
-            const postId = await postAPI.create(formDataObj);
-            
-            navigate(`/community/post/${postId}`);
+            if (isEdit) {
+                await postAPI.update(postId, formDataObj);
+                setDeletedAttachmentIds([]);
+                navigate(`/community/post/${postId}`);
+            } else {
+                const newId = await postAPI.create(formDataObj);
+                setDeletedAttachmentIds([]);
+                navigate(`/community/post/${newId}`);
+            }
+
         } catch (err) {
             console.error("게시글 등록 실패", err);
             alert("게시글 등록에 실패했습니다.");
         }
     };
 
+    useEffect(() => {
+        // 카테고리가 비어 있다면 서버에서 다시 불러옴
+        if (categories.length === 0) {
+            fetchCategories();
+        }
+    }, []);
+
+    // postId로 게시글 불러오기
+    useEffect(() => {
+        if (isEdit) {
+            fetchPost(postId);
+        }
+    }, [postId]);
+
+    useEffect(() => {
+        if (editor && isEdit && formData.content) {
+            editor.commands.setContent(formData.content);
+        }
+    }, [editor, isEdit, formData.content]);
+
+
+    // 사진 리사이즈
+    useEffect(() => {
+        if (!editor) return;
+
+        const handleClick = (event) => {
+            const el = event.target;
+            if (el.tagName === 'IMG') {
+                const pos = editor.view.posAtDOM(el);
+                // 클릭 위치로 UI 이동
+                setImageResizeUI({
+                    visible: true,
+                    top: event.pageY,
+                    left: event.pageX,
+                    pos,
+                });
+            } else {
+                setImageResizeUI({ visible: false, top: 0, left: 0, pos: null });
+            }
+        };
+
+        document.addEventListener('click', handleClick);
+        return () => document.removeEventListener('click', handleClick);
+    }, [editor]);
+
+
     return (
         <Container>
             <WriteForm onSubmit={handleSubmit}>
                 <FormHeader>
-                    <h1>게시글 작성하기</h1>
+                    <h1>{isEdit ? "게시글 수정하기" : "게시글 작성하기"}</h1>
                     <p>여러분의 생각을 자유롭게 작성해주세요. 건전한 토론 문화를 만들어갑니다.</p>
                 </FormHeader>
 
@@ -578,71 +613,108 @@ const PostEditor = () => {
                     />
                 </FormGroup>
 
-                <FormGroup>
-                    <Label>카테고리 선택</Label>
-                    <CategorySelect>
-                        {categories.filter((category) => category.code !== "notice").map((category) => (
-                            <CategoryItem
-                                key={category.id}
-                                className={selectedCategory?.code === category.code ? "active" : ""}
-                                onClick={() => setSelectedCategory(category)}
-                            >
-                                {category.name}
+
+                {isEdit ? (
+                    <FormGroup>
+                        <Label>카테고리</Label>
+                        <CategorySelect>
+                            <CategoryItem className="active" $readonly={true}>
+                                {formData.categoryName}
                             </CategoryItem>
-                        ))}
-                    </CategorySelect>
-                </FormGroup>
+                        </CategorySelect>
+                    </FormGroup>
+                ) : (
+                    <FormGroup>
+                        <Label>카테고리 선택</Label>
+                        <CategorySelect>
+                            {categories.filter((category) => category.code !== "notice").map((category) => (
+                                <CategoryItem
+                                    key={category.id}
+                                    className={selectedCategory?.code === category.code ? "active" : ""}
+                                    onClick={() => setSelectedCategory(category)}
+                                >
+                                    {category.name}
+                                </CategoryItem>
+                            ))}
+                        </CategorySelect>
+                    </FormGroup>
+                )}
 
                 <FileUpload>
                     <Label>파일 첨부</Label>
-                    <FileButton disabled={selectedFiles.length >= 5}>
+                    <FileButton disabled={remainingSlots <= 0}>
                         <i>📎</i> 파일 선택하기
                         <HiddenAttachmentInput
                             id="file-upload"
                             multiple
-                            disabled={selectedFiles.length >= 5}
+                            disabled={remainingSlots <= 0}
                             onChange={(e) => {
                                 const maxSize = Number(process.env.REACT_APP_MAX_FILE_SIZE_MB || 10) * 1024 * 1024;
                                 const maxNameLength = 50;
 
                                 const files = Array.from(e.target.files || []);
+
+                                // 파일 이름 길이·크기 검사
                                 const tooLong = files.filter(file => file.name.length > maxNameLength);
-                                const validFiles = files.filter(file => file.name.length <= maxNameLength && file.size <= maxSize);
+                                const tooBig = files.filter(file => file.size > maxSize);
+                                let validFiles = files.filter(file => file.name.length <= maxNameLength && file.size <= maxSize);
 
-                                const combined = [...selectedFiles, ...validFiles].slice(0, 5); // 최대 5개 제한
+                                // 추가 가능한 파일 수 만큼만 자르기
+                                validFiles = validFiles.slice(0, remainingSlots);
 
-                                setSelectedFiles(combined);
-                                   
+                                // 상태 업데이트
+                                setSelectedFiles(prev => [...prev, ...validFiles]);
+
+                                // 알림
                                 if (tooLong.length > 0) {
                                     alert(`파일 이름은 최대 ${maxNameLength}자까지만 가능합니다.`);
                                 }
-
-                                const rejected = files.filter(file => file.size > maxSize);
-                                if (rejected.length > 0) {
+                                if (tooBig.length > 0) {
                                     alert(`파일 크기는 최대 ${process.env.REACT_APP_MAX_FILE_SIZE_MB || 10}MB까지만 업로드할 수 있습니다.`);
                                 }
+                                if (validFiles.length < files.length - tooLong.length - tooBig.length)
+                                    alert(`최대 ${remainingSlots}개까지만 선택할 수 있습니다.`);
 
                                 e.target.value = "";
                             }}
                         />
                     </FileButton>
 
-                    {selectedFiles.length > 0 && (
+                    {(formData.attachments.length > 0 || selectedFiles.length > 0) && (
                         <FileList>
-                            {selectedFiles.map((file, idx) => (
-                                <FileItem key={idx}>
+                            {formData.attachments.map((file, i) => (
+                                <FileItem key={`old-${i}`}>
+                                    • {file.name}
+                                    <RemoveButton
+                                        type="button"
+                                        onClick={() => {
+                                            const removed = formData.attachments[i];
+
+                                            setDeletedAttachmentIds(prev => [...prev, removed.id]);
+
+                                            setFormData(prev => ({
+                                                ...prev,
+                                                attachments: prev.attachments.filter((_, idx) => idx !== i)
+                                            }))
+                                        }}>✕
+                                    </RemoveButton>
+                                </FileItem>
+                            ))}
+
+                            {selectedFiles.map((file, i) => (
+                                <FileItem key={`new-${i}`}>
                                     <FileName>• {file.name}</FileName>
                                     <RemoveButton
                                         type="button"
                                         onClick={() =>
-                                            setSelectedFiles(prev => prev.filter((_, i) => i !== idx))
+                                            setSelectedFiles(prev => prev.filter((_, idx) => idx !== i))
                                         }
                                     >
                                         ✕
                                     </RemoveButton>
                                 </FileItem>
                             ))}
-                            {selectedFiles.length === 5 && (
+                            {(existingCount + selectedFiles.length) >= MAX_FILES && (
                                 <FileLimitNotice>※ 최대 5개 파일까지만 선택할 수 있습니다.</FileLimitNotice>
                             )}
                         </FileList>
@@ -715,7 +787,7 @@ const PostEditor = () => {
 
                 <ButtonGroup>
                     <OutlineButton type="button" onClick={() => navigate(-1)}>취소</OutlineButton>
-                    <PrimaryButton type="submit">게시하기</PrimaryButton>
+                    <PrimaryButton type="submit">{isEdit ? "수정하기" : "게시하기"}</PrimaryButton>
                 </ButtonGroup>
             </WriteForm>
         </Container >
