@@ -1,57 +1,289 @@
-/* PageTranslator.css */
+/* 개선된 PageTranslator.css */
 
 .page-translator {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 1000;
-    background-color: white;
-    padding: 10px;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: center;
+    position: relative;
+    z-index: 50;
+}
+
+/* 헤더 내부에 있을 때의 스타일 */
+.header-translator {
+    margin-right: 20px;
 }
 
 .translator-controls {
     display: flex;
+    align-items: center;
     gap: 8px;
+    background-color: rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    padding: 5px 8px;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+}
+
+.translator-controls:hover {
+    background-color: rgba(255, 255, 255, 0.25);
+}
+
+/* 모바일 화면을 위한 아이콘 버튼 */
+.translator-icon-button {
+    display: none; /* 기본적으로 숨김 */
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    border: none;
+    cursor: pointer;
+    position: relative;
+    font-size: 20px;
+    transition: all 0.3s ease;
+    justify-content: center;
     align-items: center;
 }
 
-.language-selector {
-    padding: 8px;
-    border-radius: 4px;
-    border: 1px solid #ccc;
-    background-color: white;
-    font-size: 14px;
+.translator-icon-button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
 }
 
-.translate-button {
-    padding: 8px 12px;
-    border-radius: 4px;
-    border: 1px solid #ccc;
-    background-color: white;
-    cursor: pointer;
+/* 예쁜 언어 선택기 */
+.language-selector {
+    position: relative;
     font-size: 14px;
-    transition: all 0.3s;
+    color: #333;
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
+    padding: 6px 24px 6px 8px;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+/* 커스텀 드롭다운 화살표 */
+.language-selector-wrapper {
+    position: relative;
+}
+
+.language-selector-wrapper::after {
+    content: '▼';
+    font-size: 10px;
+    color: #666;
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+}
+
+.language-selector:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.language-selector:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
+}
+
+.language-selector option {
+    background-color: white;
+    color: #333;
+}
+
+/* 헤더 내부 번역기 버튼 스타일 */
+.header-translator .translate-button {
+    background-color: transparent;
+    box-shadow: none;
+    color: #333;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 6px 12px;
+    border-radius: 4px;
+    transition: all 0.2s;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.header-translator .translate-button:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+    box-shadow: none;
+}
+
+.header-translator .translate-button.active {
+    background-color: rgba(25, 118, 210, 0.1);
+    color: #1976d2;
+    border-color: rgba(25, 118, 210, 0.3);
+}
+
+/* 일반 페이지의 번역 버튼 */
+.translate-button {
+    padding: 6px 14px;
+    border-radius: 4px;
+    background-color: #f0f0f3;
+    border: none;
+    color: #333;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1), -2px -2px 5px rgba(255, 255, 255, 0.7);
 }
 
 .translate-button:hover {
-    background-color: #f0f0f0;
+    background-color: #e6e6e9;
+    box-shadow: 3px 3px 6px rgba(0, 0, 0, 0.15), -3px -3px 6px rgba(255, 255, 255, 0.8);
+}
+
+.translate-button:active {
+    box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.1), inset -2px -2px 5px rgba(255, 255, 255, 0.5);
 }
 
 .translate-button.active {
-    background-color: #e6f7ff;
-    border-color: #91d5ff;
-    color: #1890ff;
+    background-color: #e3f2fd;
+    color: #1976d2;
+    box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.05), inset -2px -2px 5px rgba(255, 255, 255, 0.8);
 }
 
 .translate-button:disabled {
+    opacity: 0.7;
     cursor: not-allowed;
-    opacity: 0.6;
 }
 
+/* 언어 아이콘 */
+.language-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 5px;
+    font-size: 16px;
+}
+
+/* 번역 오류 메시지 */
 .translator-error {
-    margin-top: 8px;
-    color: #ff4d4f;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    color: #d32f2f;
     font-size: 12px;
+    margin-top: 5px;
+    background-color: #ffebee;
+    padding: 6px 10px;
+    border-radius: 4px;
+    width: 220px;
+    white-space: normal;
+    word-break: break-word;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    z-index: 100;
+}
+
+/* 번역 진행 상태 표시 */
+.translation-progress {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 8px;
+    background-color: white;
+    border-radius: 4px;
+    padding: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    width: 200px;
+    z-index: 100;
+}
+
+.progress-bar {
+    height: 6px;
+    background-color: #e0e0e0;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 4px;
+}
+
+.progress-filled {
+    height: 100%;
+    background-color: #2196f3;
+    transition: width 0.3s ease;
+}
+
+.progress-text {
+    font-size: 11px;
+    color: #666;
+    text-align: right;
+}
+
+/* 미디어 쿼리 - 모바일 화면에서의 표시 */
+@media (max-width: 768px) {
+    /* 헤더 외부 번역기 */
+    .page-translator:not(.header-translator) {
+        position: fixed;
+        top: 70px;
+        right: 20px;
+        margin: 0;
+        z-index: 1000;
+    }
+
+    /* 기본 상태에서는 컨트롤을 숨기고 아이콘만 표시 */
+    .page-translator:not(.header-translator) .translator-controls,
+    .page-translator:not(.header-translator) .translation-progress,
+    .page-translator:not(.header-translator) .translator-error {
+        display: none;
+    }
+
+    /* 확장된 상태에서만 컨트롤 표시 */
+    .page-translator:not(.header-translator).expanded .translator-controls,
+    .page-translator:not(.header-translator).expanded .translation-progress,
+    .page-translator:not(.header-translator).expanded .translator-error {
+        display: flex;
+    }
+
+    /* 컨트롤이 표시될 때 스타일 */
+    .page-translator:not(.header-translator).expanded {
+        background-color: white;
+        border-radius: 12px;
+        padding: 10px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+    }
+
+    /* 아이콘 버튼은 확장되지 않은 상태에서만 표시 */
+    .page-translator:not(.header-translator):not(.expanded) .translator-icon-button {
+        display: flex;
+    }
+
+    /* 헤더 내부 번역기는 모바일에서 간소화 */
+    .header-translator {
+        display: none; /* 모바일에서 헤더 내부 번역기는 숨김 */
+    }
+
+    /* 언어 선택기 스타일 조정 */
+    .page-translator:not(.header-translator).expanded .translator-controls {
+        flex-direction: column;
+        align-items: stretch;
+        width: 150px;
+    }
+
+    .page-translator:not(.header-translator).expanded .language-selector,
+    .page-translator:not(.header-translator).expanded .translate-button {
+        width: 100%;
+        margin-bottom: 5px;
+    }
+
+    /* 모바일에서 진행 표시바 위치 조정 */
+    .page-translator:not(.header-translator).expanded .translation-progress {
+        position: relative;
+        top: auto;
+        right: auto;
+        margin-top: 8px;
+        width: 100%;
+    }
+
+    /* 모바일에서 에러 메시지 위치 조정 */
+    .page-translator:not(.header-translator).expanded .translator-error {
+        position: relative;
+        top: auto;
+        right: auto;
+        margin-top: 8px;
+        width: 100%;
+    }
 }

@@ -1,8 +1,5 @@
 import axios from 'axios';
 
-
-
-
 // Axios 인스턴스 생성
 const api = axios.create({
     baseURL: process.env.REACT_QUIZ_API_URL || 'http://localhost/api/quiz',
@@ -79,68 +76,128 @@ const formatQuizData = (quiz) => {
     return formattedQuiz;
 };
 
+// 로컬 스토리지 키 상수 정의
+const COMPLETED_QUIZZES_KEY = 'completedQuizzes';
+
 // 로컬 스토리지에 완료한 퀴즈 ID 저장
 const saveCompletedQuiz = (quizId) => {
-    const completedQuizzes = getCompletedQuizzes();
-    if (!completedQuizzes.includes(quizId)) {
-        completedQuizzes.push(quizId);
-        localStorage.setItem('completedQuizzes', JSON.stringify(completedQuizzes));
+    try {
+        const completedQuizzes = getCompletedQuizzes();
+        if (!completedQuizzes.includes(quizId)) {
+            completedQuizzes.push(quizId);
+            localStorage.setItem(COMPLETED_QUIZZES_KEY, JSON.stringify(completedQuizzes));
+            console.log(`퀴즈 ID ${quizId} 완료 처리됨`);
+            return true;
+        } else {
+            console.log(`퀴즈 ID ${quizId}는 이미 완료됨`);
+            return false;
+        }
+    } catch (error) {
+        console.error('완료된 퀴즈 저장 중 오류 발생:', error);
+        return false;
     }
 };
 
 // 로컬 스토리지에서 완료한 퀴즈 ID 목록 가져오기
 const getCompletedQuizzes = () => {
-    const saved = localStorage.getItem('completedQuizzes');
-    return saved ? JSON.parse(saved) : [];
+    try {
+        const saved = localStorage.getItem(COMPLETED_QUIZZES_KEY);
+        return saved ? JSON.parse(saved) : [];
+    } catch (error) {
+        console.error('완료된 퀴즈 목록 조회 중 오류 발생:', error);
+        return [];
+    }
 };
 
 // 로컬 스토리지 초기화
 const resetCompletedQuizzes = () => {
-    localStorage.removeItem('completedQuizzes');
+    try {
+        localStorage.removeItem(COMPLETED_QUIZZES_KEY);
+        console.log('완료된 퀴즈 목록 초기화 완료');
+        return true;
+    } catch (error) {
+        console.error('완료된 퀴즈 목록 초기화 중 오류 발생:', error);
+        return false;
+    }
 };
 
 // 퀴즈 API 관련 함수들을 모아놓은 객체
-export const quizAPI = {
+const quizAPI = {
     // 랜덤 퀴즈 가져오기
     fetchRandomQuiz: async () => {
-        const response = await api.get('/random');
-        return formatQuizData(response.data.data);
+        try {
+            const response = await api.get('/random');
+            return formatQuizData(response.data.data);
+        } catch (error) {
+            console.error('랜덤 퀴즈 조회 중 오류:', error);
+            throw error;
+        }
     },
 
     // ID로 특정 퀴즈 가져오기
     fetchQuizById: async (id) => {
-        const response = await api.get(`/${id}`);
-        return formatQuizData(response.data.data);
+        try {
+            const response = await api.get(`/${id}`);
+            return formatQuizData(response.data.data);
+        } catch (error) {
+            console.error(`ID ${id}의 퀴즈 조회 중 오류:`, error);
+            throw error;
+        }
     },
 
     // 첫 번째 퀴즈 가져오기
     fetchFirstQuiz: async () => {
-        const response = await api.get('/first');
-        return formatQuizData(response.data.data);
+        try {
+            const response = await api.get('/first');
+            return formatQuizData(response.data.data);
+        } catch (error) {
+            console.error('첫 번째 퀴즈 조회 중 오류:', error);
+            throw error;
+        }
     },
 
     // 다음 퀴즈 가져오기
     fetchNextQuiz: async (currentId) => {
-        const response = await api.get(`/next/${currentId}`);
-        return formatQuizData(response.data.data);
+        try {
+            const response = await api.get(`/next/${currentId}`);
+            return formatQuizData(response.data.data);
+        } catch (error) {
+            console.error(`ID ${currentId} 이후 퀴즈 조회 중 오류:`, error);
+            throw error;
+        }
     },
 
     // 이전 퀴즈 가져오기
     fetchPreviousQuiz: async (currentId) => {
-        const response = await api.get(`/previous/${currentId}`);
-        return formatQuizData(response.data.data);
+        try {
+            const response = await api.get(`/previous/${currentId}`);
+            return formatQuizData(response.data.data);
+        } catch (error) {
+            console.error(`ID ${currentId} 이전 퀴즈 조회 중 오류:`, error);
+            throw error;
+        }
     },
 
     // 모든 퀴즈 가져오기
     fetchAllQuizzes: async () => {
-        const response = await api.get('/all');
-        return response.data.data.map(quiz => formatQuizData(quiz));
+        try {
+            const response = await api.get('/all');
+            return response.data.data.map(quiz => formatQuizData(quiz));
+        } catch (error) {
+            console.error('모든 퀴즈 조회 중 오류:', error);
+            throw error;
+        }
     },
 
     // 모든 퀴즈 ID만 가져오기
     fetchAllQuizIds: async () => {
-        const response = await api.get('/all');
-        return response.data.data.map(quiz => quiz.id);
+        try {
+            const response = await api.get('/all');
+            return response.data.data.map(quiz => quiz.id);
+        } catch (error) {
+            console.error('모든 퀴즈 ID 조회 중 오류:', error);
+            throw error;
+        }
     },
 
     // 완료한 퀴즈 저장
@@ -152,13 +209,24 @@ export const quizAPI = {
     // 완료한 퀴즈 초기화
     resetCompletedQuizzes,
 
+    // 특정 퀴즈가 완료되었는지 확인
+    isQuizCompleted: (quizId) => {
+        const completedQuizzes = getCompletedQuizzes();
+        return completedQuizzes.includes(quizId);
+    },
+
     // 모든 퀴즈를 완료했는지 확인
     checkAllQuizzesCompleted: async () => {
-        const allQuizIds = await quizAPI.fetchAllQuizIds();
-        const completedQuizzes = getCompletedQuizzes();
+        try {
+            const allQuizIds = await quizAPI.fetchAllQuizIds();
+            const completedQuizzes = getCompletedQuizzes();
 
-        // 모든 퀴즈가 완료되었는지 확인
-        return allQuizIds.every(id => completedQuizzes.includes(id));
+            // 모든 퀴즈가 완료되었는지 확인
+            return allQuizIds.length > 0 && allQuizIds.every(id => completedQuizzes.includes(id));
+        } catch (error) {
+            console.error('모든 퀴즈 완료 여부 확인 중 오류:', error);
+            return false;
+        }
     }
 };
 
