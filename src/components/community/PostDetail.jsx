@@ -6,6 +6,7 @@ import { FaPencilAlt, FaTrash, FaArrowUp, FaArrowDown, FaFlag, FaReply, FaPen, F
 import { postAPI } from '../../api/PostApi';
 import { formatDateTime } from '../../utils/DateFormatter';
 import CommentSection from './comment/CommentSection';
+import { communityVoteAPI } from '../../api/CommunityVoteApi';
 
 // #region styled-components
 const Container = styled.div`
@@ -163,17 +164,22 @@ const VoteButtons = styled.div`
 `;
 
 const VoteButton = styled.button`
-  background: none;
+  width: 40px;
+  height: 40px;
+  background: ${({ active }) => active ? '#ddd' : 'transparent'};
   border: none;
+  border-radius: 50%;
   cursor: pointer;
   font-size: 18px;
   padding: 5px 10px;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 5px;
-  color: ${props => props.type === 'up' ? '#6b8bfc' : '#ff4d4d'};
+  color: ${props => props.type === 'up' ? '#555' : '#aaa'};
   &:hover {
-    color: ${props => props.type === 'up' ? '#4d82f3' : '#e63939'};
+    color: ${props => props.type === 'up' ? '#111' : '#777'};
+    background: #ddd;
   }
 `;
 
@@ -269,8 +275,10 @@ const PostDetail = () => {
 
   const { id } = useParams();
   const [post, setPost] = useState(null);
+  const [userVote, setUserVote] = useState(0);  // 게시글 투표 여부 관리
   const userId = localStorage.getItem("userId");
   const isAuthor = post && post.authorId === userId;
+
 
   // 게시글 삭제 핸들러
   const handleDelete = async () => {
@@ -287,17 +295,40 @@ const PostDetail = () => {
 
 
   useEffect(() => {
-    const fetchPostDetail = async () => {
-      try {
-        const data = await postAPI.getPostDetail(id);
-        setPost(data);
-      } catch (error) {
-        console.error("게시글 조회 실패:", error);
-      }
-    };
-
     fetchPostDetail();
   }, [id]);
+
+  const fetchPostDetail = async () => {
+    try {
+      const data = await postAPI.getPostDetail(id);
+      setPost(data);
+    } catch (error) {
+      console.error("게시글 조회 실패:", error);
+    }
+  };
+
+  const handleVote = async (voteValue) => {
+    if (!userId) {
+      if (window.confirm("로그인 후 이용 가능한 기능입니다.\n로그인하시겠습니까?")) {
+        navigate("/login");
+      }
+      return;
+    }
+
+    try {
+      await communityVoteAPI.vote({
+        targetType: "POST",
+        targetId: post.id,
+        vote: voteValue,
+      });
+
+      // 서버에서 최신 voteCount + userVote 포함된 post 다시 조회
+      await fetchPostDetail();
+    } catch (err) {
+      alert("투표에 실패했습니다.");
+      console.error("vote error", err);
+    }
+  };
 
   if (!post) return null;
   return (
@@ -346,9 +377,9 @@ const PostDetail = () => {
 
       <Footer>
         <VoteButtons>
-          <VoteButton type="up"><FaArrowUp /></VoteButton>
+          <VoteButton type="up" onClick={() => handleVote(1)}><FaArrowUp /></VoteButton>
           <VoteCount>{post.voteCount}</VoteCount>
-          <VoteButton type="down"><FaArrowDown /></VoteButton>
+          <VoteButton type="down" onClick={() => handleVote(-1)}><FaArrowDown /></VoteButton>
         </VoteButtons>
         <ReportButton><FaFlag /> 신고</ReportButton>
       </Footer>
