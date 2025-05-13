@@ -313,10 +313,11 @@ const PostEditor = () => {
 
     const [formData, setFormData] = useState({
         title: "",
-        content: "",
-        category: "",
+        categoryCode: "",
+        categoryName: "",
         attachments: [],
     });
+    const [content, setContent] = useState('');
 
     const existingCount = formData.attachments.length;  // 기존에 존재하는 파일 개수(edit용)
     const totalCount = existingCount + selectedFiles.length;    // 총 파일 개수
@@ -329,11 +330,15 @@ const PostEditor = () => {
 
         setFormData({
             title: data.title,
-            content: data.content,
             categoryCode: data.categoryCode,
             categoryName: data.categoryName,
             attachments: data.attachments,
         });
+
+        if (editor) {
+            editor.commands.setContent(data.content);
+            setContent(data.content);
+        }
     };
 
     // 텍스트 에디터 글씨 크기 설정
@@ -426,10 +431,7 @@ const PostEditor = () => {
         ],
         content: '',
         onUpdate: ({ editor }) => {
-            setFormData((prev) => ({
-                ...prev,
-                content: editor.getHTML(),
-            }));
+            setContent(editor.getHTML());
         },
     });
 
@@ -458,7 +460,7 @@ const PostEditor = () => {
                 editor.chain().focus().toggleItalic().run();
                 break;
             case 'underline':
-                editor.chain().focus().toggleUnderline?.().run();
+                editor.chain().focus().toggleUnderline().run();
                 break;
             case 'strike': {
                 const fontSize = editor.getAttributes('fontSize')?.fontSize || null;
@@ -560,13 +562,6 @@ const PostEditor = () => {
             fetchPost(postId);
         }
     }, [postId]);
-
-    useEffect(() => {
-        if (editor && isEdit && formData.content) {
-            editor.commands.setContent(formData.content);
-        }
-    }, [editor, isEdit, formData.content]);
-
 
     // 사진 리사이즈
     useEffect(() => {
