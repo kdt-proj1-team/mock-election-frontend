@@ -1,162 +1,73 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 import styled from 'styled-components';
-import useAuthStore from '../store/authStore';
-import { Container, Title, Card } from '../components/common';
+import Dashboard from '../components/admin/Dashboard';
+import UserManagement from '../components/admin/UserManagement';
+import BoardManagement from '../components/admin/BoardManagement';
+import ReportManagement from '../components/admin/ReportManagement';
 
-const AdminCard = styled(Card)`
-  margin-top: 30px;
-  padding: 20px;
-`;
-
-const AdminTitle = styled(Title)`
+const TabContainer = styled.div`
+  display: flex;
   margin-bottom: 30px;
-`;
-
-const TableContainer = styled.div`
+  border-bottom: 1px solid #ddd;
   overflow-x: auto;
-  margin-top: 20px;
 `;
 
-const Table = styled.table`
-  width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 20px;
-`;
-
-const TableHead = styled.thead`
-  background-color: #f0f2f5;
-`;
-
-const TableRow = styled.tr`
-  &:nth-child(even) {
-    background-color: #f9fafb;
-  }
-  
-  &:hover {
-    background-color: #f0f2f5;
-  }
-`;
-
-const TableHeader = styled.th`
-  padding: 12px 15px;
-  text-align: left;
-  border-bottom: 1px solid #ddd;
-`;
-
-const TableCell = styled.td`
-  padding: 12px 15px;
-  border-bottom: 1px solid #ddd;
-`;
-
-const Button = styled.button`
-  padding: 10px 20px;
-  font-size: 16px;
-  font-weight: 600;
-  border: none;
-  border-radius: 8px;
+const Tab = styled.div`
+  padding: 15px 30px;
   cursor: pointer;
-  transition: background-color 0.2s;
-`;
+  font-weight: ${(props) => (props.active ? '600' : '400')};
+  font-size: 16px;
+  color: ${(props) => (props.active ? '#1a73e8' : '#333')};
+  border-bottom: ${(props) => (props.active ? '3px solid #1a73e8' : 'none')};
 
-const BackButton = styled(Button)`
-  margin-top: 20px;
-  background-color: #6c757d;
-  color: white;
-  
   &:hover {
-    background-color: #5a6268;
+    background-color: #f5f5f5;
   }
 `;
 
-const Message = styled.p`
-  font-size: 16px;
-  color: #555;
-  margin: 20px 0;
+const ContentContainer = styled.div`
+  margin-top: 30px;
+  min-height: 600px;
 `;
 
-const AdminPage = () => {
-  const navigate = useNavigate();
-  const { isAuthenticated, role } = useAuthStore();
-  const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(false);
+export default function AdminPage() {
+  const [activeTab, setActiveTab] = useState('dashboard');
 
-  // 샘플 사용자 데이터 - 실제로는 API에서 가져와야 함
-  const sampleUsers = [
-    { userId: 'user123', role: 'USER', createdAt: '2023-09-15T12:00:00', active: true },
-    { userId: 'admin456', role: 'ADMIN', createdAt: '2023-09-10T10:30:00', active: true },
-    { userId: 'user789', role: 'USER', createdAt: '2023-09-20T15:45:00', active: false }
-  ];
-
-  useEffect(() => {
-    // 로그인되지 않았거나 ADMIN 권한이 없는 경우 홈페이지로 리다이렉트
-    if (!isAuthenticated || role !== 'ADMIN') {
-      navigate('/');
-      return;
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'dashboard':
+        return <Dashboard />;
+      case 'users':
+        return <UserManagement />;
+      case 'boards':
+        return <BoardManagement />;
+      case 'reports':
+        return <ReportManagement />;
+      default:
+        return <Dashboard />;
     }
-
-    // 실제 구현에서는 API 호출로 사용자 목록을 가져옴
-    setLoading(true);
-    setTimeout(() => {
-      setUsers(sampleUsers);
-      setLoading(false);
-    }, 500); // 로딩 시뮬레이션
-
-  }, [isAuthenticated, role, navigate, sampleUsers]);
-
-  const handleBackClick = () => {
-    navigate('/');
   };
 
-  if (!isAuthenticated || role !== 'ADMIN') {
-    return null; // 리다이렉트 중에는 아무 것도 표시하지 않음
-  }
-
   return (
-    <>
-      <Container>
-        <AdminCard>
-          <AdminTitle>관리자 페이지</AdminTitle>
+      <div style={{ padding: '40px' }}>
+        <h1 style={{ fontSize: '32px', fontWeight: 'bold', marginBottom: '20px' }}>관리자 페이지</h1>
 
-          {loading ? (
-            <Message>로딩 중...</Message>
-          ) : (
-            <TableContainer>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableHeader>사용자 ID</TableHeader>
-                    <TableHeader>역할</TableHeader>
-                    <TableHeader>가입일</TableHeader>
-                    <TableHeader>활성 상태</TableHeader>
-                  </TableRow>
-                </TableHead>
-                <tbody>
-                  {users.map((user) => (
-                    <TableRow key={user.userId}>
-                      <TableCell>{user.userId}</TableCell>
-                      <TableCell>{user.role}</TableCell>
-                      <TableCell>
-                        {new Date(user.createdAt).toLocaleDateString()}
-                      </TableCell>
-                      <TableCell>
-                        {user.active ? '활성' : '비활성'}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </tbody>
-              </Table>
-              <Message>
-                샘플 데이터입니다. 실제 구현 시 API를 통해 사용자 목록을 가져와야 합니다.
-              </Message>
-            </TableContainer>
-          )}
+        <TabContainer>
+          <Tab active={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')}>
+            대시보드
+          </Tab>
+          <Tab active={activeTab === 'users'} onClick={() => setActiveTab('users')}>
+            회원관리
+          </Tab>
+          <Tab active={activeTab === 'boards'} onClick={() => setActiveTab('boards')}>
+            게시판관리
+          </Tab>
+          <Tab active={activeTab === 'reports'} onClick={() => setActiveTab('reports')}>
+            신고내역
+          </Tab>
+        </TabContainer>
 
-          <BackButton onClick={handleBackClick}>홈으로 돌아가기</BackButton>
-        </AdminCard>
-      </Container>
-    </>
+        <ContentContainer>{renderContent()}</ContentContainer>
+      </div>
   );
-};
-
-export default AdminPage;
+}
