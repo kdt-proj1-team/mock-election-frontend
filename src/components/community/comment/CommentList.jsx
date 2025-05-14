@@ -35,31 +35,47 @@ const CommentList = forwardRef(({ postId }, ref) => {
     const [offset, setOffset] = useState(0);
     const [hasMore, setHasMore] = useState(false);
     const [loading, setLoading] = useState(false);
-    const limit = 20;
-
-    const fetchComments = async (reset = false) => {
-        if (loading) return;
-        setLoading(true);
-
-        const currentOffset = reset ? 0 : offset;
-
-        try {
-            const data = await postCommentAPI.getTopLevelComments(postId, currentOffset, limit);
-            setComments(prev => reset ? data : [...prev, ...data]);
-            setOffset(currentOffset + data.length);
-            setHasMore(data.length === limit);
-        } catch (error) {
-            console.error('댓글 목록 조회 실패:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
+    const limit = 10;
 
     // 외부에서 fetchComments를 호출 가능하게 만듦
     useImperativeHandle(ref, () => ({
         refetch: fetchComments,
     }));
 
+    const fetchComments = async (reset = false) => {
+        if (loading) return;
+        setLoading(true);
+
+        const currentOffset = reset ? 0 : offset;
+        try {
+            // 1) 최상위 댓글 페이징 + depth4 자식까지 수집하는 API 호출
+            //    이 API는 서버에서 offset/limit으로 depth=0를 잘라내고,
+            //    그 최상위 댓글들에 대해 depth 1~4 자식을 포함해 flat 배열로 내려준다고 가정.
+            const flat = await postCommentAPI.getCommentsWithReplies(postId, currentOffset, limit);
+
+            // 2) flat → 트리 구조로 변환
+            const map = {};
+            flat.forEach(c => map[c.id] = { ...c, children: [] });
+            const roots = [];
+            flat.forEach(c => {
+                if (c.parentId) {
+                    const parent = map[c.parentId];
+                    if (parent) parent.children.push(map[c.id]);
+                } else {
+                    roots.push(map[c.id]);
+                }
+            });
+
+            // 3) state 업데이트
+            setComments(prev => reset ? roots : [...prev, ...roots]);
+            setOffset(currentOffset + roots.length);
+            setHasMore(roots.length === limit);
+        } catch (error) {
+            console.error('댓글 전체 조회 실패', error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
         fetchComments(true);
@@ -67,8 +83,8 @@ const CommentList = forwardRef(({ postId }, ref) => {
 
     return (
         <CommentListWrapper>
-            {comments.map(comment => (
-                <CommentItem key={comment.id} comment={comment} onDeleted={fetchComments} />
+            {comments.map(root => (
+                <CommentItem key={root.id} comment={root} onDeleted={() => fetchComments(true)} />
             ))}
 
             {hasMore && (

@@ -84,6 +84,12 @@ const ActionButton = styled.button`
   }
 `
 
+const DeletedComment = styled.div`
+  color: #777;
+  margin: 30px 10px;
+  font-size: 17px;
+`
+
 const ReplyList = styled.div`
   margin-left: 30px;
   border-left: 2px solid #eee;
@@ -96,78 +102,111 @@ const Reply = styled.div`
 `;
 // #endregion 
 
-const CommentItem = ({ comment, onDeleted }) => {
-    const userId = localStorage.getItem("userId");
-    const isAuthor = comment && comment.authorId === userId;
-    const [showReplyForm, setShowReplyForm] = useState(false);
+const CommentItem = ({ comment, onDeleted, maxDepth = 4 }) => {
+  const userId = localStorage.getItem("userId");
+  const isAuthor = comment && comment.authorId === userId;
+  const [showReplyForm, setShowReplyForm] = useState(false);
 
-    const CommentItemWrapper = comment.depth === 0 ? Comment : Reply;
-    const handleDelete = async () => {
-        if (window.confirm("댓글을 삭제하시겠습니까?")) {
-            try {
-                await postCommentAPI.delete(comment.postId, comment.id);
-                onDeleted?.(); // 부모에서 전달된 콜백으로 댓글 목록 갱신
-            } catch (error) {
-                console.error("댓글 삭제 실패", error);
-                alert("댓글 삭제에 실패했습니다.");
-            }
-        }
-    };
+  const CommentItemWrapper = comment.depth === 0 ? Comment : Reply;
 
+  const handleDelete = async () => {
+    if (window.confirm("댓글을 삭제하시겠습니까?")) {
+      try {
+        await postCommentAPI.delete(comment.postId, comment.id);
+        onDeleted?.(); // 부모에서 전달된 콜백으로 댓글 목록 갱신
+      } catch (error) {
+        console.error("댓글 삭제 실패", error);
+        alert("댓글 삭제에 실패했습니다.");
+      }
+    }
+  };
+
+  if (comment.isDeleted) {
     return (
-        <CommentItemWrapper>
-            <CommentHeader>
-                <CommentAuthor>{comment.authorNickname}</CommentAuthor>
-                <CommentDateInfo>{comment.updatedAt ? `${formatDateTime(comment.updatedAt)} 수정됨` : formatDateTime(comment.createdAt)}</CommentDateInfo>
-            </CommentHeader>
-            <CommentContent>
-                {comment.content.split('\n').map((line, idx) => (
-                    <span key={idx}>
-                        {line}
-                        <br />
-                    </span>
-                ))}
-            </CommentContent>
-            <CommentActions>
-                <CommentVoteButtons>
-                    <CommentVoteButton type="up"><FaArrowUp /></CommentVoteButton>
-                    <CommentVoteCount>{comment.voteCount}</CommentVoteCount>
-                    <CommentVoteButton type="down"><FaArrowDown /></CommentVoteButton>
-                </CommentVoteButtons>
-                <ActionButton onClick={() => setShowReplyForm(prev => !prev)}><FaReply /> 답글</ActionButton>
-                {!isAuthor && (
-                    <ActionButton><FaFlag /> 신고</ActionButton>
-                )}
-                {isAuthor && (
-                    <>
-                        <ActionButton><FaPencilAlt /> 수정</ActionButton>
-                        <ActionButton onClick={handleDelete}><FaTrash /> 삭제</ActionButton>
-                    </>
-                )}
-            </CommentActions>
+      <CommentItemWrapper>
+        {/* 삭제된 댓글은 오직 이 한 줄만 보여준다 */}
+        <DeletedComment>[삭제된 댓글입니다.]</DeletedComment>
 
-            {showReplyForm && (
-                <CommentForm
-                    postId={comment.postId}
-                    parentId={comment.id}
-                    variant="reply"
-                    onSuccess={() => {
-                        setShowReplyForm(false);
-                        onDeleted?.();
-                    }}
-                    onCancel={() => setShowReplyForm(false)}
-                />
-            )}
-
-            {/* {replies.length > 0 && (
-                <ReplyList>
-                    {replies.map(reply => (
-                        <CommentItem key={reply.id} comment={reply}/>
-                    ))}
-                </ReplyList>
-            )} */}
-        </CommentItemWrapper>
+        {/* 자식이 있으면 그대로 재귀 렌더링 */}
+        {comment.children?.length > 0 && (
+          <ReplyList>
+            {comment.children.map(child => (
+              <CommentItem
+                key={child.id}
+                comment={child}
+                onDeleted={onDeleted}
+                maxDepth={maxDepth}
+              />
+            ))}
+          </ReplyList>
+        )}
+      </CommentItemWrapper>
     );
+  }
+
+
+  return (
+    <CommentItemWrapper>
+      <CommentHeader>
+        <CommentAuthor>{comment.authorNickname}</CommentAuthor>
+        <CommentDateInfo>{comment.updatedAt ? `${formatDateTime(comment.updatedAt)} 수정됨` : formatDateTime(comment.createdAt)}</CommentDateInfo>
+      </CommentHeader>
+      <CommentContent>
+        {comment.content.split('\n').map((line, idx) => (
+          <span key={idx}>
+            {line}
+            <br />
+          </span>
+        ))}
+      </CommentContent>
+      <CommentActions>
+        <CommentVoteButtons>
+          <CommentVoteButton type="up"><FaArrowUp /></CommentVoteButton>
+          <CommentVoteCount>{comment.voteCount}</CommentVoteCount>
+          <CommentVoteButton type="down"><FaArrowDown /></CommentVoteButton>
+        </CommentVoteButtons>
+        {comment.depth < maxDepth && (
+          <ActionButton onClick={() => setShowReplyForm(prev => !prev)}><FaReply /> 답글</ActionButton>
+        )}
+        {!isAuthor && (
+          <ActionButton><FaFlag /> 신고</ActionButton>
+        )}
+        {isAuthor && (
+          <>
+            <ActionButton><FaPencilAlt /> 수정</ActionButton>
+            <ActionButton onClick={handleDelete}><FaTrash /> 삭제</ActionButton>
+          </>
+        )}
+      </CommentActions>
+
+      {showReplyForm && (
+        <CommentForm
+          postId={comment.postId}
+          parentId={comment.id}
+          variant="reply"
+          onSuccess={() => {
+            setShowReplyForm(false);
+            onDeleted?.();
+          }}
+          onCancel={() => setShowReplyForm(false)}
+        />
+      )}
+
+      {/* children 이 있으면 depth 4까지 재귀 렌더링 */}
+      {comment.children?.length > 0 && (
+        <ReplyList>
+          {comment.children.map(child => (
+            <CommentItem
+              key={child.id}
+              comment={child}
+              onDeleted={onDeleted}
+              maxDepth={maxDepth}
+            />
+          ))}
+        </ReplyList>
+      )}
+    </CommentItemWrapper>
+  );
 };
 
 export default CommentItem;

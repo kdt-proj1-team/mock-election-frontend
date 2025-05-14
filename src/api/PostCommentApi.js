@@ -27,6 +27,13 @@ export const postCommentAPI = {
         return response.data.data;
     },
 
+    getCommentsWithReplies: async(postId, offset, limit) => {
+        const response = await api.get(`/${postId}/comments`, {
+            params: { offset, limit }
+        });
+        return response.data.data;
+    },
+
     // 댓글 등록
     create: async (postId, commentData) => {
         const response = await api.post(`/${postId}/comments`, commentData);
