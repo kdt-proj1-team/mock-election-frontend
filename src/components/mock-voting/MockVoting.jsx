@@ -177,10 +177,10 @@ const sampleElections = [
     {
         id: 1,
         title: '제21대 대통령선거 모의투표',
-        date: '2026년 6월 3일(화)',
+        date: '2025년 6월 3일(화)',
         active: true,
         participated: false,
-        sgId: '20220309'
+        sgId: '20250603'
     },
     {
         id: 2,

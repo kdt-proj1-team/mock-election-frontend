@@ -109,7 +109,7 @@ const electionData = {
         title: '제21대 대통령선거 모의투표',
         date: '2025년 6월 3일(화)',
         description: '대통령 선거입니다.',
-        sgId: '20220309'
+        sgId: '20250603'
     }
 };
 
