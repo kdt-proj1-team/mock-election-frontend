@@ -129,6 +129,70 @@ export const chatAPI = {
             console.log('채팅방 목록 조회 오류 :' , error);
             throw error;
         }
+    },
+
+    // 참여자 목록 가져오기
+    getRoomParticipants : async (chatroomId) => {
+           try {
+                // const response = await api.get(`/participants/${chatroomId}`);
+               const response = await api.get(`/participants/${chatroomId}`);
+               console.log('참여자 목록 응답:', response.data); // 응답 데이터 로깅 추가
+                return response.data;
+           } catch (error){
+                console.log('참여자 목록 조회 오류 : ', error);
+                throw error;
+           }
+    },
+    // 참여자 목록 구독 (WebSocket)
+    subscribeToParticipants : (stompClient, chatroomId, callback) => {
+        return stompClient.subscribe(`/topic/participants/${chatroomId}`, (message) => {
+            try {
+                const participantUpdate = JSON.parse(message.body);
+                callback(participantUpdate);
+            } catch ( error ){
+                console.log('참여자 정보 파싱 오류 : ',  error);
+            }
+        });
+    },
+    // 채팅방 참여 메시지 전송
+    sendJoinMessage : (stompClient, userId, nickname, chatroomId) => {
+        if (!stompClient || !stompClient.connected) {
+            console.log('Websocket이 연결되어 있지 않습니다.');
+            return false;
+        }
+
+        const joinMessage = {
+            userId : userId,
+            nickname : nickname
+        };
+
+        stompClient.publish({
+            destination : `/app/chat.join/${chatroomId}`,
+            body : JSON.stringify(joinMessage),
+            headers : { 'content-type' : 'application/json' }
+        });
+        return true;
+    },
+
+    // 채팅방 퇴장 메시지 전송
+    sendLeaveMessage : (stompClient, userId, nickname, chatroomId) => {
+        if (!stompClient || !stompClient.connected) {
+            console.log('Websocket이 연결되어 있지 않습니다.');
+            return false;
+        }
+
+        const leaveMessage = {
+            userId : userId,
+            nickname : nickname,
+        };
+
+        stompClient.publish({
+            destination : `/app/chat.leave/${chatroomId}`,
+            body : JSON.stringify(leaveMessage),
+            headers : { 'content-type' : 'application/json' }
+        });
+
+        return true;
     }
 };
 
