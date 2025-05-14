@@ -29,8 +29,9 @@ export const postCommentAPI = {
 
     // 댓글 조회
     getCommentsWithReplies: async(postId, offset, limit) => {
+        const userId = localStorage.getItem("userId");
         const response = await api.get(`/${postId}/comments`, {
-            params: { offset, limit }
+            params: { userId, offset, limit }
         });
         return response.data.data;
     },

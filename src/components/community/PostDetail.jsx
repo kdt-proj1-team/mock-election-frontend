@@ -1,5 +1,5 @@
 // PostDetail.jsx (전체 컴포넌트 구조 + styled-components 스타일 포함)
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from "react-router-dom";
 import styled from 'styled-components';
 import { FaPencilAlt, FaTrash, FaArrowUp, FaArrowDown, FaFlag, FaReply, FaPen, FaHome, FaList, FaEye, FaCommentDots } from 'react-icons/fa';
@@ -275,10 +275,8 @@ const PostDetail = () => {
 
   const { id } = useParams();
   const [post, setPost] = useState(null);
-  const [userVote, setUserVote] = useState(0);  // 게시글 투표 여부 관리
   const userId = localStorage.getItem("userId");
   const isAuthor = post && post.authorId === userId;
-
 
   // 게시글 삭제 핸들러
   const handleDelete = async () => {
@@ -292,7 +290,6 @@ const PostDetail = () => {
       alert("삭제에 실패했습니다. 다시 시도해주세요.");
     }
   };
-
 
   useEffect(() => {
     fetchPostDetail();

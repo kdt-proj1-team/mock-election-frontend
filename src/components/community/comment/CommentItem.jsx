@@ -1,11 +1,13 @@
 import styled from 'styled-components';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { FaArrowUp, FaArrowDown, FaReply, FaFlag, FaPencilAlt, FaTrash } from 'react-icons/fa';
 import { formatDateTime } from '../../../utils/DateFormatter';
 import { postCommentAPI } from '../../../api/PostCommentApi';
+import { communityVoteAPI } from '../../../api/CommunityVoteApi';
 import CommentForm from './CommentForm';
 
-// # region styled-components
+// #region styled-components
 const Comment = styled.div`
   padding: 20px;
   border-bottom: 1px solid #eee;
@@ -48,18 +50,23 @@ const CommentActions = styled.div`
 const CommentVoteButtons = styled.div`
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 5px;
 `;
 
 const CommentVoteButton = styled.button`
-  background: none;
+  width: 18px;
+  height: 18px;
+  background: ${({ active }) => active ? '#ddd' : 'transparent'};
   border: none;
+  border-radius: 50%;
   cursor: pointer;
   display: flex;
   align-items: center;
-  color: ${props => props.type === 'up' ? '#6b8bfc' : '#ff4d4d'};
+  justify-content: center;
+  color: ${props => props.type === 'up' ? '#555' : '#aaa'};
   &:hover {
-    color: ${props => props.type === 'up' ? '#4d82f3' : '#e63939'};
+    color: ${props => props.type === 'up' ? '#111' : '#777'};
+    background: #ddd;
   }
 `;
 
@@ -107,12 +114,15 @@ const Reply = styled.div`
 
 const CommentItem = ({ comment, onDeleted, maxDepth = 4 }) => {
   const userId = localStorage.getItem("userId");
+  const navigate = useNavigate();
   const isAuthor = comment && comment.authorId === userId;
   const [showReplyForm, setShowReplyForm] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
+  const [localComment, setLocalComment] = useState({ ...comment });
 
   const CommentItemWrapper = comment.depth === 0 ? Comment : Reply;
 
+  // 댓글 삭제 핸들러
   const handleDelete = async () => {
     if (window.confirm("댓글을 삭제하시겠습니까?")) {
       try {
@@ -122,6 +132,46 @@ const CommentItem = ({ comment, onDeleted, maxDepth = 4 }) => {
         console.error("댓글 삭제 실패", error);
         alert("댓글 삭제에 실패했습니다.");
       }
+    }
+  };
+
+  // 댓글 투표 핸들러
+  const handleVote = async (voteValue) => {
+    if (!userId) {
+      if (window.confirm("로그인 후 이용 가능한 기능입니다.\n로그인하시겠습니까?")) {
+        navigate("/login");
+      }
+      return;
+    }
+
+    try {
+      await communityVoteAPI.vote({
+        targetType: "POST_COMMENT",
+        targetId: comment.id,
+        vote: voteValue,
+      });
+
+      const prevVote = localComment.userVote || 0;
+      let newVote = 0;
+      let newCount = localComment.voteCount;
+
+      if (voteValue === prevVote) {
+        newVote = 0;
+        newCount -= voteValue;
+      } else {
+        newVote = voteValue;
+        newCount += voteValue - prevVote;
+      }
+
+      setLocalComment({
+        ...localComment,
+        userVote: newVote,
+        voteCount: newCount,
+      });
+
+    } catch (err) {
+      alert("투표에 실패했습니다.");
+      console.error("vote error", err);
     }
   };
 
@@ -148,7 +198,6 @@ const CommentItem = ({ comment, onDeleted, maxDepth = 4 }) => {
     );
   }
 
-
   return (
     <CommentItemWrapper>
       {!showEditForm && (
@@ -167,9 +216,9 @@ const CommentItem = ({ comment, onDeleted, maxDepth = 4 }) => {
           </CommentContent>
           <CommentActions>
             <CommentVoteButtons>
-              <CommentVoteButton type="up"><FaArrowUp /></CommentVoteButton>
-              <CommentVoteCount>{comment.voteCount}</CommentVoteCount>
-              <CommentVoteButton type="down"><FaArrowDown /></CommentVoteButton>
+              <CommentVoteButton type="up" active={localComment.userVote === 1} onClick={() => handleVote(1)}><FaArrowUp /></CommentVoteButton>
+              <CommentVoteCount>{localComment.voteCount}</CommentVoteCount>
+              <CommentVoteButton type="down" active={localComment.userVote === -1} onClick={() => handleVote(-1)}><FaArrowDown /></CommentVoteButton>
             </CommentVoteButtons>
             {comment.depth < maxDepth && (
               <ActionButton onClick={() => setShowReplyForm(prev => !prev)}><FaReply /> 답글</ActionButton>
