@@ -3,7 +3,7 @@ import axios from 'axios';
 
 // API 인스턴스 생성
 const api = axios.create({
-    baseURL: process.env.REACT_APP_API_URL || 'http://localhost/api/wallet',
+    baseURL: process.env.REACT_APP_WALLET_API_URL || 'http://localhost/api/wallet',
     headers: {
         'Content-Type': 'application/json',
     },
@@ -54,40 +54,59 @@ api.interceptors.response.use(
 );
 
 export const walletAPI = {
-    // 지갑 연결
-    connectWallet: async (walletAddress) => {
+    // 메타마스크 지갑 연결
+    connectMetaMaskWallet: async (walletAddress) => {
         try {
-            console.log('지갑 연결 요청:', walletAddress);
-            const response = await api.post('/connect', { walletAddress });
-            console.log('지갑 연결 응답:', response.data);
+            console.log('메타마스크 지갑 연결 요청:', walletAddress);
+            const response = await api.post('/connect/metamask', { walletAddress });
+            console.log('메타마스크 지갑 연결 응답:', response.data);
 
             // 토큰 잔액 로깅
             if (response.data.success && response.data.data) {
-                console.log('지갑 연결 후 토큰 잔액:', response.data.data.tokenBalance);
+                console.log('메타마스크 지갑 연결 후 토큰 잔액:', response.data.data.tokenBalance);
             }
 
             return response;
         } catch (error) {
-            console.error('지갑 연결 API 호출 오류:', error);
+            console.error('메타마스크 지갑 연결 API 호출 오류:', error);
             throw error;
         }
     },
 
-    // 새 지갑 생성
-    createWallet: async (walletAddress, privateKey) => {
+    // 내부 지갑 연결 (기존 connectWallet 함수)
+    connectWallet: async (walletAddress) => {
         try {
-            console.log('지갑 생성 요청:', walletAddress);
-            const response = await api.post('/create', { walletAddress, privateKey });
-            console.log('지갑 생성 응답:', response.data);
+            console.log('내부 지갑 연결 요청:', walletAddress);
+            const response = await api.post('/connect', { walletAddress });
+            console.log('내부 지갑 연결 응답:', response.data);
 
             // 토큰 잔액 로깅
             if (response.data.success && response.data.data) {
-                console.log('지갑 생성 후 토큰 잔액:', response.data.data.tokenBalance);
+                console.log('내부 지갑 연결 후 토큰 잔액:', response.data.data.tokenBalance);
             }
 
             return response;
         } catch (error) {
-            console.error('지갑 생성 API 호출 오류:', error);
+            console.error('내부 지갑 연결 API 호출 오류:', error);
+            throw error;
+        }
+    },
+
+    // 새 지갑 생성 (내부 지갑)
+    createWallet: async (walletAddress, privateKey) => {
+        try {
+            console.log('내부 지갑 생성 요청:', walletAddress);
+            const response = await api.post('/create', { walletAddress, privateKey });
+            console.log('내부 지갑 생성 응답:', response.data);
+
+            // 토큰 잔액 로깅
+            if (response.data.success && response.data.data) {
+                console.log('내부 지갑 생성 후 토큰 잔액:', response.data.data.tokenBalance);
+            }
+
+            return response;
+        } catch (error) {
+            console.error('내부 지갑 생성 API 호출 오류:', error);
             throw error;
         }
     },
@@ -99,9 +118,10 @@ export const walletAPI = {
             const response = await api.get('/status');
             console.log('지갑 상태 조회 응답:', response.data);
 
-            // 토큰 잔액 로깅
+            // 토큰 잔액 및 지갑 타입 로깅
             if (response.data.success && response.data.data) {
                 console.log('현재 토큰 잔액:', response.data.data.tokenBalance);
+                console.log('지갑 타입:', response.data.data.walletType);
             }
 
             return response;
@@ -156,7 +176,7 @@ export const walletAPI = {
         }
     },
 
-    // 토큰 차감 요청
+    // 토큰 차감 요청 (내부 지갑용)
     deductToken: async (amount) => {
         try {
             console.log('토큰 차감 요청:', amount);
@@ -175,21 +195,15 @@ export const walletAPI = {
         }
     },
 
-    // 최초 토큰 발급 요청
-    issueInitialToken: async (walletAddress, privateKey) => {
+    // 토큰 잔액 수동 업데이트 (메타마스크 지갑용)
+    updateTokenBalance: async (tokenBalance) => {
         try {
-            console.log('토큰 발급 요청:', walletAddress);
-            const response = await api.post('/issue-token', { walletAddress, privateKey });
-            console.log('토큰 발급 응답:', response.data);
-
-            // 발급된 토큰 잔액 로깅
-            if (response.data.success && response.data.data) {
-                console.log('발급된 토큰 잔액:', response.data.data.tokenBalance);
-            }
-
+            console.log('토큰 잔액 수동 업데이트 요청:', tokenBalance);
+            const response = await api.post('/update-balance', { tokenBalance });
+            console.log('토큰 잔액 수동 업데이트 응답:', response.data);
             return response;
         } catch (error) {
-            console.error('토큰 발급 API 호출 오류:', error);
+            console.error('토큰 잔액 수동 업데이트 API 호출 오류:', error);
             throw error;
         }
     }

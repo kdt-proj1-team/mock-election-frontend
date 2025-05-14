@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // API 인스턴스 생성
 const api = axios.create({
-    baseURL: process.env.REACT_VOTING_API_URL || 'http://localhost/api/votings',
+    baseURL: process.env.REACT_APP_VOTING_API_URL || 'http://localhost/api/votings',
     headers: {
         'Content-Type': 'application/json',
     },
@@ -74,15 +74,12 @@ export const votingAPI = {
             console.log(`정당 정책 조회 요청: 선거 ID ${id}`);
             const response = await api.get(`/${id}/party-policies`);
 
-            // 백엔드 응답 구조를 확인하고 적절히 처리
-            // VotingController에서는 ApiResponse.success(policies)를 반환하므로
-            // response.data.data 형태로 정책 정보가 반환됨
+            // 백엔드 응답 구조 확인
             if (!response.data || !response.data.data) {
                 console.warn('정당 정책 데이터 없음:', response.data);
                 return [];
             }
 
-            // 정상적인 응답인 경우 data.data에서 정책 목록 추출
             const policies = response.data.data;
 
             if (!Array.isArray(policies)) {
@@ -98,10 +95,10 @@ export const votingAPI = {
         }
     },
 
-    // 투표 제출
+    // 내부 지갑 투표 제출 (기존 submitVote 함수)
     submitVote: async (electionId, candidateId) => {
         try {
-            console.log(`투표 제출 요청: 선거 ID ${electionId}, 후보 ID ${candidateId}`);
+            console.log(`내부 지갑 투표 제출 요청: 선거 ID ${electionId}, 후보 ID ${candidateId}`);
             const response = await api.post(`/${electionId}/vote`, { candidateId });
 
             if (!response.data || !response.data.data) {
@@ -112,6 +109,27 @@ export const votingAPI = {
             return response.data.data; // ApiResponse 구조 처리
         } catch (error) {
             console.error('투표 제출 실패:', error);
+            throw error;
+        }
+    },
+
+    // 메타마스크 투표 제출 (블록체인 트랜잭션 해시 포함)
+    submitMetaMaskVote: async (electionId, candidateId, transactionHash) => {
+        try {
+            console.log(`메타마스크 투표 제출 요청: 선거 ID ${electionId}, 후보 ID ${candidateId}, 트랜잭션 ${transactionHash}`);
+            const response = await api.post(`/${electionId}/vote/metamask`, {
+                candidateId,
+                transactionHash
+            });
+
+            if (!response.data || !response.data.data) {
+                console.warn('메타마스크 투표 제출 후 결과 데이터 없음:', response.data);
+                return null;
+            }
+
+            return response.data.data; // ApiResponse 구조 처리
+        } catch (error) {
+            console.error('메타마스크 투표 제출 실패:', error);
             throw error;
         }
     },
@@ -164,6 +182,48 @@ export const votingAPI = {
         } catch (error) {
             console.error(`투표 상태 확인 실패 (ID: ${electionId}):`, error);
             return false; // 오류 발생 시 기본값으로 false 반환
+        }
+    },
+
+    // votingAPI에 메타마스크 내부 처리용 함수 추가
+    submitMetaMaskVoteInternal: async (electionId, candidateId) => {
+        try {
+            console.log(`메타마스크 지갑 내부 투표 제출: 선거 ID ${electionId}, 후보 ID ${candidateId}`);
+
+            // transactionHash를 "INTERNAL"로 설정하여 백엔드에서 내부 처리하도록 함
+            const response = await api.post(`/${electionId}/vote/metamask`, {
+                candidateId,
+                transactionHash: "INTERNAL"
+            });
+
+            if (!response.data || !response.data.data) {
+                console.warn('내부 투표 제출 후 결과 데이터 없음:', response.data);
+                return null;
+            }
+
+            return response.data.data;
+        } catch (error) {
+            console.error('내부 투표 제출 실패:', error);
+            throw error;
+        }
+    },
+
+    // 사용자 투표 가능 여부 확인
+    checkVotingEligibility: async (electionId) => {
+        try {
+            console.log(`투표 가능 여부 확인 요청: 선거 ID ${electionId}`);
+            const response = await api.get(`/${electionId}/eligibility`);
+
+            // ApiResponse 구조 처리
+            if (!response.data || !response.data.data) {
+                console.warn('투표 가능 여부 데이터 없음:', response.data);
+                return { canVote: false, hasVoted: false };
+            }
+
+            return response.data.data;
+        } catch (error) {
+            console.error(`투표 가능 여부 확인 실패 (ID: ${electionId}):`, error);
+            return { canVote: false, hasVoted: false }; // 오류 발생 시 기본값 반환
         }
     }
 };

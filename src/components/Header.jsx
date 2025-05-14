@@ -4,6 +4,7 @@ import styled from 'styled-components';
 import useAuthStore from '../store/authStore';
 import useWalletStore from '../store/walletStore';
 import MetaMaskUtil from '../utils/MetaMaskUtil';
+import PageTranslator from './translation/PageTranslator';
 
 // Neumorphism 스타일 적용
 const HeaderContainer = styled.header`
@@ -494,7 +495,6 @@ const Header = () => {
                   <NavLink to="/mypage">마이페이지</NavLink>
                 </NavItem>
             )}
-
             {/* 관리자 전용 메뉴 */}
             {role && role.toUpperCase() === 'ADMIN' && (
                 <NavItem>
@@ -503,7 +503,11 @@ const Header = () => {
                   </NavLink>
                 </NavItem>
             )}
+
           </NavList>
+
+          {/* 번역기 컴포넌트 - 헤더 내부임을 명시 */}
+          <PageTranslator inHeader={true} />
 
           {isAuthenticated ? (
               <ButtonGroup>

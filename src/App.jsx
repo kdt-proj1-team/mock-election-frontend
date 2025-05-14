@@ -19,6 +19,7 @@ import ElectionQuiz from "./components/quiz/ElectionQuiz";
 import ChatbotPage from './pages/ChatbotPage';
 import GlossaryPopup from "./components/glossary/GlossaryPopup";
 import ChatPopup from './components/chat/ChatPopup';
+import Analytics from './components/analytics/Analytics.tsx';
 
 const theme = {
     colors: {
@@ -59,6 +60,7 @@ const App = () => {
             {/* 채팅 팝업 */}
             <ChatPopup />
             <Router>
+                <Analytics/>
                 <Header/>
                 <Routes>
                     {/* 기본 경로는 홈페이지로 설정 */}

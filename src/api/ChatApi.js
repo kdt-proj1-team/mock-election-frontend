@@ -69,7 +69,7 @@ const createStompClient = () => {
 
 export const chatAPI = {
     // 채팅 히스토리 가져오기
-    getChatHistory: async (chatroomId = 1) => {
+    getChatHistory: async (chatroomId) => {
         try {
             const response = await api.get(`/history${chatroomId ? `/${chatroomId}` : ''}`);
             return response.data;
@@ -83,7 +83,7 @@ export const chatAPI = {
     createStompClient,
 
     // 메시지 전송 함수 (클라이언트 사용법 예시)
-    sendMessage: (stompClient, message, userId, nickname, chatroomId = 1) => {
+    sendMessage: (stompClient, message, userId, nickname, chatroomId) => {
         if (!stompClient || !stompClient.connected) {
             console.error('WebSocket이 연결되어 있지 않습니다.');
             return false;
@@ -98,10 +98,8 @@ export const chatAPI = {
             sentAt: new Date().toISOString() // ISO 형식으로 변환 (서버와 형식 통일)
         };
 
-        console.log('STOMP: 메시지 전송 시도', chatMessage);
-
         stompClient.publish({
-            destination: '/app/chat.send',
+            destination: `/app/chat.send/${chatroomId}`,
             body: JSON.stringify(chatMessage),
             headers: { 'content-type' : 'application/json'}
         });
@@ -109,14 +107,9 @@ export const chatAPI = {
         return true;
     },
 
-    // 메시지 구독 함수 (클라이언트 사용법 예시)
-    subscribeToMessages: (stompClient, callback) => {
-        if (!stompClient || !stompClient.connected) {
-            console.error('WebSocket이 연결되어 있지 않습니다.');
-            return null;
-        }
-
-        return stompClient.subscribe('/topic/public', (message) => {
+    // 특정 채팅방 메시지 구독
+    subscribeToMessages: (stompClient, chatroomId, callback) => {
+        return stompClient.subscribe(`/topic/chat/${chatroomId}`, (message) => {
             try {
                 const receivedMessage = JSON.parse(message.body);
                 console.log('▶ receivedMessage', receivedMessage);
@@ -125,6 +118,17 @@ export const chatAPI = {
                 console.error('메시지 파싱 오류:', error);
             }
         });
+    },
+
+    // 채팅방 목록 조회
+    getChatrooms : async () => {
+        try {
+            const response = await api.get('/rooms');
+            return response.data;
+        } catch (error) {
+            console.log('채팅방 목록 조회 오류 :' , error);
+            throw error;
+        }
     }
 };
 
