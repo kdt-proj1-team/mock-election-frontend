@@ -1,11 +1,12 @@
 // PostDetail.jsx (전체 컴포넌트 구조 + styled-components 스타일 포함)
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, Link } from "react-router-dom";
 import styled from 'styled-components';
 import { FaPencilAlt, FaTrash, FaArrowUp, FaArrowDown, FaFlag, FaReply, FaPen, FaHome, FaList, FaEye, FaCommentDots } from 'react-icons/fa';
 import { postAPI } from '../../api/PostApi';
-import { format, parseISO } from 'date-fns';
+import { formatDateTime } from '../../utils/DateFormatter';
 import CommentSection from './comment/CommentSection';
+import { communityVoteAPI } from '../../api/CommunityVoteApi';
 
 // #region styled-components
 const Container = styled.div`
@@ -163,17 +164,22 @@ const VoteButtons = styled.div`
 `;
 
 const VoteButton = styled.button`
-  background: none;
+  width: 40px;
+  height: 40px;
+  background: ${({ active }) => active ? '#ddd' : 'transparent'};
   border: none;
+  border-radius: 50%;
   cursor: pointer;
   font-size: 18px;
   padding: 5px 10px;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 5px;
-  color: ${props => props.type === 'up' ? '#6b8bfc' : '#ff4d4d'};
+  color: ${props => props.type === 'up' ? '#555' : '#aaa'};
   &:hover {
-    color: ${props => props.type === 'up' ? '#4d82f3' : '#e63939'};
+    color: ${props => props.type === 'up' ? '#111' : '#777'};
+    background: #ddd;
   }
 `;
 
@@ -242,8 +248,14 @@ const GrayBtn = styled(ActionBtn)`
   background-color: #f1f1f1;
   color: #333;
   border: 1px solid #ddd;
+  text-decoration: none;
   &:hover {
     background-color: #e5e5e5;
+  }
+
+  svg {
+    position: relative;
+    top: 1px;
   }
 `;
 
@@ -258,18 +270,15 @@ const formatFileSize = (bytes) => {
   return `${mb.toFixed(1)} MB`;
 }
 
-// 날짜 변환
-const formatDate = (isoString) => {
-  return format(parseISO(isoString), 'yyyy.MM.dd HH:mm');
-};
-
 const PostDetail = () => {
   const navigate = useNavigate();
 
   const { id } = useParams();
   const [post, setPost] = useState(null);
+  const [userVote, setUserVote] = useState(0);  // 게시글 투표 여부 관리
   const userId = localStorage.getItem("userId");
   const isAuthor = post && post.authorId === userId;
+
 
   // 게시글 삭제 핸들러
   const handleDelete = async () => {
@@ -286,17 +295,40 @@ const PostDetail = () => {
 
 
   useEffect(() => {
-    const fetchPostDetail = async () => {
-      try {
-        const data = await postAPI.getPostDetail(id);
-        setPost(data);
-      } catch (error) {
-        console.error("게시글 조회 실패:", error);
-      }
-    };
-
     fetchPostDetail();
   }, [id]);
+
+  const fetchPostDetail = async () => {
+    try {
+      const data = await postAPI.getPostDetail(id);
+      setPost(data);
+    } catch (error) {
+      console.error("게시글 조회 실패:", error);
+    }
+  };
+
+  const handleVote = async (voteValue) => {
+    if (!userId) {
+      if (window.confirm("로그인 후 이용 가능한 기능입니다.\n로그인하시겠습니까?")) {
+        navigate("/login");
+      }
+      return;
+    }
+
+    try {
+      await communityVoteAPI.vote({
+        targetType: "POST",
+        targetId: post.id,
+        vote: voteValue,
+      });
+
+      // 서버에서 최신 voteCount + userVote 포함된 post 다시 조회
+      await fetchPostDetail();
+    } catch (err) {
+      alert("투표에 실패했습니다.");
+      console.error("vote error", err);
+    }
+  };
 
   if (!post) return null;
   return (
@@ -306,17 +338,17 @@ const PostDetail = () => {
       <Meta>
         <Info>
           <span>{post.authorNickname}</span>
-          <span>{formatDate(post.createdAt)}</span>
+          <span>{formatDateTime(post.createdAt)}</span>
           {post.updatedAt && (
             <span style={{ fontStyle: 'italic' }}>
-              수정됨: {formatDate(post.updatedAt)}
+              수정됨: {formatDateTime(post.updatedAt)}
             </span>
           )}
         </Info>
         <Actions>
           {isAuthor && (
             <>
-              <ActionButton><FaPencilAlt /> 수정</ActionButton>
+              <ActionButton onClick={() => navigate(`/community/board/edit/${post.id}`)}><FaPencilAlt /> 수정</ActionButton>
               <ActionButton onClick={handleDelete}><FaTrash /> 삭제</ActionButton>
             </>
           )}
@@ -345,9 +377,9 @@ const PostDetail = () => {
 
       <Footer>
         <VoteButtons>
-          <VoteButton type="up"><FaArrowUp /></VoteButton>
+          <VoteButton type="up" active={post.userVote === 1} onClick={() => handleVote(1)}><FaArrowUp /></VoteButton>
           <VoteCount>{post.voteCount}</VoteCount>
-          <VoteButton type="down"><FaArrowDown /></VoteButton>
+          <VoteButton type="down" active={post.userVote === -1} onClick={() => handleVote(-1)}><FaArrowDown /></VoteButton>
         </VoteButtons>
         <ReportButton><FaFlag /> 신고</ReportButton>
       </Footer>
@@ -360,7 +392,7 @@ const PostDetail = () => {
         </LeftActions>
         <RightActions>
           <GrayBtn onClick={() => navigate("/community")}><FaHome /> 커뮤니티 메인</GrayBtn>
-          <GrayBtn><FaList /> 목록</GrayBtn>
+          <GrayBtn as={Link} to={`/community?category=${post.categoryCode}`}><FaList /> 목록</GrayBtn>
           <GrayBtn><FaArrowUp /> TOP</GrayBtn>
         </RightActions>
       </PostActionsBar>
