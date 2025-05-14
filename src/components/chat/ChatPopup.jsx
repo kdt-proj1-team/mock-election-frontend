@@ -1,5 +1,5 @@
 import React, {useState, useEffect, useRef} from 'react';
-import {FaComments, FaUsers, FaTimes } from 'react-icons/fa';
+import {FaComments, FaUsers, FaTimes} from 'react-icons/fa';
 import {chatAPI} from '../../api/ChatApi';
 
 
@@ -160,6 +160,36 @@ const styles = {
         backgroundColor: '#f0f0f0',
         alignSelf: 'flex-end',
     },
+    systemMessageItem: {
+        display: 'flex',
+        flexDirection: 'column',
+        marginBottom: '12px',
+        padding: '8px',
+        borderRadius: '8px',
+        backgroundColor: '#e9e9e9',
+        textAlign: 'center',
+        maxWidth: '80%',
+        margin: '12px auto',  // 중앙 정렬
+    },
+    systemMessageHeader: {
+        display: 'flex',
+        justifyContent: 'center',  // 중앙 정렬
+        marginBottom: '3px',
+    },
+    systemNickname: {
+        fontWeight: 'bold',
+        fontSize: '13px',
+        color: '#777',
+        fontStyle: 'italic',
+        margin : '0 5px',
+    },
+    systemContent: {
+        margin: '3px 0',
+        wordBreak: 'break-word',
+        fontSize: '13px',
+        lineHeight: '1.4',
+        color: '#555',
+    },
     nickname: {
         fontWeight: 'bold',
         fontSize: '13px',
@@ -286,10 +316,10 @@ export default function ChatPopup() {
     const [participants, setParticipants] = useState([]);
     const [showParticipants, setShowParticipants] = useState(false);
     const [isHovering, setIsHovering] = useState({
-        button : false,
-        close : false,
-        send : false,
-        input : false
+        button: false,
+        close: false,
+        send: false,
+        input: false
     });
 
     const stompClientRef = useRef(null); // useRef로 stompClient 참조 관리
@@ -299,12 +329,12 @@ export default function ChatPopup() {
     const participantsSubscriptionRef = useRef(null);
 
     // 사용자 정보 가져오기
-    const userId = localStorage.getItem("userId"); 
-    const nickname = localStorage.getItem("nickname"); 
+    const userId = localStorage.getItem("userId");
+    const nickname = localStorage.getItem("nickname");
 
     // 스크롤을 최하단으로 이동하는 함수
     const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior : 'smooth' });
+        messagesEndRef.current?.scrollIntoView({behavior: 'smooth'});
     }
 
     // 메시지가 업데이트될 때마다 스크롤 이동
@@ -314,8 +344,8 @@ export default function ChatPopup() {
 
     // 팝업이 열릴 때 입력 필드에 포커스
     useEffect(() => {
-        if(isOpen){
-            setTimeout(()=>{
+        if (isOpen) {
+            setTimeout(() => {
                 inputRef.current?.focus();
             }, 300);
         }
@@ -325,23 +355,23 @@ export default function ChatPopup() {
     // 채팅방 목록 로드
     useEffect(() => {
         const loadChatRooms = async () => {
-            try{
+            try {
 
                 // 실제로는 API를 호출해야 함
                 const rooms = await chatAPI.getChatrooms();
                 setChatrooms(rooms);
 
                 // 첫 번째 채팅방을 기본 선택
-                if (rooms.length > 0 && !activeRoom){
+                if (rooms.length > 0 && !activeRoom) {
                     setActiveRoom(rooms[0].id);
                 }
 
-            }catch (error) {
+            } catch (error) {
                 console.log('채팅방 목록 로드 오류 : ', error);
             }
         };
 
-        if(isOpen){
+        if (isOpen) {
             loadChatRooms();
         }
     }, [isOpen]);
@@ -379,10 +409,10 @@ export default function ChatPopup() {
         // 컴포넌트 언마운트 시 연결 해제
         return () => {
             if (stompClientRef.current) {
-                try{
+                try {
                     console.log('WebSocket 연결 해제 중...');
                     stompClientRef.current.deactivate();
-                }catch (error){
+                } catch (error) {
                     console.error("Error disconnecting WebSocket:", error);
                 }
                 stompClientRef.current = null;
@@ -409,7 +439,7 @@ export default function ChatPopup() {
         // 이전 채팅방에서 퇴장 메시지 전송
         if (connected && stompClientRef.current && activeRoom) {
             chatAPI.sendLeaveMessage(
-              stompClientRef.current,
+                stompClientRef.current,
                 userId,
                 nickname,
                 activeRoom
@@ -428,7 +458,7 @@ export default function ChatPopup() {
             console.log('참여자 목록 데이터:', data); // 응답 데이터 로깅
 
             setParticipants(data);
-        }  catch (error) {
+        } catch (error) {
             console.error('Error fetching participants:', error);
         }
     };
@@ -438,11 +468,11 @@ export default function ChatPopup() {
         // 컴포넌트가 마운트될 때는 아무것도 하지 않음
 
         // 컴포넌트가 언마운트될 때만 실행
-        return() => {
-            if(stompClientRef.current){
+        return () => {
+            if (stompClientRef.current) {
                 try {
                     // 활성 채팅방에서 퇴장
-                    if(connected && stompClientRef.current && activeRoom) {
+                    if (connected && stompClientRef.current && activeRoom) {
                         console.log(`채팅방 퇴장: roomId = ${activeRoom}`);
                         chatAPI.sendLeaveMessage(
                             stompClientRef.current,
@@ -453,21 +483,21 @@ export default function ChatPopup() {
                     }
 
                     // 구독 해제 (null 체크)
-                    if(subscriptionRef.current){
+                    if (subscriptionRef.current) {
                         subscriptionRef.current.unsubscribe();
                         subscriptionRef.current = null;
                     }
-                    if(participantsSubscriptionRef.current){
+                    if (participantsSubscriptionRef.current) {
                         participantsSubscriptionRef.current.unsubscribe();
                         participantsSubscriptionRef.current = null;
                     }
 
                     // WebSocket 연결 해제
-                    if(stompClientRef.current) {
+                    if (stompClientRef.current) {
                         stompClientRef.current.deactivate();
                         stompClientRef.current = null;
                     }
-                }catch (error) {
+                } catch (error) {
                     console.error("Error disconnecting WebSocket:", error);
                 }
             }
@@ -489,7 +519,7 @@ export default function ChatPopup() {
         window.addEventListener('beforeunload', handleBeforeUnload);
 
         return () => {
-          window.removeEventListener('beforeunload', handleBeforeUnload);
+            window.removeEventListener('beforeunload', handleBeforeUnload);
         };
     }, [connected, activeRoom]);
 
@@ -640,7 +670,7 @@ export default function ChatPopup() {
                 }}
                 onClick={() => setIsOpen(!isOpen)}
                 onMouseEnter={() => setIsHovering({...isHovering, button: true})}
-                onMouseLeave={() => setIsHovering({...isHovering, button:false})}
+                onMouseLeave={() => setIsHovering({...isHovering, button: false})}
                 title={isOpen ? '채팅 닫기' : '채팅 열기'}
             >
                 <FaComments/>
@@ -662,8 +692,8 @@ export default function ChatPopup() {
                                     ...(isHovering.users ? styles.iconButtonHover : {})
                                 }}
                                 onClick={toggleParticipantsPanel}
-                                onMouseEnter={() => setIsHovering({...isHovering, users:true})}
-                                onMouseLeave={() => setIsHovering({...isHovering, users:false})}
+                                onMouseEnter={() => setIsHovering({...isHovering, users: true})}
+                                onMouseLeave={() => setIsHovering({...isHovering, users: false})}
                                 title="참여자 목록"
                             >
                                 <FaUsers></FaUsers>
@@ -682,7 +712,7 @@ export default function ChatPopup() {
                                 onMouseEnter={() => setIsHovering({...isHovering, close: true})}
                                 onMouseLeave={() => setIsHovering({...isHovering, close: false})}
                             >
-                                <FaTimes />
+                                <FaTimes/>
                             </button>
                         </div>
 
@@ -699,7 +729,7 @@ export default function ChatPopup() {
                                     key={room.id}
                                     style={{
                                         ...styles.roomItem,
-                                        ...(activeRoom === room.id? styles.activeRoom : {})
+                                        ...(activeRoom === room.id ? styles.activeRoom : {})
                                     }}
                                     onClick={() => handleRoomSelect(room.id)}
                                 >
@@ -722,18 +752,27 @@ export default function ChatPopup() {
                                             messages.map((msg, idx) => (
                                                 <div
                                                     key={idx}
-                                                    style={{
-                                                        ...styles.messageItem,
-                                                        ...(msg.userId === userId ? styles.myMessageItem : {})
-                                                    }}
+                                                    style={
+                                                        msg.userId === null
+                                                            ? styles.systemMessageItem
+                                                            : {
+                                                                ...styles.messageItem,
+                                                                ...(msg.userId === userId ? styles.myMessageItem : {})
+                                                            }
+                                                    }
                                                 >
-                                                    <div style={styles.messageHeader}>
-                                                        <span style={styles.nickname}>{msg.sender_nickname || '익명'}</span>
+                                                    <div style={msg.userId === null ? styles.systemMessageHeader : styles.messageHeader}>
+                                                        <span style={msg.userId === null ? styles.systemNickname : styles.nickname}>
+                                                            {msg.sender_nickname || '익명'}
+                                                        </span>
                                                         <span style={styles.time}>
                                                             {new Date(msg.sentAt).toLocaleTimeString()}
                                                         </span>
                                                     </div>
-                                                    <div style={styles.content}>{msg.content}</div>
+                                                    <div
+                                                        style={msg.userId === null ? styles.systemContent : styles.content}>
+                                                        {msg.content}
+                                                    </div>
                                                 </div>
                                             ))
                                         )
@@ -757,7 +796,7 @@ export default function ChatPopup() {
                                             style={styles.backButton}
                                             onClick={toggleParticipantsPanel}
                                         >
-                                            <FaTimes /> 닫기
+                                            <FaTimes/> 닫기
                                         </button>
                                     </div>
                                     {participants.map(participant => (
