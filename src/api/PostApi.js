@@ -22,7 +22,11 @@ export const postAPI = {
 
     // 게시글 상세 조회
     getPostDetail: async (postId) => {
-        const response = await api.get(`/${postId}`, { withCredentials: true });
+        const userId = localStorage.getItem("userId");
+        const response = await api.get(`/${postId}`, { 
+            params: {userId},
+            withCredentials: true
+        });
         return response.data.data;
     },
 

@@ -377,9 +377,9 @@ const PostDetail = () => {
 
       <Footer>
         <VoteButtons>
-          <VoteButton type="up" onClick={() => handleVote(1)}><FaArrowUp /></VoteButton>
+          <VoteButton type="up" active={post.userVote === 1} onClick={() => handleVote(1)}><FaArrowUp /></VoteButton>
           <VoteCount>{post.voteCount}</VoteCount>
-          <VoteButton type="down" onClick={() => handleVote(-1)}><FaArrowDown /></VoteButton>
+          <VoteButton type="down" active={post.userVote === -1} onClick={() => handleVote(-1)}><FaArrowDown /></VoteButton>
         </VoteButtons>
         <ReportButton><FaFlag /> 신고</ReportButton>
       </Footer>
