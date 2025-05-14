@@ -86,11 +86,14 @@ const ActionButton = styled.button`
 
 const DeletedComment = styled.div`
   color: #777;
-  margin: 30px 10px;
+  padding: 25px 10px;
   font-size: 17px;
+  border-top: 1px solid #f5f5f5;
+  border-bottom: 1px solid #f5f5f5;
 `
 
 const ReplyList = styled.div`
+  margin-top: 5px;
   margin-left: 30px;
   border-left: 2px solid #eee;
   padding-left: 20px;
@@ -106,6 +109,7 @@ const CommentItem = ({ comment, onDeleted, maxDepth = 4 }) => {
   const userId = localStorage.getItem("userId");
   const isAuthor = comment && comment.authorId === userId;
   const [showReplyForm, setShowReplyForm] = useState(false);
+  const [showEditForm, setShowEditForm] = useState(false);
 
   const CommentItemWrapper = comment.depth === 0 ? Comment : Reply;
 
@@ -147,48 +151,65 @@ const CommentItem = ({ comment, onDeleted, maxDepth = 4 }) => {
 
   return (
     <CommentItemWrapper>
-      <CommentHeader>
-        <CommentAuthor>{comment.authorNickname}</CommentAuthor>
-        <CommentDateInfo>{comment.updatedAt ? `${formatDateTime(comment.updatedAt)} 수정됨` : formatDateTime(comment.createdAt)}</CommentDateInfo>
-      </CommentHeader>
-      <CommentContent>
-        {comment.content.split('\n').map((line, idx) => (
-          <span key={idx}>
-            {line}
-            <br />
-          </span>
-        ))}
-      </CommentContent>
-      <CommentActions>
-        <CommentVoteButtons>
-          <CommentVoteButton type="up"><FaArrowUp /></CommentVoteButton>
-          <CommentVoteCount>{comment.voteCount}</CommentVoteCount>
-          <CommentVoteButton type="down"><FaArrowDown /></CommentVoteButton>
-        </CommentVoteButtons>
-        {comment.depth < maxDepth && (
-          <ActionButton onClick={() => setShowReplyForm(prev => !prev)}><FaReply /> 답글</ActionButton>
-        )}
-        {!isAuthor && (
-          <ActionButton><FaFlag /> 신고</ActionButton>
-        )}
-        {isAuthor && (
-          <>
-            <ActionButton><FaPencilAlt /> 수정</ActionButton>
-            <ActionButton onClick={handleDelete}><FaTrash /> 삭제</ActionButton>
-          </>
-        )}
-      </CommentActions>
-
+      {!showEditForm && (
+        <>
+          <CommentHeader>
+            <CommentAuthor>{comment.authorNickname}</CommentAuthor>
+            <CommentDateInfo>{comment.updatedAt ? `${formatDateTime(comment.updatedAt)} 수정됨` : formatDateTime(comment.createdAt)}</CommentDateInfo>
+          </CommentHeader>
+          <CommentContent>
+            {comment.content.split('\n').map((line, idx) => (
+              <span key={idx}>
+                {line}
+                <br />
+              </span>
+            ))}
+          </CommentContent>
+          <CommentActions>
+            <CommentVoteButtons>
+              <CommentVoteButton type="up"><FaArrowUp /></CommentVoteButton>
+              <CommentVoteCount>{comment.voteCount}</CommentVoteCount>
+              <CommentVoteButton type="down"><FaArrowDown /></CommentVoteButton>
+            </CommentVoteButtons>
+            {comment.depth < maxDepth && (
+              <ActionButton onClick={() => setShowReplyForm(prev => !prev)}><FaReply /> 답글</ActionButton>
+            )}
+            {!isAuthor && (
+              <ActionButton><FaFlag /> 신고</ActionButton>
+            )}
+            {isAuthor && (
+              <>
+                <ActionButton onClick={() => setShowEditForm(prev => !prev)}><FaPencilAlt /> 수정</ActionButton>
+                <ActionButton onClick={handleDelete}><FaTrash /> 삭제</ActionButton>
+              </>
+            )}
+          </CommentActions>
+        </>)}
       {showReplyForm && (
         <CommentForm
           postId={comment.postId}
           parentId={comment.id}
-          variant="reply"
+          mode="reply"
           onSuccess={() => {
             setShowReplyForm(false);
             onDeleted?.();
           }}
           onCancel={() => setShowReplyForm(false)}
+        />
+      )}
+
+      {showEditForm && (
+        <CommentForm
+          postId={comment.postId}
+          parentId={comment.id}
+          commentId={comment.id}
+          mode="edit"
+          initialContent={comment.content}
+          onSuccess={() => {
+            setShowEditForm(false);
+            onDeleted?.();
+          }}
+          onCancel={() => setShowEditForm(false)}
         />
       )}
 

@@ -384,7 +384,7 @@ const PostDetail = () => {
         <ReportButton><FaFlag /> 신고</ReportButton>
       </Footer>
 
-      <CommentSection postId={post.id}></CommentSection>
+      <CommentSection postId={post.id} commentCount={post.commentCount}></CommentSection>
 
       <PostActionsBar>
         <LeftActions>

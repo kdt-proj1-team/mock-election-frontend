@@ -1,6 +1,5 @@
-import { useState, useRef } from 'react';
+import { useRef } from 'react';
 import styled from 'styled-components';
-import { postCommentAPI } from '../../../api/PostCommentApi';
 import CommentForm from './CommentForm';
 import CommentList from './CommentList';
 
@@ -10,18 +9,25 @@ const Section = styled.section`
 `;
 
 const Header = styled.div`
-  font-size: 18px;
   font-weight: bold;
+  margin-left: 5px;
   margin-bottom: 20px;
   display: flex;
-  align-items: center;
-  gap: 10px;
+  align-items: end;
+  gap: 13px;
+`;
+
+const CommentTitle = styled.span`
+  font-size: 21px;
+`;
+const CommentCount = styled.span`
+  color: #888;
+  font-size: 19px;
 `;
 
 // #endregion
 
-const CommentSection = ({ postId }) => {
-    const [commentInput, setCommentInput] = useState("");
+const CommentSection = ({ postId, commentCount }) => {
     const commentListRef = useRef();
 
     const handleRefetch = () => {
@@ -31,8 +37,8 @@ const CommentSection = ({ postId }) => {
     return (
         <Section>
             <Header>
-                <span>댓글</span>
-                <span style={{ color: '#888', fontSize: '16px' }}>8개</span>
+                <CommentTitle>댓글</CommentTitle>
+                <CommentCount>{commentCount}개</CommentCount>
             </Header>
 
             <CommentForm postId={postId} onSuccess={handleRefetch} variant="comment"></CommentForm>
