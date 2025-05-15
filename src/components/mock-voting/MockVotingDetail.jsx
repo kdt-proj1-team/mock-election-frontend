@@ -64,7 +64,7 @@ const LoadingContainer = styled.div`
 const ErrorNotification = styled.div`
     padding: 15px;
     background-color: #fff0f0;
-    border-left: 4px solid #e61e2b;
+    border-left: 4px solid #D8B4E2;
     margin-bottom: 20px;
     border-radius: 4px;
     box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
@@ -72,8 +72,9 @@ const ErrorNotification = styled.div`
 
 const InfoNotification = styled.div`
     padding: 15px;
-    background-color: #f0f8ff;
-    border-left: 4px solid #3498db;
+    background-color: #fafaec;
+    border-left: 4px solid #888888;
+    border-left: 4px solid #888888;
     margin-bottom: 20px;
     border-radius: 4px;
     box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
@@ -81,7 +82,7 @@ const InfoNotification = styled.div`
 
 const WarningNotification = styled.div`
     padding: 15px;
-    background-color: #fffbeb;
+    background-color: #ffffff;
     border-left: 4px solid #eab308;
     margin-bottom: 20px;
     border-radius: 4px;

@@ -71,8 +71,8 @@ const ElectionStatus = styled.div`
     border-radius: 30px;
     font-size: 14px;
     font-weight: 500;
-    background-color: ${props => props.$active ? '#D1C4E9' : '#f5f5f5'};
-    color: ${props => props.$active ? '#512DA8' : '#999'};
+    background-color: ${props => props.$active ? '#ccf3e2' : '#f5f5f5'};
+    color: ${props => props.$active ? '#2ecc71' : '#999'};
     box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.05), inset -2px -2px 5px rgba(255, 255, 255, 0.5);
 `;
 

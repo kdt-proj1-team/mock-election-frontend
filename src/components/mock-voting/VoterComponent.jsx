@@ -84,19 +84,19 @@ const ChartBarContainer = styled.div`
     overflow: hidden;
     box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.1), inset -2px -2px 5px rgba(255, 255, 255, 0.7);
 `;
-
 const ChartBarFill = styled.div`
     height: 100%;
     width: ${props => props.$percentage}%;
     background-color: ${props => {
-        switch(props.$party) {
-            case '더불어민주당': return '#0050c8';
-            case '국민의힘': return '#e61e2b';
-            case '정의당': return '#ffcc00';
-            case '기본소득당': return '#7f2da0';
-            case '녹색당': return '#00b05d';
+        switch (props.$party) {
+            case '더불어민주당': return '#0072C6';
+            case '국민의힘': return '#C9151E';
+            case '자유통일당': return '#8000C9';
+            case '개혁신당': return '#FF7920';
+            case '민주노동당': return '#FFF900';
             default: return '#888888';
         }
+
     }};
     border-radius: 15px;
     transition: width 1s ease-in-out;
@@ -141,7 +141,7 @@ const BackButton = styled.button`
 const InfoNotification = styled.div`
     padding: 15px;
     background-color: #e0f0ff;
-    border-left: 4px solid #0073e6;
+    border-left: 4px solid #255000;
     margin-bottom: 20px;
     border-radius: 4px;
     box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
@@ -149,7 +149,7 @@ const InfoNotification = styled.div`
 
 const LoadingSpinner = styled.div`
     border: 4px solid #f3f3f3;
-    border-top: 4px solid #3498db;
+    border-top: 4px solid #A8D5BA;
     border-radius: 50%;
     width: 30px;
     height: 30px;
@@ -165,7 +165,7 @@ const LoadingSpinner = styled.div`
 const ErrorBox = styled.div`
     padding: 15px;
     background-color: #fff0f0;
-    border-left: 4px solid #e61e2b;
+    border-left: 4px solid rgba(113, 3, 145, 0.28);
     margin: 20px 0;
     border-radius: 4px;
     box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
