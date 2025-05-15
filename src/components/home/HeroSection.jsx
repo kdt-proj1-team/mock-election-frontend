@@ -85,7 +85,7 @@ const CountdownLabel = styled.div`
 const HeroSection = () => {
   const [countdown, setCountdown] = useState({ days: 127, hours: 14, minutes: 32, seconds: 9 });
 
-  const electionDate = new Date('2025-09-03T00:00:00');
+  const electionDate = new Date('2025-06-03T00:00:00');
 
   useEffect(() => {
     const updateCountdown = () => {
