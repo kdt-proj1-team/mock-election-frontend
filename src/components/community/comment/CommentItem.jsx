@@ -50,7 +50,7 @@ const CommentActions = styled.div`
 const CommentVoteButtons = styled.div`
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
 `;
 
 const CommentVoteButton = styled.button`
@@ -73,6 +73,9 @@ const CommentVoteButton = styled.button`
 const CommentVoteCount = styled.span`
   font-size: 13px;
   font-weight: bold;
+  display: flex;
+  justify-content: center;
+  width: 13px;
 `;
 
 const ActionButton = styled.button`

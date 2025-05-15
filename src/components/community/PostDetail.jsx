@@ -7,6 +7,7 @@ import { postAPI } from '../../api/PostApi';
 import { formatDateTime } from '../../utils/DateFormatter';
 import CommentSection from './comment/CommentSection';
 import { communityVoteAPI } from '../../api/CommunityVoteApi';
+import ReportModal from '../report/ReportModal';
 
 // #region styled-components
 const Container = styled.div`
@@ -275,6 +276,7 @@ const PostDetail = () => {
 
   const { id } = useParams();
   const [post, setPost] = useState(null);
+  const [showReportModal, setShowReportModal] = useState(false);
   const userId = localStorage.getItem("userId");
   const isAuthor = post && post.authorId === userId;
 
@@ -378,7 +380,16 @@ const PostDetail = () => {
           <VoteCount>{post.voteCount}</VoteCount>
           <VoteButton type="down" active={post.userVote === -1} onClick={() => handleVote(-1)}><FaArrowDown /></VoteButton>
         </VoteButtons>
-        <ReportButton><FaFlag /> 신고</ReportButton>
+        {!isAuthor && (
+          <ReportButton onClick={() => setShowReportModal(true)}><FaFlag /> 신고</ReportButton>
+        )}
+        {showReportModal && (
+          <ReportModal
+            onClose={() => setShowReportModal(false)}
+            authorNickname={post.authorNickname}
+            contentText={post.title}
+          />
+        )}
       </Footer>
 
       <CommentSection postId={post.id} commentCount={post.commentCount}></CommentSection>
