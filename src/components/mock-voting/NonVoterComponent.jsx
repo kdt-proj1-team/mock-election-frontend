@@ -71,17 +71,17 @@ const PartyBadge = styled.div`
     font-weight: 500;
     background-color: ${props => {
         switch(props.party) {
-            case '더불어민주당': return '#0050c8';
-            case '국민의힘': return '#e61e2b';
-            case '정의당': return '#ffcc00';
-            case '기본소득당': return '#7f2da0';
-            case '녹색당': return '#00b05d';
+            case '더불어민주당': return '#0072C6';
+            case '국민의힘': return '#C9151E';
+            case '자유통일당': return '#8000C9';
+            case '개혁신당': return '#FF7920';
+            case '민주노동당': return '#FFF900';
             default: return '#888888';
         }
     }};
     color: ${props => {
         switch(props.party) {
-            case '정의당': return '#000';
+            case '민주노동당': return '#000';
             default: return '#fff';
         }
     }};
@@ -128,7 +128,7 @@ const WalletInfo = styled.div`
     font-size: 14px;
     font-weight: 500;
     background-color: ${props => props.$isMetaMask ? '#F6E7FF' : '#EEF5FB'};
-    color: ${props => props.$isMetaMask ? '#7C3AED' : '#2563EB'};
+    color: ${props => props.$isMetaMask ? 'rgba(124,58,237,0.18)' : '#888888'};
     box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.05), inset -2px -2px 5px rgba(255, 255, 255, 0.5);
     margin-bottom: 15px;
     margin-right: 10px;
@@ -208,7 +208,7 @@ const NonVoterComponent = ({ election, candidates, onVoteComplete, onBackClick, 
                     alignItems: 'center',
                     marginBottom: '20px'
                 }}>
-                    <SectionTitle>정당을 선택해주세요</SectionTitle>
+                    <SectionTitle>정책을 선택해주세요</SectionTitle>
                     <div>
                         <WalletInfo $isMetaMask={walletType === "METAMASK"}>
                             {walletType === "METAMASK" ? "메타마스크 지갑" : "내부 지갑"}
@@ -346,14 +346,14 @@ const CancelButton = styled(ModalButton)`
 `;
 
 const ConfirmButton = styled(ModalButton)`
-    background-color: #0073e6;
+    background-color: #5b5b5e;
     color: white;
 `;
 
 const ErrorNotification = styled.div`
     padding: 15px;
     background-color: #fff0f0;
-    border-left: 4px solid #e61e2b;
+    border-left: 4px solid #00ffa2;
     margin-bottom: 20px;
     border-radius: 4px;
 `;

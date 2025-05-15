@@ -23,7 +23,7 @@ import Analytics from './components/analytics/Analytics.tsx';
 
 const theme = {
     colors: {
-        primary: '#4267b2',
+        primary: '#bcffaa',
         secondary: '#6c757d',
         light: '#f8f9fa',
         dark: '#343a40',

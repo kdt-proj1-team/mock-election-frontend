@@ -85,9 +85,7 @@ const NoTokenComponent = ({ errorMessage, onBackClick, onShowStatsClick }) => {
                 <Button onClick={onBackClick}>
                     모의투표 목록으로
                 </Button>
-                <Button $primary onClick={handleConnectWallet}>
-                    지갑 연결하기
-                </Button>
+
                 {/* 투표 통계 보기 버튼 추가 */}
                 <Button onClick={onShowStatsClick}>
                     투표 통계 보기
