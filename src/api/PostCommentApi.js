@@ -20,9 +20,18 @@ api.interceptors.request.use(
 
 export const postCommentAPI = {
     // 최상위 댓글 조회
-    getTopLevelComments: async (postId, offset = 0, limit = 20) => {
+    // getTopLevelComments: async (postId, offset = 0, limit = 20) => {
+    //     const response = await api.get(`/${postId}/comments`, {
+    //         params: { offset, limit }
+    //     });
+    //     return response.data.data;
+    // },
+
+    // 댓글 조회
+    getCommentsWithReplies: async(postId, offset, limit) => {
+        const userId = localStorage.getItem("userId");
         const response = await api.get(`/${postId}/comments`, {
-            params: { offset, limit }
+            params: { userId, offset, limit }
         });
         return response.data.data;
     },
@@ -38,4 +47,11 @@ export const postCommentAPI = {
         const response = await api.delete(`/${postId}/comments/${commentId}`);
         return response.data.data;
     },
+
+    // 댓글 수정
+    update: async (postId, commentId, dto) => {
+        const response = await api.put(`/${postId}/comments/${commentId}`, dto);
+        return response.data.data;
+    }
+
 };

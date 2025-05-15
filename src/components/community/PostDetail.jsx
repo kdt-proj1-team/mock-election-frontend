@@ -1,5 +1,5 @@
 // PostDetail.jsx (전체 컴포넌트 구조 + styled-components 스타일 포함)
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from "react-router-dom";
 import styled from 'styled-components';
 import { FaPencilAlt, FaTrash, FaArrowUp, FaArrowDown, FaFlag, FaReply, FaPen, FaHome, FaList, FaEye, FaCommentDots } from 'react-icons/fa';
@@ -7,6 +7,7 @@ import { postAPI } from '../../api/PostApi';
 import { formatDateTime } from '../../utils/DateFormatter';
 import CommentSection from './comment/CommentSection';
 import { communityVoteAPI } from '../../api/CommunityVoteApi';
+import ReportModal from '../report/ReportModal';
 
 // #region styled-components
 const Container = styled.div`
@@ -275,10 +276,9 @@ const PostDetail = () => {
 
   const { id } = useParams();
   const [post, setPost] = useState(null);
-  const [userVote, setUserVote] = useState(0);  // 게시글 투표 여부 관리
+  const [showReportModal, setShowReportModal] = useState(false);
   const userId = localStorage.getItem("userId");
   const isAuthor = post && post.authorId === userId;
-
 
   // 게시글 삭제 핸들러
   const handleDelete = async () => {
@@ -292,7 +292,6 @@ const PostDetail = () => {
       alert("삭제에 실패했습니다. 다시 시도해주세요.");
     }
   };
-
 
   useEffect(() => {
     fetchPostDetail();
@@ -381,10 +380,19 @@ const PostDetail = () => {
           <VoteCount>{post.voteCount}</VoteCount>
           <VoteButton type="down" active={post.userVote === -1} onClick={() => handleVote(-1)}><FaArrowDown /></VoteButton>
         </VoteButtons>
-        <ReportButton><FaFlag /> 신고</ReportButton>
+        {!isAuthor && (
+          <ReportButton onClick={() => setShowReportModal(true)}><FaFlag /> 신고</ReportButton>
+        )}
+        {showReportModal && (
+          <ReportModal
+            onClose={() => setShowReportModal(false)}
+            authorNickname={post.authorNickname}
+            contentText={post.title}
+          />
+        )}
       </Footer>
 
-      <CommentSection postId={post.id}></CommentSection>
+      <CommentSection postId={post.id} commentCount={post.commentCount}></CommentSection>
 
       <PostActionsBar>
         <LeftActions>
