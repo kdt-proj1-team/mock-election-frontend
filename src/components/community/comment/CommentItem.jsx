@@ -250,6 +250,8 @@ const CommentItem = ({ comment, onDeleted, maxDepth = 4 }) => {
                 onClose={() => setShowReportModal(false)}
                 authorNickname={comment.authorNickname}
                 contentText={comment.content}
+                targetType="POST_COMMENT"
+                targetId={comment.id}
               />
             )}
             {isAuthor && (

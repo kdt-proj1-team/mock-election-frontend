@@ -387,7 +387,7 @@ const PostDetail = () => {
                 if (confirmed) navigate("/login");
                 return;
               }
-              
+
             setShowReportModal(true)
 
           }}><FaFlag /> 신고</ReportButton>
@@ -397,6 +397,8 @@ const PostDetail = () => {
             onClose={() => setShowReportModal(false)}
             authorNickname={post.authorNickname}
             contentText={post.title}
+            targetType="POST"
+            targetId={post.id}
           />
         )}
       </Footer>
