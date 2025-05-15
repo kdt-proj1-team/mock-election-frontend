@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-    baseURL: process.env.REACT_COMMUNITY_CATEGORY_API_URL || 'http://localhost/api/community/categories',
+    baseURL: process.env.REACT_APP_COMMUNITY_CATEGORY_API_URL || 'http://localhost/api/community/categories',
     headers: {
         'Content-Type': 'application/json'
     }

@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-    baseURL: process.env.REACT_FILE_API_URL || 'http://localhost/api/files',
+    baseURL: process.env.REACT_APP_FILE_API_URL || 'http://localhost/api/files',
     headers: {
         'Content-Type': 'multipart/form-data'
     }
