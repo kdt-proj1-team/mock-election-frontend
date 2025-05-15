@@ -44,6 +44,19 @@ const ChartTitle = styled.h3`
     text-align: center;
 `;
 
+const ChartSection = styled.div`
+    margin-bottom: 30px;
+`;
+
+const PartyTitle = styled.h4`
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+`;
+
 const ChartBar = styled.div`
     display: flex;
     align-items: center;
@@ -51,10 +64,16 @@ const ChartBar = styled.div`
 `;
 
 const ChartLabel = styled.div`
-    flex: 0 0 120px;
+    flex: 0 0 200px;
     font-size: 14px;
     font-weight: 500;
     color: #333;
+
+    small {
+        display: block;
+        color: #666;
+        font-size: 12px;
+    }
 `;
 
 const ChartBarContainer = styled.div`
@@ -166,14 +185,22 @@ const generateFallbackStats = (candidates) => {
         };
     }
 
-    const totalVotes = 100 + Math.floor(Math.random() * 200);
-    console.log("[VoterComponent] 대체 통계 - 총 투표수:", totalVotes);
+    const allPolicies = candidates.flatMap(candidate =>
+        (candidate.policies || []).map(policy => ({
+            ...policy,
+            candidateId: candidate.id,
+            candidateLabel: candidate.candidateLabel,
+            partyName: candidate.partyName
+        }))
+    );
 
+    const totalVotes = 100 + Math.floor(Math.random() * 200);
     let remainingVotes = totalVotes;
-    const votes = candidates.map((candidate, index, array) => {
+
+    const votes = allPolicies.map((policy, index, array) => {
         if (index === array.length - 1) {
             return {
-                candidateId: candidate.id,
+                candidateId: policy.id,
                 voteCount: remainingVotes,
                 percentage: parseFloat(((remainingVotes / totalVotes) * 100).toFixed(1))
             };
@@ -186,14 +213,13 @@ const generateFallbackStats = (candidates) => {
         remainingVotes -= voteCount;
 
         return {
-            candidateId: candidate.id,
+            candidateId: policy.id,
             voteCount: voteCount,
             percentage: parseFloat(((voteCount / totalVotes) * 100).toFixed(1))
         };
     });
 
     votes.sort((a, b) => b.voteCount - a.voteCount);
-    console.log("[VoterComponent] 대체 통계 - 생성된 투표 데이터:", votes);
 
     return {
         sgId: candidates[0]?.sgId || "unknown",
@@ -208,119 +234,40 @@ const generateFallbackStats = (candidates) => {
 const VoterComponent = ({ election, candidates, onBackClick }) => {
     const [voteStats, setVoteStats] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [useFallbackStats, setUseFallbackStats] = useState(false);
-    const [error, setError] = useState(null);
-    const [infoMessage, setInfoMessage] = useState('투표 현황을 조회하고 있습니다.');
 
-    // 디버깅 로그 함수
-    const logDebug = (message, data) => {
-        console.log(`[VoterComponent] ${message}:`, data);
-    };
-
-    // 투표 통계 가져오기
     useEffect(() => {
         const fetchVoteStats = async () => {
-            if (!election || !candidates || candidates.length === 0) {
-                setError("선거 정보 또는 후보자 정보가 없습니다.");
-                setLoading(false);
-                return;
-            }
-
-            logDebug("투표 통계 조회 시작", { electionId: election.sgId });
-            setLoading(true);
-
             try {
                 const statsData = await votingAPI.getVoteStats(election.sgId);
-                logDebug("투표 통계 API 응답", statsData);
-
-                // 응답 데이터 유효성 검사
-                if (!statsData || !statsData.votes || !Array.isArray(statsData.votes)) {
-                    logDebug("유효한 투표 데이터 없음, 대체 통계 사용", statsData);
-                    setUseFallbackStats(true);
-                    setVoteStats(generateFallbackStats(candidates));
-                } else {
-                    // 투표 결과에 후보자 정보 매핑 확인
-                    const hasValidVotes = statsData.votes.some(vote =>
-                        candidates.some(c => c.id === vote.candidateId)
-                    );
-
-                    if (!hasValidVotes) {
-                        logDebug("후보자와 매핑된 투표 데이터 없음, 대체 통계 사용", statsData);
-                        setUseFallbackStats(true);
-                        setVoteStats(generateFallbackStats(candidates));
-                    } else {
-                        logDebug("유효한 투표 데이터 사용", statsData);
-                        setVoteStats(statsData);
-                    }
-                }
-
-                setInfoMessage("이미 투표에 참여하셨습니다. 투표 결과를 확인하세요.");
+                setVoteStats(statsData);
             } catch (error) {
-                logDebug("투표 통계 조회 오류", error);
-                setError("투표 통계를 불러오는 데 실패했습니다. 대체 데이터를 표시합니다.");
-                setUseFallbackStats(true);
-                setVoteStats(generateFallbackStats(candidates));
+                console.error('투표 통계 조회 실패:', error);
             } finally {
                 setLoading(false);
             }
         };
 
         fetchVoteStats();
-    }, [election, candidates]);
+    }, [election.sgId]);
 
-    if (loading) {
-        return (
-            <ResultContainer>
-                <VoteCard>
-                    <VoteSection>
-                        <SectionTitle>투표 결과 로딩 중</SectionTitle>
-                        <p>투표 결과를 불러오고 있습니다. 잠시만 기다려 주세요.</p>
-                        <LoadingSpinner />
-                    </VoteSection>
-                </VoteCard>
-            </ResultContainer>
-        );
-    }
-
-    if (error && !voteStats) {
-        return (
-            <ResultContainer>
-                <ErrorBox>
-                    <p><strong>오류 발생:</strong> {error}</p>
-                </ErrorBox>
-                <BackButton onClick={onBackClick}>
-                    모의투표 목록으로
-                </BackButton>
-            </ResultContainer>
-        );
-    }
-
-    // 투표 결과 렌더링 함수
     const renderVoteResults = () => {
-        if (!voteStats || !voteStats.votes || !Array.isArray(voteStats.votes) || voteStats.votes.length === 0) {
-            return <p>투표 데이터가 없습니다.</p>;
-        }
+        if (!voteStats || !voteStats.votes) return null;
 
+        // candidateId를 기준으로 후보자 찾기
         return voteStats.votes.map(vote => {
             const candidate = candidates.find(c => c.id === vote.candidateId);
-            if (!candidate) {
-                logDebug("후보자 정보 없음", { voteData: vote, candidates });
-                return null;
-            }
-
-            // percentage가 없는 경우를 대비한 기본값 설정
-            const percentage = vote.percentage || 0;
+            if (!candidate) return null;
 
             return (
                 <ChartBar key={vote.candidateId}>
-                    <ChartLabel>{candidate.candidateLabel} ({candidate.partyName})</ChartLabel>
+                    <ChartLabel>{candidate.partyName}</ChartLabel>
                     <ChartBarContainer>
                         <ChartBarFill
-                            $percentage={percentage}
+                            $percentage={vote.percentage}
                             $party={candidate.partyName}
                         />
                     </ChartBarContainer>
-                    <ChartPercentage>{percentage.toFixed(1)}%</ChartPercentage>
+                    <ChartPercentage>{vote.percentage.toFixed(1)}%</ChartPercentage>
                 </ChartBar>
             );
         });
@@ -328,42 +275,25 @@ const VoterComponent = ({ election, candidates, onBackClick }) => {
 
     return (
         <ResultContainer>
-            {infoMessage && (
-                <InfoNotification>
-                    <p><strong>안내:</strong> {infoMessage}</p>
-                </InfoNotification>
-            )}
-
-            {useFallbackStats && (
-                <InfoNotification>
-                    <p><strong>안내:</strong> 서버 오류로 인해 실시간 투표 통계를 불러올 수 없습니다. 임시 데이터를 표시합니다.</p>
-                </InfoNotification>
-            )}
-
-            {error && (
-                <ErrorBox>
-                    <p><strong>오류 발생:</strong> {error}</p>
-                </ErrorBox>
-            )}
-
             <VoteCard>
                 <VoteSection>
-                    <SectionTitle>투표 완료</SectionTitle>
-                    <p>모의투표에 참여해주셔서 감사합니다. 아래에서 현재까지의 투표 결과를 확인하실 수 있습니다.</p>
+                    <SectionTitle>투표 결과</SectionTitle>
+                    {loading ? (
+                        <LoadingSpinner />
+                    ) : (
+                        <>
+                            <ResultChart>
+                                <ChartTitle>정당별 득표율</ChartTitle>
+                                {renderVoteResults()}
+                                <ParticipationInfo>
+                                    투표 참여율: {voteStats?.participation?.toFixed(1) || 0}%
+                                </ParticipationInfo>
+                            </ResultChart>
+                        </>
+                    )}
                 </VoteSection>
-
-                <ResultChart>
-                    <ChartTitle>투표 결과</ChartTitle>
-                    {renderVoteResults()}
-                    <ParticipationInfo>
-                        투표 참여율: {voteStats ? voteStats.participation?.toFixed(1) : '0.0'}%
-                    </ParticipationInfo>
-                </ResultChart>
+                <BackButton onClick={onBackClick}>모의투표 목록으로</BackButton>
             </VoteCard>
-
-            <BackButton onClick={onBackClick}>
-                모의투표 목록으로
-            </BackButton>
         </ResultContainer>
     );
 };
