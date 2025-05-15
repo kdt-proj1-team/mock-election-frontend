@@ -226,10 +226,24 @@ const CommentItem = ({ comment, onDeleted, maxDepth = 4 }) => {
               <CommentVoteButton type="down" active={localComment.userVote === -1} onClick={() => handleVote(-1)}><FaArrowDown /></CommentVoteButton>
             </CommentVoteButtons>
             {comment.depth < maxDepth && (
-              <ActionButton onClick={() => setShowReplyForm(prev => !prev)}><FaReply /> 답글</ActionButton>
+              <ActionButton onClick={() => {
+                if (!userId) {
+                  const confirmed = window.confirm("로그인 후 이용 가능한 기능입니다.\n로그인하시겠습니까?");
+                  if (confirmed) navigate("/login");
+                  return;
+                }
+                setShowReplyForm(prev => !prev)
+              }}><FaReply /> 답글</ActionButton>
             )}
             {!isAuthor && (
-              <ActionButton onClick={() => setShowReportModal(true)}><FaFlag /> 신고</ActionButton>
+              <ActionButton onClick={() => {
+                if (!userId) {
+                  const confirmed = window.confirm("로그인 후 이용 가능한 기능입니다.\n로그인하시겠습니까?");
+                  if (confirmed) navigate("/login");
+                  return;
+                }
+                setShowReportModal(true)
+              }}><FaFlag /> 신고</ActionButton>
             )}
             {showReportModal && (
               <ReportModal

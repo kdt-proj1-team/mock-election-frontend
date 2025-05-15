@@ -381,7 +381,16 @@ const PostDetail = () => {
           <VoteButton type="down" active={post.userVote === -1} onClick={() => handleVote(-1)}><FaArrowDown /></VoteButton>
         </VoteButtons>
         {!isAuthor && (
-          <ReportButton onClick={() => setShowReportModal(true)}><FaFlag /> 신고</ReportButton>
+          <ReportButton onClick={() => {
+            if (!userId) {
+                const confirmed = window.confirm("로그인 후 이용 가능한 기능입니다.\n로그인하시겠습니까?");
+                if (confirmed) navigate("/login");
+                return;
+              }
+              
+            setShowReportModal(true)
+
+          }}><FaFlag /> 신고</ReportButton>
         )}
         {showReportModal && (
           <ReportModal
