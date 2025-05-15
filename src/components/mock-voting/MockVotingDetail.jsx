@@ -165,46 +165,62 @@ const MockVotingDetail = () => {
         }
     };
 
-    // 사용자 투표 상태 확인
-    const checkVoteStatus = async () => {
-        if (!isAuthenticated || !election?.sgId) {
-            setCheckingVoteStatus(false);
-            return false;
-        }
+    const createCandidatesWithPolicies = (policies) => {
+        const groupedByParty = {};
 
-        setCheckingVoteStatus(true);
-        console.log('투표 상태 확인 시작');
+        policies.forEach(policy => {
+            if (!policy.partyName) return;
 
-        try {
-            // 1. 사용자 정보로 확인 (가장 확실한 방법)
-            const userInfoResponse = await authAPI.getUserInfo();
-            if (userInfoResponse?.data?.data?.isElection === true) {
-                console.log('사용자가 이미 투표함 (사용자 정보 기준)');
-                setHasVoted(true);
-                setCheckingVoteStatus(false);
-                return true;
+            if (!groupedByParty[policy.partyName]) {
+                groupedByParty[policy.partyName] = {
+                    partyName: policy.partyName,
+                    policies: []
+                };
             }
 
-            // 2. 투표 API로 확인
-            try {
-                const voteStatus = await votingAPI.checkVoteStatus(election.sgId);
-                console.log('투표 API 확인 결과:', voteStatus);
-                setHasVoted(voteStatus === true);
-                setCheckingVoteStatus(false);
-                return voteStatus === true;
-            } catch (voteError) {
-                console.error('투표 API 확인 실패:', voteError);
-                // 사용자 정보에서는 투표하지 않은 것으로 확인되었으므로 false 반환
-                setHasVoted(false);
-                setCheckingVoteStatus(false);
-                return false;
+            // 정책 제목만 추가
+            groupedByParty[policy.partyName].policies.push(policy.title);
+        });
+
+        // 후보자 배열 생성 (mainPolicies에 정책 제목들 저장)
+        const candidatesArray = Object.values(groupedByParty).map((party, index) => ({
+            id: index + 1,
+            candidateLabel: `후보${index + 1}`,
+            partyName: party.partyName,
+            position: `${party.partyName} 후보`,
+            mainPolicies: party.policies // policies를 mainPolicies로 매핑
+        }));
+
+        return candidatesArray;
+    };
+
+
+    // 샘플 데이터 생성 함수
+    const createSampleCandidatesWithPolicies = () => {
+        const samplePolicies = [
+            { id: 1, partyName: '더불어민주당', title: '기본소득 도입', content: '전 국민 기본소득 30만원 지급', prmsOrd: 1 },
+            { id: 2, partyName: '더불어민주당', title: '주거 안정', content: '공공임대주택 100만호 공급', prmsOrd: 2 },
+            { id: 3, partyName: '국민의힘', title: '세금 감면', content: '법인세 인하로 기업 경쟁력 강화', prmsOrd: 1 },
+            { id: 4, partyName: '국민의힘', title: '교육 개혁', content: '대학입시 자율화', prmsOrd: 2 },
+            { id: 5, partyName: '정의당', title: '노동 개혁', content: '주 4일제 도입 추진', prmsOrd: 1 },
+            { id: 6, partyName: '정의당', title: '환경 정책', content: '2050 탄소중립 실현', prmsOrd: 2 }
+        ];
+
+        const groupedByParty = {};
+        samplePolicies.forEach(policy => {
+            if (!groupedByParty[policy.partyName]) {
+                groupedByParty[policy.partyName] = [];
             }
-        } catch (error) {
-            console.error('투표 상태 확인 중 오류:', error);
-            setHasVoted(false);
-            setCheckingVoteStatus(false);
-            return false;
-        }
+            groupedByParty[policy.partyName].push(policy.title);
+        });
+
+        return Object.entries(groupedByParty).map(([partyName, policies], index) => ({
+            id: index + 1,
+            candidateLabel: `후보${index + 1}`,
+            partyName: partyName,
+            position: `${partyName} 후보`,
+            mainPolicies: policies
+        }));
     };
 
     // 지갑 및 토큰 상태 확인
@@ -320,80 +336,26 @@ const MockVotingDetail = () => {
                     const policies = await votingAPI.getPartyPoliciesByElectionId(basicElection.sgId);
                     console.log('정당 정책 데이터 응답', policies);
 
-                    // 정당별로 그룹화하기
-                    if (!Array.isArray(policies) || policies.length === 0) {
+                    // 정책 데이터로 후보자 배열 생성
+                    if (Array.isArray(policies) && policies.length > 0) {
+                        const candidatesArray = createCandidatesWithPolicies(policies);
+                        console.log('생성된 후보자 배열 (정책 포함)', candidatesArray);
+                        setCandidates(candidatesArray);
+                    } else {
                         throw new Error('정당 정책 데이터가 없습니다');
                     }
-
-                    const groupedByParty = {};
-                    policies.forEach(policy => {
-                        if (!policy.partyName) return; // 정당 이름이 없는 항목은 건너뛰기
-
-                        if (!groupedByParty[policy.partyName]) {
-                            groupedByParty[policy.partyName] = {
-                                partyName: policy.partyName,
-                                policies: []
-                            };
-                        }
-
-                        if (policy.title) {
-                            groupedByParty[policy.partyName].policies.push(policy.title);
-                        }
-                    });
-
-                    console.log('정당별 그룹화 결과', groupedByParty);
-
-                    // 후보자 배열 생성 (당별로 하나의 후보)
-                    const candidatesArray = Object.values(groupedByParty).map((party, index) => ({
-                        id: index + 1,
-                        candidateLabel: `후보${index + 1}`,
-                        partyName: party.partyName,
-                        position: `${party.partyName} 후보`,
-                        mainPolicies: party.policies.slice(0, 4) // 최대 4개 정책만 표시
-                    }));
-
-                    console.log('생성된 후보자 배열', candidatesArray);
-                    setCandidates(candidatesArray);
                 } catch (policyError) {
                     console.error('정당 정책 데이터를 가져오는 중 오류 발생:', policyError);
-
                     // 오류 발생 시 샘플 데이터 사용
-                    const samplePolicies = [
-                        { id: 1, partyName: '더불어민주당', title: '기본소득 도입', content: '전 국민 기본소득 30만원 지급' },
-                        { id: 2, partyName: '더불어민주당', title: '주거 안정', content: '공공임대주택 100만호 공급' },
-                        { id: 3, partyName: '국민의힘', title: '세금 감면', content: '법인세 인하로 기업 경쟁력 강화' },
-                        { id: 4, partyName: '국민의힘', title: '교육 개혁', content: '대학입시 자율화' },
-                        { id: 5, partyName: '정의당', title: '노동 개혁', content: '주 4일제 도입 추진' },
-                        { id: 6, partyName: '정의당', title: '환경 정책', content: '2050 탄소중립 실현' }
-                    ];
-
-                    // 정당별로 그룹화
-                    const groupedByParty = {};
-                    samplePolicies.forEach(policy => {
-                        if (!groupedByParty[policy.partyName]) {
-                            groupedByParty[policy.partyName] = {
-                                partyName: policy.partyName,
-                                policies: []
-                            };
-                        }
-                        groupedByParty[policy.partyName].policies.push(policy.title);
-                    });
-
-                    // 후보자 배열 생성
-                    const candidatesArray = Object.values(groupedByParty).map((party, index) => ({
-                        id: index + 1,
-                        candidateLabel: `후보${index + 1}`,
-                        partyName: party.partyName,
-                        position: `${party.partyName} 후보`,
-                        mainPolicies: party.policies
-                    }));
-
-                    console.log('샘플 데이터로 생성된 후보자 배열', candidatesArray);
-                    setCandidates(candidatesArray);
+                    const sampleCandidates = createSampleCandidatesWithPolicies();
+                    setCandidates(sampleCandidates);
                 }
             } catch (error) {
                 console.error('선거 데이터 로드 중 오류 발생:', error);
                 setError('선거 정보를 불러오는 중 오류가 발생했습니다.');
+                // 에러 시 샘플 데이터 사용
+                const sampleCandidates = createSampleCandidatesWithPolicies();
+                setCandidates(sampleCandidates);
             } finally {
                 setCheckingVoteStatus(false);
                 setLoading(false);
@@ -504,7 +466,7 @@ const MockVotingDetail = () => {
                     </div>
                 )}
 
-                {/* 컴포넌트 렌더링 조건 명확화 - 가장 핵심 수정 */}
+                {/* 컴포넌트 렌더링 조건 명확화 */}
                 {hasVoted ? (
                     /* 이미 투표한 사용자는 무조건 결과만 볼 수 있음 */
                     <VoterComponent
