@@ -37,7 +37,7 @@ const ModalBody = styled.div`
 
 const MetaMaskInfo = styled.div`
     background-color: #F6E7FF;
-    border: 1px solid #7C3AED;
+    border: 1px solid #D8B4E2;
     border-radius: 10px;
     padding: 15px;
     margin-bottom: 20px;
@@ -45,7 +45,7 @@ const MetaMaskInfo = styled.div`
 
 const PolicyInfo = styled.div`
     background-color: #f0f8ff;
-    border: 1px solid #3498db;
+    border: 1px solid #AFCBFF;
     border-radius: 8px;
     padding: 15px;
     margin: 15px 0;
@@ -54,7 +54,7 @@ const PolicyInfo = styled.div`
 const ErrorBox = styled.div`
     padding: 15px;
     background-color: #fff0f0;
-    border-left: 4px solid #e61e2b;
+    border-left: 4px solid #D8CAB8;
     margin: 20px 0;
     border-radius: 4px;
 `;
@@ -91,11 +91,11 @@ const CancelButton = styled(Button)`
 `;
 
 const ConfirmButton = styled(Button)`
-    background-color: #7C3AED;
+    background-color: #AFCBFF;
     color: white;
 
     &:hover:not(:disabled) {
-        background-color: #6B21A8;
+        background-color: #AFCBFF;
     }
 `;
 
