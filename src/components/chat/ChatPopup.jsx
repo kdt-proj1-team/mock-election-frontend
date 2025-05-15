@@ -832,7 +832,7 @@ export default function ChatPopup() {
                                         style={styles.input}
                                         value={message}
                                         onChange={(e) => setMessage(e.target.value)}
-                                        onKeyDown={handleKeyDown}
+                                        onKeyUp={handleKeyDown}
                                         disabled={!connected || !activeRoom}
                                         ref={inputRef}
                                     />
