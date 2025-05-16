@@ -139,90 +139,90 @@ const MessageInput = styled.input`
 `;
 
 const SendButton = styled.button`
-  margin-left: 10px;
-  padding: 0 20px;
-  border-radius: 24px;
-  border: none;
-  background-color: #e0e0e3;
-  color: #333;
-  font-weight: 600;
-  cursor: pointer;
-  box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.1), -2px -2px 6px rgba(255, 255, 255, 0.7);
-  transition: all 0.3s ease;
+    margin-left: 10px;
+    padding: 0 20px;
+    border-radius: 24px;
+    border: none;
+    background-color: #e0e0e3;
+    color: #333;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.1), -2px -2px 6px rgba(255, 255, 255, 0.7);
+    transition: all 0.3s ease;
 
-  &:hover {
-    background-color: #d5d5d8;
-    box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.15), -2px -2px 6px rgba(255, 255, 255, 0.9);
-  }
+    &:hover {
+        background-color: #d5d5d8;
+        box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.15), -2px -2px 6px rgba(255, 255, 255, 0.9);
+    }
 
-  &:active {
-    box-shadow: inset 1px 1px 3px rgba(0, 0, 0, 0.45), inset -1px -1px 3px rgba(255, 255, 255, 0.6);
-  }
+    &:active {
+        box-shadow: inset 1px 1px 3px rgba(0, 0, 0, 0.45), inset -1px -1px 3px rgba(255, 255, 255, 0.6);
+    }
 
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
+    &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
 `;
 
 const TypingIndicator = styled.div`
-  align-self: flex-start;
-  padding: 10px 16px;
-  border-radius: 18px;
-  background-color: #f8f8f8;
-  margin-bottom: 10px;
-  box-shadow: 3px 3px 6px rgba(0, 0, 0, 0.1), -3px -3px 6px rgba(255, 255, 255, 0.7);
-  border-bottom-left-radius: 4px;
-  
-  span {
-    display: inline-block;
-    width: 8px;
-    height: 8px;
-    background-color: #bbb;
-    border-radius: 50%;
-    animation: typing 1s infinite ease-in-out;
-    margin: 0 2px;
-    
-    &:nth-child(1) {
-      animation-delay: 0s;
+    align-self: flex-start;
+    padding: 10px 16px;
+    border-radius: 18px;
+    background-color: #f8f8f8;
+    margin-bottom: 10px;
+    box-shadow: 3px 3px 6px rgba(0, 0, 0, 0.1), -3px -3px 6px rgba(255, 255, 255, 0.7);
+    border-bottom-left-radius: 4px;
+
+    span {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        background-color: #bbb;
+        border-radius: 50%;
+        animation: typing 1s infinite ease-in-out;
+        margin: 0 2px;
+
+        &:nth-child(1) {
+            animation-delay: 0s;
+        }
+
+        &:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        &:nth-child(3) {
+            animation-delay: 0.4s;
+        }
     }
-    
-    &:nth-child(2) {
-      animation-delay: 0.2s;
-    }
-    
-    &:nth-child(3) {
-      animation-delay: 0.4s;
-    }
-  }
 `;
 
 // 예시 질문 컴포넌트
 const SuggestedQuestions = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 10px;
-  margin-bottom: 15px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+    margin-bottom: 15px;
 `;
 
 const QuestionChip = styled.button`
-  padding: 6px 12px;
-  background-color: #f0f0f3;
-  border: none;
-  border-radius: 16px;
-  font-size: 12px;
-  cursor: pointer;
-  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1), -2px -2px 5px rgba(255, 255, 255, 0.7);
-  transition: all 0.2s;
-  
-  &:hover {
-    box-shadow: 3px 3px 6px rgba(0, 0, 0, 0.15), -3px -3px 6px rgba(255, 255, 255, 0.9);
-  }
-  
-  &:active {
-    box-shadow: inset 1px 1px 3px rgba(0, 0, 0, 0.45), inset -1px -1px 3px rgba(255, 255, 255, 0.6);
-  }
+    padding: 6px 12px;
+    background-color: #f0f0f3;
+    border: none;
+    border-radius: 16px;
+    font-size: 12px;
+    cursor: pointer;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1), -2px -2px 5px rgba(255, 255, 255, 0.7);
+    transition: all 0.2s;
+
+    &:hover {
+        box-shadow: 3px 3px 6px rgba(0, 0, 0, 0.15), -3px -3px 6px rgba(255, 255, 255, 0.9);
+    }
+
+    &:active {
+        box-shadow: inset 1px 1px 3px rgba(0, 0, 0, 0.45), inset -1px -1px 3px rgba(255, 255, 255, 0.6);
+    }
 `;
 
 const formatTimestamp = (date) => {
@@ -241,19 +241,20 @@ const Chatbot = () => {
     const [showSuggestions, setShowSuggestions] = useState(true);
     const messagesEndRef = useRef(null);
 
-    // 예시 질문들
+    // 예시 질문들 (수정된 버전)
     const suggestedQuestions = [
-        "문재인 후보에 대해 알려주세요",
-        "더불어민주당의 경제 정책은?",
-        "국민의힘 교육 정책에 대해 알려주세요",
-        "선거 투표 방법은 어떻게 되나요?"
+        "이번 대선 후보는 누구야?",
+        "여행가서 투표할 수 있어?",
+        "국민의당 공약을 알려줘",
+        "더불어민주당 경제 정책은?",
+        "사전투표는 어떻게 하나요?"
     ];
 
-    // 초기 메시지 설정
+    // 초기 메시지 설정 (수정된 버전)
     useEffect(() => {
         const initialMessage = {
             id: Date.now(),
-            text: '안녕하세요! 선견지표 챗봇입니다. 선거나 정치에 관한 질문이 있으시면 언제든지 물어보세요.',
+            text: '안녕하세요! 선견지표 챗봇입니다. 대한민국 정치 정보에 대해 궁금하신 것을 물어보세요. 선거, 후보자, 정당 정책, 투표 방법 등에 대해 답변드릴 수 있습니다.',
             isUser: false,
             timestamp: new Date()
         };
@@ -325,7 +326,7 @@ const Chatbot = () => {
         if (window.confirm('대화 내용을 모두 지우시겠습니까?')) {
             const initialMessage = {
                 id: Date.now(),
-                text: '안녕하세요! 선견지표 챗봇입니다. 선거나 정치에 관한 질문이 있으시면 언제든지 물어보세요.',
+                text: '안녕하세요! 선견지표 챗봇입니다. 대한민국 정치 정보에 대해 궁금하신 것을 물어보세요. 선거, 후보자, 정당 정책, 투표 방법 등에 대해 답변드릴 수 있습니다.',
                 isUser: false,
                 timestamp: new Date()
             };

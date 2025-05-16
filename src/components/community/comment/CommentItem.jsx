@@ -6,6 +6,7 @@ import { formatDateTime } from '../../../utils/DateFormatter';
 import { postCommentAPI } from '../../../api/PostCommentApi';
 import { communityVoteAPI } from '../../../api/CommunityVoteApi';
 import CommentForm from './CommentForm';
+import ReportModal from '../../report/ReportModal';
 
 // #region styled-components
 const Comment = styled.div`
@@ -121,6 +122,7 @@ const CommentItem = ({ comment, onDeleted, maxDepth = 4 }) => {
   const isAuthor = comment && comment.authorId === userId;
   const [showReplyForm, setShowReplyForm] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
   const [localComment, setLocalComment] = useState({ ...comment });
 
   const CommentItemWrapper = comment.depth === 0 ? Comment : Reply;
@@ -227,7 +229,14 @@ const CommentItem = ({ comment, onDeleted, maxDepth = 4 }) => {
               <ActionButton onClick={() => setShowReplyForm(prev => !prev)}><FaReply /> 답글</ActionButton>
             )}
             {!isAuthor && (
-              <ActionButton><FaFlag /> 신고</ActionButton>
+              <ActionButton onClick={() => setShowReportModal(true)}><FaFlag /> 신고</ActionButton>
+            )}
+            {showReportModal && (
+              <ReportModal
+                onClose={() => setShowReportModal(false)}
+                authorNickname={comment.authorNickname}
+                contentText={comment.content}
+              />
             )}
             {isAuthor && (
               <>
