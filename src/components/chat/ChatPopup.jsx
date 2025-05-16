@@ -1,5 +1,5 @@
 import React, {useState, useEffect, useRef} from 'react';
-import {FaComments, FaUsers, FaTimes} from 'react-icons/fa';
+import {FaComments, FaUsers, FaTimes, FaExclamationTriangle } from 'react-icons/fa';
 import {chatAPI} from '../../api/ChatApi';
 
 
@@ -159,6 +159,14 @@ const styles = {
     myMessageItem: {  // 내 메시지용 스타일
         backgroundColor: '#f0f0f0',
         alignSelf: 'flex-end',
+    },
+    filteredMessageItem: {
+        backgroundColor: '#f0f0f0',
+        borderLeft: '3px solid #ff6b6b',
+    },
+    filteredContent: {
+        color: '#555',
+        fontStyle: 'italic',
     },
     systemMessageItem: {
         display: 'flex',
@@ -749,32 +757,43 @@ export default function ChatPopup() {
                                                 아직 메시지가 없습니다. 첫 메시지를 보내보세요!
                                             </div>
                                         ) : (
-                                            messages.map((msg, idx) => (
-                                                <div
-                                                    key={idx}
-                                                    style={
-                                                        msg.userId === null
-                                                            ? styles.systemMessageItem
-                                                            : {
-                                                                ...styles.messageItem,
-                                                                ...(msg.userId === userId ? styles.myMessageItem : {})
-                                                            }
-                                                    }
-                                                >
-                                                    <div style={msg.userId === null ? styles.systemMessageHeader : styles.messageHeader}>
-                                                        <span style={msg.userId === null ? styles.systemNickname : styles.nickname}>
-                                                            {msg.sender_nickname || '익명'}
-                                                        </span>
-                                                        <span style={styles.time}>
-                                                            {new Date(msg.sentAt).toLocaleTimeString()}
-                                                        </span>
-                                                    </div>
+                                            messages.map((msg, idx) => {
+                                                // 비속어가 필터링된 메시지인지 확인
+                                                const isFiltered = msg.content === "[비속어가 감지되어 메시지가 필터링되었습니다]";
+
+                                                return (
                                                     <div
-                                                        style={msg.userId === null ? styles.systemContent : styles.content}>
-                                                        {msg.content}
+                                                        key={idx}
+                                                        style={
+                                                            msg.userId === null
+                                                                ? styles.systemMessageItem
+                                                                : {
+                                                                    ...styles.messageItem,
+                                                                    ...(msg.userId === userId ? styles.myMessageItem : {}),
+                                                                    ...(isFiltered ? styles.filteredMessageItem : {})
+                                                                }
+                                                        }
+                                                    >
+                                                        <div style={msg.userId === null ? styles.systemMessageHeader : styles.messageHeader}>
+                                                            <span style={msg.userId === null ? styles.systemNickname : styles.nickname}>
+                                                                {msg.sender_nickname || '익명'}
+                                                            </span>
+                                                            <span style={styles.time}>
+                                                                {new Date(msg.sentAt).toLocaleTimeString()}
+                                                            </span>
+                                                        </div>
+                                                        <div
+                                                            style={{
+                                                                ...(msg.userId === null ? styles.systemContent : styles.content),
+                                                                ...(isFiltered ? styles.filteredContent : {})
+                                                            }}
+                                                        >
+                                                            {isFiltered && <FaExclamationTriangle style={{ marginRight: '5px', color: '#e74c3c' }} />}
+                                                            {msg.content}
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            ))
+                                                );
+                                            })
                                         )
                                     ) : (
                                         <div style={styles.emptyStateMessage}>
