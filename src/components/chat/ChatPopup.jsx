@@ -1,5 +1,9 @@
 import React, {useState, useEffect, useRef} from 'react';
-import {FaComments, FaUsers, FaTimes, FaExclamationTriangle } from 'react-icons/fa';
+import {
+    FaComments, FaUsers, FaTimes, FaExclamationTriangle,
+    FaSmile, FaLaugh, FaSadTear, FaAngry, FaHeart,
+    FaThumbsUp, FaThumbsDown, FaSurprise, FaGrinStars
+} from 'react-icons/fa';
 import {chatAPI} from '../../api/ChatApi';
 
 
@@ -311,7 +315,44 @@ const styles = {
         fontSize: '14px',
         cursor: 'pointer',
         color: '#666',
-    }
+    },
+    // 이모티콘
+    emoticonsButton: {
+        background: 'none',
+        border: 'none',
+        fontSize: '18px',
+        cursor: 'pointer',
+        color: '#666',
+        transition: 'color 0.2s',
+        marginRight: '10px',
+        display: 'flex',
+        alignItems: 'center',
+    },
+    emoticonsPanel: {
+        position: 'absolute',
+        bottom: '60px',
+        left: '15px',
+        width: 'auto',
+        backgroundColor: '#fff',
+        border: '1px solid #eee',
+        borderRadius: '8px',
+        boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)',
+        padding: '10px',
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: '10px',
+        zIndex: 10,
+    },
+    emoticonItem: {
+        fontSize: '24px',
+        cursor: 'pointer',
+        padding: '5px',
+        borderRadius: '4px',
+        transition: 'background-color 0.2s',
+    },
+    emoticonItemHover: {
+        backgroundColor: '#f0f0f0',
+    },
 };
 
 export default function ChatPopup() {
@@ -329,6 +370,8 @@ export default function ChatPopup() {
         send: false,
         input: false
     });
+    const [showEmoticons, setShowEmoticons] = useState(false);
+    const [hoveredEmoticon, setHoveredEmoticon] = useState(null);
 
     const stompClientRef = useRef(null); // useRef로 stompClient 참조 관리
     const messagesEndRef = useRef(null);
@@ -339,6 +382,49 @@ export default function ChatPopup() {
     // 사용자 정보 가져오기
     const userId = localStorage.getItem("userId");
     const nickname = localStorage.getItem("nickname");
+
+    // 이모티콘 리스트 정의
+    const emoticons = [
+        { icon: <FaSmile />, name: "smile" },
+        { icon: <FaLaugh />, name: "laugh" },
+        { icon: <FaSadTear />, name: "sad" },
+        { icon: <FaAngry />, name: "angry" },
+        { icon: <FaHeart />, name: "heart" },
+        { icon: <FaThumbsUp />, name: "thumbsUp" },
+        { icon: <FaThumbsDown />, name: "thumbsDown" },
+        { icon: <FaSurprise />, name: "surprise" },
+        { icon: <FaGrinStars />, name: "star" }
+    ];
+
+    // 이모티콘 패널 토글 함수
+    const toggleEmoticonsPanel = () => {
+        setShowEmoticons(! showEmoticons);
+    };
+
+    // 이모티콘 선택 함수
+    const handleEmoticonSelect = (emoticonName) => {
+        // 이모티콘 이름에 따라 처리
+        const emoticonMap = {
+            "smile" : "😊",
+            "laugh" : "😂",
+            "sad": "😢",
+            "angry": "😡",
+            "heart": "❤️",
+            "thumbsUp": "👍",
+            "thumbsDown": "👎",
+            "surprise": "😮",
+            "star": "🤩"
+        };
+
+        // 현재 입력창에 있는 텍스트에 이모티콘 추가
+        setMessage(prevMessage => prevMessage + emoticonMap[emoticonName]);
+
+        // 패널 닫기
+        setShowEmoticons(false);
+
+        // 입력창에 포커스 유지
+        inputRef.current?.focus();
+    };
 
     // 스크롤을 최하단으로 이동하는 함수
     const scrollToBottom = () => {
@@ -761,6 +847,9 @@ export default function ChatPopup() {
                                                 // 비속어가 필터링된 메시지인지 확인
                                                 const isFiltered = msg.content === "[비속어가 감지되어 메시지가 필터링되었습니다]";
 
+                                                // 이모티콘 메시지인지 확인 (이모티콘은 보통 한 개의 이모티콘 문자로 구성)
+                                                const isEmoticon = msg.content && msg.content.length <= 2 && /\p{Emoji}/u.test(msg.content);
+
                                                 return (
                                                     <div
                                                         key={idx}
@@ -770,7 +859,8 @@ export default function ChatPopup() {
                                                                 : {
                                                                     ...styles.messageItem,
                                                                     ...(msg.userId === userId ? styles.myMessageItem : {}),
-                                                                    ...(isFiltered ? styles.filteredMessageItem : {})
+                                                                    ...(isFiltered ? styles.filteredMessageItem : {}),
+                                                                    ...(isEmoticon ? { backgroundColor: 'transparent', border: 'none', boxShadow: 'none' } : {})
                                                                 }
                                                         }
                                                     >
@@ -785,7 +875,8 @@ export default function ChatPopup() {
                                                         <div
                                                             style={{
                                                                 ...(msg.userId === null ? styles.systemContent : styles.content),
-                                                                ...(isFiltered ? styles.filteredContent : {})
+                                                                ...(isFiltered ? styles.filteredContent : {}),
+                                                                ...(isEmoticon ? { fontSize: '32px' } : {})
                                                             }}
                                                         >
                                                             {isFiltered && <FaExclamationTriangle style={{ marginRight: '5px', color: '#e74c3c' }} />}
@@ -845,6 +936,17 @@ export default function ChatPopup() {
                             {/* 메시지 입력 영역 */}
                             <div style={styles.inputArea}>
                                 <form onSubmit={handleSendMessage} style={styles.inputContainer}>
+                                    {/* 이모티콘 버튼 */}
+                                    <button
+                                        type="button"
+                                        style={styles.emoticonsButton}
+                                        onClick={toggleEmoticonsPanel}
+                                        title="이모티콘"
+                                    >
+                                        <FaSmile />
+                                    </button>
+
+                                    {/* 텍스트 입력란 */}
                                     <input
                                         type="text"
                                         placeholder={activeRoom ? "메시지를 입력하세요" : "채팅방을 선택해주세요"}
@@ -868,6 +970,28 @@ export default function ChatPopup() {
                                         전송
                                     </button>
                                 </form>
+
+                                {/* 이모티콘 패널 */}
+                                {showEmoticons && (
+                                    <div style={styles.emoticonsPanel}>
+                                        {emoticons.map(emoticon => (
+                                            <div
+                                                key={emoticon.name}
+                                                style={{
+                                                    ...styles.emoticonItem,
+                                                    ...(hoveredEmoticon === emoticon.name ? styles.emoticonItemHover : {})
+                                                }}
+                                                onClick={() => handleEmoticonSelect(emoticon.name)}
+                                                onMouseEnter={() => setHoveredEmoticon(emoticon.name)}
+                                                onMouseLeave={() => setHoveredEmoticon(null)}
+                                                title={emoticon.name}
+                                            >
+                                                {emoticon.icon}
+                                            </div>
+                                        ))}
+                                    </div>
+                                )
+                                }
                             </div>
 
                         </div>
