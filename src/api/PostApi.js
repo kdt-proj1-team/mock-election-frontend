@@ -47,6 +47,13 @@ export const postAPI = {
         return response.data.data;
     },
 
+    // 인기 게시글 조회
+    getPopularPosts: async () => {
+        const response = await api.get(`/popular`);
+        console.log(response.data.data);
+        return response.data.data;
+    },
+
     // 게시글 등록
     create: async (postData) => {
         const response = await api.post('', postData, {
