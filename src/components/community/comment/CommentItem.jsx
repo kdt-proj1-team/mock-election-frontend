@@ -230,7 +230,7 @@ const CommentItem = ({ comment, onDeleted, maxDepth = 4 }) => {
       {!showEditForm && (
         <>
           <CommentHeader>
-            <CommentAuthor>{comment.authorNickname}</CommentAuthor>
+            <CommentAuthor>{comment.anonymousNickname || comment.authorNickname}</CommentAuthor>
             <CommentDateInfo>{comment.updatedAt ? `${formatDateTime(comment.updatedAt)} 수정됨` : formatDateTime(comment.createdAt)}</CommentDateInfo>
           </CommentHeader>
           <CommentContent>
