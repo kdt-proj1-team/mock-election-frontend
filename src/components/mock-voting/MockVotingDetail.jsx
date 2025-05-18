@@ -186,9 +186,9 @@ const MockVotingDetail = () => {
         // 후보자 배열 생성 (mainPolicies에 정책 제목들 저장)
         const candidatesArray = Object.values(groupedByParty).map((party, index) => ({
             id: index + 1,
-            candidateLabel: `후보${index + 1}`,
+            candidateLabel: `공약${index + 1}`,
             partyName: party.partyName,
-            position: `${party.partyName} 후보`,
+            position: `${party.partyName} 공약`,
             mainPolicies: party.policies // policies를 mainPolicies로 매핑
         }));
 
