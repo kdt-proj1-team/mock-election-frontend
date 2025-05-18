@@ -1,7 +1,7 @@
-import React from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 
+// #region styled-components
 const Section = styled.section`
     text-align: center;
     padding: 40px;
@@ -84,8 +84,9 @@ const StatLable = styled.div`
     font-size: 12px;
     color: #999;
 `;
+// #endregion
 
-const HeroSection = () => {
+const HeroSection = ({communityStats}) => {
     const navigate = useNavigate();
 
     return (
@@ -99,12 +100,16 @@ const HeroSection = () => {
             
             <StatContainer>
                 <StatItem>
-                    <StatNumber>1,111</StatNumber>
+                    <StatNumber>{communityStats.userCount}</StatNumber>
                     <StatLable>회원수</StatLable>
                 </StatItem>
                 <StatItem>
-                    <StatNumber>3,500</StatNumber>
+                    <StatNumber>{communityStats.postCount}</StatNumber>
                     <StatLable>게시글</StatLable>
+                </StatItem>
+                <StatItem>
+                    <StatNumber>{communityStats.commentCount}</StatNumber>
+                    <StatLable>댓글</StatLable>
                 </StatItem>
             </StatContainer>
         </Section>

@@ -1,9 +1,7 @@
-import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { formatPostTimeSmart } from "../../utils/DateFormatter";
 import styled from "styled-components";
 import { FaThumbsUp, FaCommentDots, FaEye } from 'react-icons/fa';
-import { postAPI } from "../../api/PostApi";
 
 // #region styled-components
 const Section = styled.section`
@@ -45,6 +43,15 @@ const PostTitle = styled.h3`
   font-size: 18px;
   font-weight: 700;
   margin-bottom: 10px;
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  transition: font-size 0.2s ease;
+
+  &:hover {
+    font-size: 19px;
+  }
 `;
 
 const PostContent = styled.p`
@@ -86,33 +93,25 @@ const PostButton = styled.button`
   border-radius: 4px;
   font-size: 13px;
   cursor: pointer;
+  transition: all 0.2s;
   text-decoration: none;
+
+  &:hover {
+    background-color: #f5f6f7;
+  }
 `;
 // #endregion
 
-const PopularPostsSection = () => {
-  const [posts, setPosts] = useState([]);
-
-  useEffect(() => {
-    const fetchPopularPosts = async () => {
-      try {
-        const data = await postAPI.getPopularPosts();
-        setPosts(data);
-      } catch (error) {
-        console.error("인기 게시글 조회 실패", error);
-      }
-    };
-    fetchPopularPosts();
-  }, []);
+const PopularPostsSection = ({popularPosts}) => {
 
   return (
     <Section>
       <Title>인기 게시글</Title>
       <PostList>
-        {posts.map((post) => (
+        {popularPosts.map((post) => (
           <PostItem key={post.id}>
             <PostHeader>{post.categoryName} • 작성자: {post.authorNickname} • {formatPostTimeSmart(post.createdAt)}</PostHeader>
-            <PostTitle>{post.title}</PostTitle>
+            <PostTitle as={Link} to={`/community/post/${post.id}`}>{post.title}</PostTitle>
             <PostContent>{post.summaryContent}</PostContent>
             <PostFooter>
               <PostStats>
