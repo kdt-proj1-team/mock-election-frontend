@@ -7,6 +7,7 @@ import { postCommentAPI } from '../../../api/PostCommentApi';
 import { communityVoteAPI } from '../../../api/CommunityVoteApi';
 import CommentForm from './CommentForm';
 import ReportModal from '../../report/ReportModal';
+import { reportAPI } from '../../../api/ReportApi';
 
 // #region styled-components
 const Comment = styled.div`
@@ -180,6 +181,27 @@ const CommentItem = ({ comment, onDeleted, maxDepth = 4 }) => {
     }
   };
 
+  // 신고 버튼 클릭 핸들러
+  const handleReportClick = async () => {
+    if (!userId) {
+      const confirmed = window.confirm("로그인 후 이용 가능한 기능입니다.\n로그인하시겠습니까?");
+      if (confirmed) navigate("/login");
+      return;
+    }
+
+    const alreadyReported = await reportAPI.checkExists({
+      targetType: "POST_COMMENT",
+      targetId: comment.id
+    });
+
+    if (alreadyReported) {
+      alert("이미 신고한 대상입니다.");
+      return;
+    }
+
+    setShowReportModal(true);
+  };
+
   if (comment.isDeleted) {
     return (
       <CommentItemWrapper>
@@ -236,14 +258,7 @@ const CommentItem = ({ comment, onDeleted, maxDepth = 4 }) => {
               }}><FaReply /> 답글</ActionButton>
             )}
             {!isAuthor && (
-              <ActionButton onClick={() => {
-                if (!userId) {
-                  const confirmed = window.confirm("로그인 후 이용 가능한 기능입니다.\n로그인하시겠습니까?");
-                  if (confirmed) navigate("/login");
-                  return;
-                }
-                setShowReportModal(true)
-              }}><FaFlag /> 신고</ActionButton>
+              <ActionButton onClick={() => handleReportClick()}><FaFlag /> 신고</ActionButton>
             )}
             {showReportModal && (
               <ReportModal

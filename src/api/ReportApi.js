@@ -19,8 +19,21 @@ api.interceptors.request.use(
 );
 
 export const reportAPI = {
+    // 신고 등록
     create: async (reportData) => {
         const response = await api.post('', reportData);
         return response.data.data;
     },
+
+    // 중복 신고 여부 조회
+    checkExists: async ({ targetType, targetId }) => {
+        const response = await api.get('/exists', {
+            params: {
+                targetType,
+                targetId
+            }
+        });
+        return response.data.data;
+    },
+
 };

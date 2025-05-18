@@ -4,6 +4,7 @@ import { useNavigate, useParams, Link } from "react-router-dom";
 import styled from 'styled-components';
 import { FaPencilAlt, FaTrash, FaArrowUp, FaArrowDown, FaFlag, FaReply, FaPen, FaHome, FaList, FaEye, FaCommentDots } from 'react-icons/fa';
 import { postAPI } from '../../api/PostApi';
+import { reportAPI } from '../../api/ReportApi';
 import { formatDateTime } from '../../utils/DateFormatter';
 import CommentSection from './comment/CommentSection';
 import { communityVoteAPI } from '../../api/CommunityVoteApi';
@@ -329,6 +330,28 @@ const PostDetail = () => {
     }
   };
 
+  // 신고 버튼 클릭 핸들러
+  const handleReportClick = async () => {
+    if (!userId) {
+      const confirmed = window.confirm("로그인 후 이용 가능한 기능입니다.\n로그인하시겠습니까?");
+      if (confirmed) navigate("/login");
+      return;
+    }
+
+    const alreadyReported = await reportAPI.checkExists({
+      targetType: "POST",
+      targetId: post.id
+    });
+    
+    if (alreadyReported) {
+      alert("이미 신고한 대상입니다.");
+      return;
+    }
+
+    setShowReportModal(true);
+  };
+
+
   if (!post) return null;
   return (
     <Container>
@@ -381,16 +404,7 @@ const PostDetail = () => {
           <VoteButton type="down" active={post.userVote === -1} onClick={() => handleVote(-1)}><FaArrowDown /></VoteButton>
         </VoteButtons>
         {!isAuthor && (
-          <ReportButton onClick={() => {
-            if (!userId) {
-                const confirmed = window.confirm("로그인 후 이용 가능한 기능입니다.\n로그인하시겠습니까?");
-                if (confirmed) navigate("/login");
-                return;
-              }
-
-            setShowReportModal(true)
-
-          }}><FaFlag /> 신고</ReportButton>
+          <ReportButton onClick={() => handleReportClick()}><FaFlag /> 신고</ReportButton>
         )}
         {showReportModal && (
           <ReportModal
