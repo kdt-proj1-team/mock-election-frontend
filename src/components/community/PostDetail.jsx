@@ -9,6 +9,7 @@ import { formatDateTime } from '../../utils/DateFormatter';
 import CommentSection from './comment/CommentSection';
 import { communityVoteAPI } from '../../api/CommunityVoteApi';
 import ReportModal from '../report/ReportModal';
+import useCategoryStore from '../../store/categoryStore';
 
 // #region styled-components
 const Container = styled.div`
@@ -280,6 +281,7 @@ const PostDetail = () => {
   const [showReportModal, setShowReportModal] = useState(false);
   const userId = localStorage.getItem("userId");
   const isAuthor = post && post.authorId === userId;
+  const { selectedCategory } = useCategoryStore();
 
   // 게시글 삭제 핸들러
   const handleDelete = async () => {
@@ -425,7 +427,7 @@ const PostDetail = () => {
         </LeftActions>
         <RightActions>
           <GrayBtn onClick={() => navigate("/community")}><FaHome /> 커뮤니티 메인</GrayBtn>
-          <GrayBtn as={Link} to={`/community?category=${post.categoryCode}`}><FaList /> 목록</GrayBtn>
+          <GrayBtn as={Link} to={`/community?category=${selectedCategory?.code || 'all'}`}><FaList /> 목록</GrayBtn>
           <GrayBtn><FaArrowUp /> TOP</GrayBtn>
         </RightActions>
       </PostActionsBar>

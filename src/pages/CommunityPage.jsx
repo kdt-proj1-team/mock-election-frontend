@@ -32,6 +32,11 @@ const CommunityPage = () => {
     }, []);
 
     useEffect(() => {
+        if (categoryCode === "all") {
+            setSelectedCategory({ code: "all", name: "전체", description: "모든 게시글을 한눈에 확인할 수 있는 공간입니다." });
+            return;
+        }
+
         // 잘못된 접근 처리
         if (categoryCode && categories.length > 0) {
             const found = categories.find((cat) => cat.code === categoryCode);
@@ -41,8 +46,6 @@ const CommunityPage = () => {
                 clearSelectedCategory();
                 navigate("/community", { replace: true }); // 잘못된 카테고리면 커뮤니티 첫 화면으로
             }
-        } else {
-            clearSelectedCategory();
         }
     }, [categoryCode, categories]);
 

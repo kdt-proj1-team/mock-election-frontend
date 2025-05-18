@@ -9,7 +9,7 @@ const Section = styled.section`
   position: relative;
   padding: 0;
 `;
-        
+
 const Title = styled.h2`
   font-size: 22px;
   font-weight: 700;
@@ -141,61 +141,68 @@ const CategorySection = () => {
   const containerRef = useRef(null);
 
   const cardCount = categories.length;
-  
+
   // 화면 크기에 따라 보여질 카드 수와 버튼 표시 여부 계산
   const calculateLayout = () => {
     if (!containerRef.current) return;
-    
+
     const containerWidth = containerRef.current.clientWidth;
     const cardWidth = 250; // 카드 너비
     const gap = 20; // 카드 간격
     const buttonSpace = 60; // 왼쪽, 오른쪽 버튼 공간
-    
+
     // 컨테이너에 표시 가능한 카드 수 계산 (버튼 공간 고려)
     const availableSpace = containerWidth - buttonSpace;
     const possibleCards = Math.floor(availableSpace / (cardWidth + gap));
-    
+
     // 최소 1개, 최대 전체 카드 수로 제한
     const visible = Math.max(1, Math.min(possibleCards, cardCount));
     setVisibleCards(visible);
-    
+
     // 카드 수가 표시 가능한 카드 수보다 많을 때만 버튼 표시
     setShowButtons(cardCount > visible);
-    
+
     // 스크롤 위치 조정 (현재 위치가 범위를 벗어날 경우)
     setScrollPosition(prev => Math.min(prev, Math.max(0, cardCount - visible)));
   };
-  
+
   useEffect(() => {
     calculateLayout();
     window.addEventListener('resize', calculateLayout);
-    
+
     return () => {
       window.removeEventListener('resize', calculateLayout);
     };
   }, [cardCount]);
-  
+
   const handlePrev = () => {
     setScrollPosition(prev => Math.max(prev - 2, 0));
   };
-  
+
   const handleNext = () => {
     setScrollPosition(prev => Math.min(prev + 2, cardCount - visibleCards));
   };
-  
+
   const isAtStart = scrollPosition === 0;
   const isAtEnd = scrollPosition >= cardCount - visibleCards;
-  
+
   // 현재 카드가 전체 화면에 표시 가능한 경우 (예: 4개 카드를 가진 경우)
   const allCardsVisible = cardCount <= visibleCards;
 
   return (
     <Section>
       <Title>게시판</Title>
-      
+
       <CardSliderWrapper ref={containerRef}>
         <CardSliderContainer>
           <CardSlider ref={sliderRef} style={{ transform: allCardsVisible ? 'none' : `translateX(-${scrollPosition * 270}px)` }}>
+            <Card>
+              <CardContent>
+                <CardTitle>전체</CardTitle>
+                <CardDescription>모든 게시글을 한눈에 확인할 수 있는 공간입니다.</CardDescription>
+                <CardButton as={Link} to={`/community?category=all`}>바로가기</CardButton>
+              </CardContent>
+            </Card>
             {categories.map((category) => (
               <Card key={category.id}>
                 <CardContent>
@@ -207,13 +214,13 @@ const CategorySection = () => {
             ))}
           </CardSlider>
         </CardSliderContainer>
-        
+
         {showButtons && !isAtStart && (
           <PrevButton onClick={handlePrev}>
             <ArrowIcon>◀</ArrowIcon>
           </PrevButton>
         )}
-        
+
         {showButtons && !isAtEnd && (
           <NextButton onClick={handleNext}>
             <ArrowIcon>▶</ArrowIcon>
