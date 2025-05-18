@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
-import { format, formatDistanceToNowStrict, isBefore, subHours } from 'date-fns';
-import { ko } from 'date-fns/locale';
 import styled from "styled-components";
 import useCategoryStore from "../../store/categoryStore";
 import { postAPI } from "../../api/PostApi";
+import { formatPostTimeSmart } from "../../utils/DateFormatter";
 
 // #region styled-components
 const Section = styled.section`
@@ -199,18 +198,6 @@ const NoData = styled.div`
 `;
 // #endregion
 
-// 날짜 변환
-const formatPostTime = (isoString) => {
-  const createdAt = new Date(isoString);
-  const twentyFourHoursAgo = subHours(new Date(), 24);
-
-  if (isBefore(twentyFourHoursAgo, createdAt)) {
-    return formatDistanceToNowStrict(createdAt, { addSuffix: true, locale: ko });
-  } else {
-    return format(createdAt, "yyyy.MM.dd");
-  }
-};
-
 const PostList = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -312,7 +299,7 @@ const PostList = () => {
                 </Link>
               </Title>
               <Author>{post.authorNickname}</Author>
-              <DateCol>{formatPostTime(post.createdAt)}</DateCol>
+              <DateCol>{formatPostTimeSmart(post.createdAt)}</DateCol>
               <View>{post.views}</View>
             </TableRow>
           ))
