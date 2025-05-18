@@ -156,7 +156,7 @@ const ClearFix = styled.div`
 `;
 // #endregion
 
-const CommentForm = ({ postId, parentId = null, commentId = null, initialContent = '', onSuccess, onCancel, mode = 'comment' }) => {  // mode: 'comment' | 'reply' | 'edit'
+const CommentForm = ({ postId, parentId = null, commentId = null, initialContent = '', onSuccess, onCancel, mode = 'comment', anonymous}) => {  // mode: 'comment' | 'reply' | 'edit'
   const userId = localStorage.getItem("userId");
   const [input, setInput] = useState(initialContent ?? "");
   const nickname = localStorage.getItem("nickname");
@@ -185,7 +185,7 @@ const CommentForm = ({ postId, parentId = null, commentId = null, initialContent
 
   return (
     <Container mode={mode}>
-      <CommentAuthor mode={mode}>{nickname}</CommentAuthor>
+      <CommentAuthor mode={mode}>{ anonymous ? "익명" : nickname }</CommentAuthor>
       <Textarea
         mode={mode}
         disabled={!userId}

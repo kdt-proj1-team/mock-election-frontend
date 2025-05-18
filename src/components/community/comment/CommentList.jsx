@@ -30,7 +30,7 @@ const LoadMoreButton = styled.button`
   }
 `;
 
-const CommentList = forwardRef(({ postId }, ref) => {
+const CommentList = forwardRef(({ postId, anonymous }, ref) => {
     const [comments, setComments] = useState([]);
     const [offset, setOffset] = useState(0);
     const [hasMore, setHasMore] = useState(false);
@@ -84,7 +84,7 @@ const CommentList = forwardRef(({ postId }, ref) => {
     return (
         <CommentListWrapper>
             {comments.map(root => (
-                <CommentItem key={root.id} comment={root} onDeleted={() => fetchComments(true)} />
+                <CommentItem key={root.id} comment={root} onDeleted={() => fetchComments(true)} anonymous={anonymous} />
             ))}
 
             {hasMore && (

@@ -117,7 +117,7 @@ const Reply = styled.div`
 `;
 // #endregion 
 
-const CommentItem = ({ comment, onDeleted, maxDepth = 4 }) => {
+const CommentItem = ({ comment, onDeleted, maxDepth = 4, anonymous }) => {
   const userId = localStorage.getItem("userId");
   const navigate = useNavigate();
   const isAuthor = comment && comment.authorId === userId;
@@ -217,6 +217,7 @@ const CommentItem = ({ comment, onDeleted, maxDepth = 4 }) => {
                 comment={child}
                 onDeleted={onDeleted}
                 maxDepth={maxDepth}
+                anonymous={anonymous}
               />
             ))}
           </ReplyList>
@@ -263,7 +264,7 @@ const CommentItem = ({ comment, onDeleted, maxDepth = 4 }) => {
             {showReportModal && (
               <ReportModal
                 onClose={() => setShowReportModal(false)}
-                authorNickname={comment.authorNickname}
+                authorNickname={comment.anonymousNickname || comment.authorNickname}
                 contentText={comment.content}
                 targetType="POST_COMMENT"
                 targetId={comment.id}
@@ -287,6 +288,7 @@ const CommentItem = ({ comment, onDeleted, maxDepth = 4 }) => {
             onDeleted?.();
           }}
           onCancel={() => setShowReplyForm(false)}
+          anonymous={anonymous}
         />
       )}
 
@@ -302,6 +304,7 @@ const CommentItem = ({ comment, onDeleted, maxDepth = 4 }) => {
             onDeleted?.();
           }}
           onCancel={() => setShowEditForm(false)}
+          anonymous={anonymous}
         />
       )}
 
@@ -314,6 +317,7 @@ const CommentItem = ({ comment, onDeleted, maxDepth = 4 }) => {
               comment={child}
               onDeleted={onDeleted}
               maxDepth={maxDepth}
+              anonymous={anonymous}
             />
           ))}
         </ReplyList>

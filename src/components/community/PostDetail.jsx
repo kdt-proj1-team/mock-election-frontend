@@ -417,7 +417,7 @@ const PostDetail = () => {
         )}
       </Footer>
 
-      <CommentSection postId={post.id} commentCount={post.commentCount}></CommentSection>
+      <CommentSection postId={post.id} commentCount={post.commentCount} anonymous={post.anonymous}></CommentSection>
 
       <PostActionsBar>
         <LeftActions>

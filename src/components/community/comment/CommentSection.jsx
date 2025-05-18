@@ -27,7 +27,7 @@ const CommentCount = styled.span`
 
 // #endregion
 
-const CommentSection = ({ postId, commentCount }) => {
+const CommentSection = ({ postId, commentCount, anonymous }) => {
     const commentListRef = useRef();
 
     const handleRefetch = () => {
@@ -41,9 +41,9 @@ const CommentSection = ({ postId, commentCount }) => {
                 <CommentCount>{commentCount}개</CommentCount>
             </Header>
 
-            <CommentForm postId={postId} onSuccess={handleRefetch} variant="comment"></CommentForm>
+            <CommentForm postId={postId} onSuccess={handleRefetch} variant="comment" anonymous={anonymous}></CommentForm>
 
-            <CommentList ref={commentListRef} postId={postId}></CommentList>
+            <CommentList ref={commentListRef} postId={postId} anonymous={anonymous}></CommentList>
         </Section>
     );
 };
