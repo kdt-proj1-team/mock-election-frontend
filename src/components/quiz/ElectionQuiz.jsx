@@ -153,12 +153,6 @@ const ElectionQuiz = () => {
             const allQuizIds = await quizAPI.fetchAllQuizIds();
             const completedQuizzes = quizAPI.getCompletedQuizzes();
 
-            // 완료 상태 정보 로깅
-            console.log('완료 상태 정보:', {
-                총퀴즈수: allQuizIds.length,
-                완료된퀴즈수: completedQuizzes.length,
-                완료된퀴즈목록: completedQuizzes
-            });
 
             // 상태 업데이트
             setTotalQuizCount(allQuizIds.length);
@@ -178,7 +172,6 @@ const ElectionQuiz = () => {
 
             return { allQuizIds, completedQuizzes, isAllCompleted };
         } catch (err) {
-            console.error('완료 상태 확인 중 오류 발생:', err);
             return null;
         }
     };
@@ -226,7 +219,6 @@ const ElectionQuiz = () => {
 
     // 완료된 퀴즈 및 세션 상태 초기화 함수
     const resetCompletedQuizzesAndSession = () => {
-        console.log('퀴즈 진행 상태 및 세션 초기화');
         // localStorage에서 완료된 퀴즈 정보 삭제
         quizAPI.resetCompletedQuizzes();
         // 퀴즈 상태 정보 삭제
@@ -263,7 +255,6 @@ const ElectionQuiz = () => {
             setQuizData(quiz);
             setError(null);
         } catch (err) {
-            console.error('Error fetching first quiz:', err);
             setError('퀴즈를 불러오는 중 오류가 발생했습니다: ' + err.message);
         } finally {
             setLoading(false);
@@ -281,7 +272,6 @@ const ElectionQuiz = () => {
             setQuizData(quiz);
             setError(null);
         } catch (err) {
-            console.error('Error fetching random quiz:', err);
             setError('랜덤 퀴즈를 불러오는 중 오류가 발생했습니다: ' + err.message);
         } finally {
             setLoading(false);
@@ -301,7 +291,6 @@ const ElectionQuiz = () => {
                 setQuizData(quiz);
                 setError(null);
             } catch (err) {
-                console.error('Error fetching next quiz:', err);
                 setError('다음 퀴즈를 불러오는 중 오류가 발생했습니다: ' + err.message);
             } finally {
                 setLoading(false);
@@ -322,7 +311,6 @@ const ElectionQuiz = () => {
                 setQuizData(quiz);
                 setError(null);
             } catch (err) {
-                console.error('Error fetching previous quiz:', err);
                 setError('이전 퀴즈를 불러오는 중 오류가 발생했습니다: ' + err.message);
             } finally {
                 setLoading(false);
@@ -382,14 +370,10 @@ const ElectionQuiz = () => {
         if (showAnswer && quizData && quizData.id) {
             // 아직 완료되지 않은 퀴즈인 경우에만 저장
             if (!quizAPI.isQuizCompleted(quizData.id)) {
-                console.log(`퀴즈 ID ${quizData.id} 완료 처리 시작`);
                 quizAPI.saveCompletedQuiz(quizData.id);
 
                 // 완료 후 상태 업데이트 - await로 비동기 작업 완료 대기
                 const result = await updateCompletionStatus();
-                console.log('완료 상태 업데이트 완료:', result);
-            } else {
-                console.log(`퀴즈 ID ${quizData.id}는 이미 완료됨`);
             }
         }
 
@@ -402,12 +386,10 @@ const ElectionQuiz = () => {
     };
 
     const resetQuizzes = async () => {
-        console.log('퀴즈 진행 상태 초기화 시작');
         resetCompletedQuizzesAndSession();
 
         // 리셋 후 상태 업데이트
         await updateCompletionStatus();
-        console.log('퀴즈 진행 상태 초기화 완료');
 
         // 애니메이션과 함께 퀴즈 리셋
         await animateQuizTransition(async () => {

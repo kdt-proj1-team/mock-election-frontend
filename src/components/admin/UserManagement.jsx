@@ -13,12 +13,14 @@ const CardTitle = styled.h3`
 const TableContainer = styled.div`
     overflow-x: auto;
     margin-top: 20px;
+    width: 100%;
 `;
 
 const Table = styled.table`
     width: 100%;
     border-collapse: collapse;
     margin-bottom: 20px;
+    table-layout: fixed; /* 테이블 레이아웃을 고정하여 열 너비를 균등하게 조정 */
 `;
 
 const TableHead = styled.thead`
@@ -37,31 +39,37 @@ const TableRow = styled.tr`
 
 const TableHeader = styled.th`
     padding: 12px 15px;
-    text-align: left;
+    text-align: center; /* 헤더 텍스트 중앙 정렬 */
     border-bottom: 1px solid #ddd;
+    white-space: nowrap;
 `;
 
 const TableCell = styled.td`
     padding: 12px 15px;
     border-bottom: 1px solid #ddd;
+    text-align: center; /* 셀 내용 중앙 정렬 */
+    overflow: hidden;
+    text-overflow: ellipsis; /* 내용이 너무 길면 ... 처리 */
 `;
 
 const Message = styled.p`
     font-size: 16px;
     color: #555;
     margin: 20px 0;
+    text-align: center; /* 메시지 중앙 정렬 */
 `;
 
-// 버튼 컨테이너 추가 - 버튼 그룹을 일정한 너비로 유지
+// 버튼 컨테이너 정렬 조정
 const ButtonContainer = styled.div`
     display: flex;
     gap: 5px;
+    justify-content: center; /* 버튼 중앙 정렬 */
 `;
 
-// 버튼 스타일 수정 - 고정된 너비와 텍스트 정렬 추가
+// 버튼 스타일 수정
 const ActionButton = styled.button`
     padding: 5px 10px;
-    min-width: 110px; // 모든 버튼에 고정된 최소 너비 적용
+    min-width: 110px;
     text-align: center;
     background-color: ${props => props.color || '#4CAF50'};
     color: white;
@@ -70,16 +78,16 @@ const ActionButton = styled.button`
     cursor: ${props => props.disabled ? 'not-allowed' : 'pointer'};
     transition: background-color 0.2s;
     opacity: ${props => props.disabled ? 0.7 : 1};
-    white-space: nowrap; // 텍스트가 한 줄에 유지되도록 설정
+    white-space: nowrap;
 
     &:hover {
         background-color: ${props => {
-    if (props.disabled) return props.color || '#4CAF50';
-    if (props.color === '#4CAF50') return '#3d8b40';
-    if (props.color === '#f44336') return '#d32f2f';
-    if (props.color === '#2196F3') return '#0b7dda';
-    return '#3d8b40';
-}};
+            if (props.disabled) return props.color || '#4CAF50';
+            if (props.color === '#4CAF50') return '#3d8b40';
+            if (props.color === '#f44336') return '#d32f2f';
+            if (props.color === '#2196F3') return '#0b7dda';
+            return '#3d8b40';
+        }};
     }
 `;
 
@@ -130,7 +138,6 @@ const UserManagement = () => {
                 )
             );
 
-            console.log(`사용자 ${userId} 활성 상태가 ${targetStatus ? '활성' : '비활성'}으로 변경되었습니다.`);
         } catch (err) {
             alert('활성 상태를 변경하는 데 실패했습니다.');
         } finally {
@@ -181,11 +188,11 @@ const UserManagement = () => {
                 <Table>
                     <TableHead>
                         <TableRow>
-                            <TableHeader>사용자</TableHeader>
-                            <TableHeader>역할</TableHeader>
-                            <TableHeader>가입일</TableHeader>
-                            <TableHeader>활성 상태</TableHeader>
-                            <TableHeader>관리</TableHeader>
+                            <TableHeader style={{ width: '20%' }}>사용자</TableHeader>
+                            <TableHeader style={{ width: '15%' }}>역할</TableHeader>
+                            <TableHeader style={{ width: '20%' }}>가입일</TableHeader>
+                            <TableHeader style={{ width: '15%' }}>활성 상태</TableHeader>
+                            <TableHeader style={{ width: '30%' }}>관리</TableHeader>
                         </TableRow>
                     </TableHead>
                     <tbody>

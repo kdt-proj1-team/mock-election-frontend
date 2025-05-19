@@ -52,7 +52,6 @@ export const reportAPI = {
     getDailyStats: async () => {
         try {
             const res = await api.get('/stats/daily');
-            console.log("Daily stats response:", res.data);
 
             // 날짜별 매핑을 위한 준비
             const currentDate = new Date();
@@ -91,7 +90,6 @@ export const reportAPI = {
 
             return dailyData;
         } catch (error) {
-            console.error("일간 신고 통계 조회 실패:", error);
             return [0, 0, 0, 0, 0, 0, 0];
         }
     },
@@ -101,8 +99,6 @@ export const reportAPI = {
     getWeeklyStats: async () => {
         try {
             const res = await api.get('/stats/weekly');
-            console.log("Weekly stats response:", res.data);
-
             // 기본 데이터 배열 초기화 (7주를 0으로 설정)
             const weeklyData = Array(7).fill(0);
 
@@ -152,7 +148,6 @@ export const reportAPI = {
 
             return weeklyData;
         } catch (error) {
-            console.error("주간 신고 통계 조회 실패:", error);
             return [0, 0, 0, 0, 0, 0, 0];
         }
     },
@@ -160,7 +155,6 @@ export const reportAPI = {
     getMonthlyStats: async () => {
         try {
             const res = await api.get('/stats/monthly');
-            console.log("Monthly stats response:", res.data);
 
             // 월별 라벨 생성 (현재 월부터 5개월 전까지)
             const currentDate = new Date();
@@ -198,7 +192,6 @@ export const reportAPI = {
 
             return monthlyData;
         } catch (error) {
-            console.error("월간 신고 통계 조회 실패:", error);
             return [0, 0, 0, 0, 0, 0];
         }
     }
