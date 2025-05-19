@@ -1,7 +1,7 @@
 // python과 통신합니다..! 참고하지 마세요!
 import axios from 'axios';
 
-const API_URL = 'http://localhost:8000';  // FastAPI 서버 주소
+const API_URL = 'https://42ac-221-150-27-169.ngrok-free.app';  // FastAPI 서버 주소
 
 export const sendMessage = async (message, sessionId = null) => {
     try {
