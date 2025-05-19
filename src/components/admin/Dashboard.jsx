@@ -13,8 +13,8 @@ import {
     Filler
 } from 'chart.js';
 import { Bar, Line, Doughnut } from 'react-chartjs-2';
-import { adminAPI } from '../../api/AdminApi'; // AdminApi 경로가 맞는지 확인해주세요
-import {reportAPI} from "../../api/ReportApi";
+import { adminAPI } from '../../api/AdminApi';
+import { reportAPI } from "../../api/ReportApi";
 
 // Chart.js 컴포넌트 등록
 ChartJS.register(
@@ -30,7 +30,6 @@ ChartJS.register(
     Filler
 );
 
-// 스타일 컴포넌트 대신 일반 CSS 클래스로 대체
 const AdminDashboard = () => {
     // 기간 선택 상태
     const [period, setPeriod] = useState('week');
@@ -67,6 +66,115 @@ const AdminDashboard = () => {
 
     // 로딩 상태
     const [loading, setLoading] = useState(true);
+
+    // 차트 옵션 상태 추가
+    const [chartOptions, setChartOptions] = useState({
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'top',
+                labels: {
+                    font: {
+                        size: window.innerWidth < 768 ? 10 : 12
+                    },
+                    boxWidth: window.innerWidth < 768 ? 10 : 15
+                }
+            },
+            tooltip: {
+                enabled: true,
+                mode: 'index',
+                intersect: false,
+                bodyFont: {
+                    size: window.innerWidth < 768 ? 12 : 14
+                },
+                titleFont: {
+                    size: window.innerWidth < 768 ? 13 : 16
+                }
+            }
+        },
+        scales: {
+            x: {
+                ticks: {
+                    maxRotation: window.innerWidth < 768 ? 45 : 0,
+                    font: {
+                        size: window.innerWidth < 768 ? 10 : 12
+                    },
+                    autoSkip: true,
+                    autoSkipPadding: window.innerWidth < 768 ? 10 : 20
+                }
+            },
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    font: {
+                        size: window.innerWidth < 768 ? 10 : 12
+                    }
+                }
+            }
+        }
+    });
+
+    // 리사이즈 이벤트에 따른 차트 옵션 업데이트
+    useEffect(() => {
+        const handleResize = () => {
+            setChartOptions({
+                ...chartOptions,
+                plugins: {
+                    ...chartOptions.plugins,
+                    legend: {
+                        ...chartOptions.plugins.legend,
+                        labels: {
+                            ...chartOptions.plugins.legend.labels,
+                            font: {
+                                size: window.innerWidth < 768 ? 10 : 12
+                            },
+                            boxWidth: window.innerWidth < 768 ? 10 : 15
+                        }
+                    },
+                    tooltip: {
+                        ...chartOptions.plugins.tooltip,
+                        bodyFont: {
+                            size: window.innerWidth < 768 ? 12 : 14
+                        },
+                        titleFont: {
+                            size: window.innerWidth < 768 ? 13 : 16
+                        }
+                    }
+                },
+                scales: {
+                    ...chartOptions.scales,
+                    x: {
+                        ...chartOptions.scales.x,
+                        ticks: {
+                            ...chartOptions.scales.x.ticks,
+                            maxRotation: window.innerWidth < 768 ? 45 : 0,
+                            font: {
+                                size: window.innerWidth < 768 ? 10 : 12
+                            }
+                        }
+                    },
+                    y: {
+                        ...chartOptions.scales.y,
+                        ticks: {
+                            ...chartOptions.scales.y.ticks,
+                            font: {
+                                size: window.innerWidth < 768 ? 10 : 12
+                            }
+                        }
+                    }
+                }
+            });
+        };
+
+        // 리사이즈 이벤트 리스너 추가
+        window.addEventListener('resize', handleResize);
+
+        // 컴포넌트 언마운트 시 이벤트 리스너 제거
+        return () => {
+            window.removeEventListener('resize', handleResize);
+        };
+    }, []);
 
     useEffect(() => {
         const fetchStats = async () => {
@@ -193,7 +301,8 @@ const AdminDashboard = () => {
             }
         ]
     };
-// 신고 통계 차트 데이터
+
+    // 신고 통계 차트 데이터
     const reportChartData = {
         labels: periodLabels[period],
         datasets: [
@@ -207,20 +316,34 @@ const AdminDashboard = () => {
         ]
     };
 
-
-    // 기본 차트 옵션
-    const chartOptions = {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: {
-                position: 'top',
+    // 라인 차트에 적용할 특별 옵션
+    const lineChartOptions = {
+        ...chartOptions,
+        elements: {
+            line: {
+                tension: 0.3
             },
+            point: {
+                radius: window.innerWidth < 768 ? 2 : 4,
+                hoverRadius: window.innerWidth < 768 ? 5 : 7
+            }
         }
     };
 
+    // 바 차트에 적용할 특별 옵션
+    const barChartOptions = {
+        ...chartOptions,
+        plugins: {
+            ...chartOptions.plugins,
+            legend: {
+                display: false
+            }
+        },
+        barPercentage: window.innerWidth < 768 ? 0.8 : 0.9,
+        categoryPercentage: window.innerWidth < 768 ? 0.8 : 0.9
+    };
 
-// 총 가입자 수 계산 - 각 시점의 누적 값 그대로 사용
+    // 총 가입자 수 계산 - 각 시점의 누적 값 그대로 사용
     const getTotalUsers = () => {
         const data = statsData.totalUser[period];
         // 그래프상에서는 각 시점의 누적 값을 그대로 표시
@@ -228,7 +351,7 @@ const AdminDashboard = () => {
         return data.length > 0 ? data[data.length - 1] : 0;
     };
 
-// 신규 가입자 수 계산 - 현재 기간의 모든 값 합산
+    // 신규 가입자 수 계산 - 현재 기간의 모든 값 합산
     const getNewUsers = () => {
         return statsData.newUser[period].reduce((a, b) => a + b, 0);
     };
@@ -240,7 +363,6 @@ const AdminDashboard = () => {
         return data.length > 0 ? data[data.length - 1] : 0;
     };
 
-    // getReport 함수 수정 - 값이 없을 경우 처리 추가
     // getReport 함수 수정
     const getReport = () => {
         const data = statsData.report[period];
@@ -300,7 +422,6 @@ const AdminDashboard = () => {
                     <div className="stat-value">
                         {loading ? '로딩 중...' : getNewUsers()}
                     </div>
-
                 </div>
                 <div className="stat-card">
                     <h3>총 게시물 수</h3>
@@ -314,7 +435,6 @@ const AdminDashboard = () => {
                         {loading ? '로딩 중...' : getReport()}
                     </div>
                 </div>
-
             </div>
 
             {/* 차트 영역 */}
@@ -327,14 +447,7 @@ const AdminDashboard = () => {
                         ) : (
                             <Line
                                 data={userChartData}
-                                options={{
-                                    ...chartOptions,
-                                    scales: {
-                                        y: {
-                                            beginAtZero: true
-                                        }
-                                    }
-                                }}
+                                options={lineChartOptions}
                             />
                         )}
                     </div>
@@ -346,14 +459,7 @@ const AdminDashboard = () => {
                         <div className="chart-container">
                             <Bar
                                 data={boardChartData}
-                                options={{
-                                    ...chartOptions,
-                                    plugins: {
-                                        legend: {
-                                            display: false
-                                        }
-                                    }
-                                }}
+                                options={barChartOptions}
                             />
                         </div>
                     </div>
@@ -365,14 +471,7 @@ const AdminDashboard = () => {
                             ) : (
                                 <Bar
                                     data={reportChartData}
-                                    options={{
-                                        ...chartOptions,
-                                        plugins: {
-                                            legend: {
-                                                display: false
-                                            }
-                                        }
-                                    }}
+                                    options={barChartOptions}
                                 />
                             )}
                         </div>
@@ -380,222 +479,180 @@ const AdminDashboard = () => {
                 </div>
             </div>
 
-
-
-
             <style jsx>{`
-        .admin-dashboard {
-          padding: 20px;
-          background-color: #f5f7fa;
-          font-family: 'Pretendard', sans-serif;
-        }
-        
-        .dashboard-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 20px;
-        }
-        
-        .dashboard-header h1 {
-          font-size: 24px;
-          margin: 0;
-          color: #333;
-        }
-        
-        .period-selector {
-          display: flex;
-          gap: 10px;
-        }
-        
-        .period-selector button {
-          padding: 8px 16px;
-          border: 1px solid #e0e0e0;
-          background-color: white;
-          border-radius: 4px;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-        
-        .period-selector button.active {
-          background-color: #4a6cf7;
-          color: white;
-          border-color: #4a6cf7;
-        }
-        
-        .stats-cards {
-          display: grid;
-          grid-template-columns: repeat(4, 1fr);
-          gap: 20px;
-          margin-bottom: 20px;
-        }
-        
-        .stat-card {
-          background-color: white;
-          border-radius: 10px;
-          padding: 20px;
-          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-        }
-        
-        .stat-card {
-          background-color: white;
-          border-radius: 10px;
-          padding: 20px;
-          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-        }
-        
-        .stat-card h3 {
-          margin: 0 0 10px 0;
-          font-size: 16px;
-          color: #666;
-          font-weight: 500;
-        }
-        
-        .stat-value {
-          font-size: 28px;
-          font-weight: 600;
-          color: #333;
-          margin-bottom: 5px;
-        }
-        
-        .stat-change {
-          font-size: 14px;
-          font-weight: 500;
-        }
-        
-        .stat-change.positive {
-          color: #34c759;
-        }
-        
-        .stat-change.negative {
-          color: #ff3b30;
-        }
-        
-        .charts-container {
-          margin-bottom: 20px;
-        }
-        
-        .chart-card {
-          background-color: white;
-          border-radius: 10px;
-          padding: 20px;
-          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-          margin-bottom: 20px;
-        }
-        
-        .chart-card h2 {
-          margin: 0 0 15px 0;
-          font-size: 18px;
-          color: #333;
-        }
-        
-        .chart-card.wide {
-          grid-column: span 2;
-        }
-        
-        .chart-container {
-          height: 300px;
-          position: relative;
-        }
-        
-        .loading-indicator {
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          height: 100%;
-          font-size: 16px;
-          color: #666;
-        }
-        
-        .chart-row {
-          display: grid;
-          grid-template-columns: repeat(2, 1fr);
-          gap: 20px;
-        }
-        
-        .activity-section {
-          display: grid;
-          grid-template-columns: repeat(2, 1fr);
-          gap: 20px;
-        }
-        
-        .activity-card {
-          background-color: white;
-          border-radius: 10px;
-          padding: 20px;
-          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-        }
-        
-        .activity-card h2 {
-          margin: 0 0 15px 0;
-          font-size: 18px;
-          color: #333;
-          border-bottom: 1px solid #eee;
-          padding-bottom: 10px;
-        }
-        
-        .activity-list {
-          list-style: none;
-          padding: 0;
-          margin: 0;
-        }
-        
-        .activity-list li {
-          padding: 10px 0;
-          border-bottom: 1px solid #f0f0f0;
-          font-size: 14px;
-        }
-        
-        .activity-time {
-          color: #888;
-          margin-right: 10px;
-        }
-        
-        .activity-user {
-          font-weight: 500;
-          color: #4a6cf7;
-          margin-right: 10px;
-        }
-        
-        .notification-list {
-          list-style: none;
-          padding: 0;
-          margin: 0;
-        }
-        
-        .notification-item {
-          padding: 12px;
-          border-radius: 8px;
-          background-color: #f8f9fa;
-          margin-bottom: 10px;
-        }
-        
-        .notification-item.urgent {
-          background-color: #fff2f2;
-          border-left: 3px solid #ff3b30;
-        }
-        
-        .notification-title {
-          font-weight: 500;
-          margin-bottom: 5px;
-          font-size: 15px;
-        }
-        
-        .notification-desc {
-          color: #666;
-          font-size: 13px;
-        }
-        
-        @media (max-width: 768px) {
-          .stats-cards {
-            grid-template-columns: repeat(2, 1fr);
-          }
-          
-          .chart-row, .activity-section {
-            grid-template-columns: 1fr;
-          }
-        }
-      `}</style>
+                .admin-dashboard {
+                    padding: 20px;
+                    background-color: #f5f7fa;
+                    font-family: 'Pretendard', sans-serif;
+                }
+
+                .dashboard-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 20px;
+                }
+
+                .dashboard-header h1 {
+                    font-size: 24px;
+                    margin: 0;
+                    color: #333;
+                }
+
+                .period-selector {
+                    display: flex;
+                    gap: 10px;
+                }
+
+                .period-selector button {
+                    padding: 8px 16px;
+                    border: 1px solid #e0e0e0;
+                    background-color: white;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                }
+
+                .period-selector button.active {
+                    background-color: #4a6cf7;
+                    color: white;
+                    border-color: #4a6cf7;
+                }
+
+                .stats-cards {
+                    display: grid;
+                    grid-template-columns: repeat(4, 1fr);
+                    gap: 20px;
+                    margin-bottom: 20px;
+                }
+
+                .stat-card {
+                    background-color: white;
+                    border-radius: 10px;
+                    padding: 20px;
+                    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+                }
+
+                .stat-card h3 {
+                    margin: 0 0 10px 0;
+                    font-size: 16px;
+                    color: #666;
+                    font-weight: 500;
+                }
+
+                .stat-value {
+                    font-size: 28px;
+                    font-weight: 600;
+                    color: #333;
+                    margin-bottom: 5px;
+                }
+
+                .stat-change {
+                    font-size: 14px;
+                    font-weight: 500;
+                }
+
+                .stat-change.positive {
+                    color: #34c759;
+                }
+
+                .stat-change.negative {
+                    color: #ff3b30;
+                }
+
+                .charts-container {
+                    margin-bottom: 20px;
+                }
+
+                .chart-card {
+                    background-color: white;
+                    border-radius: 10px;
+                    padding: 20px;
+                    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+                    margin-bottom: 20px;
+                }
+
+                .chart-card h2 {
+                    margin: 0 0 15px 0;
+                    font-size: 18px;
+                    color: #333;
+                }
+
+                .chart-card.wide {
+                    grid-column: span 2;
+                }
+
+                .chart-container {
+                    height: auto;
+                    min-height: 250px;
+                    max-height: 350px;
+                    width: 100%;
+                    position: relative;
+                }
+
+                .loading-indicator {
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    height: 100%;
+                    font-size: 16px;
+                    color: #666;
+                }
+
+                .chart-row {
+                    display: grid;
+                    grid-template-columns: repeat(2, 1fr);
+                    gap: 20px;
+                }
+
+                @media (max-width: 768px) {
+                    .stats-cards {
+                        grid-template-columns: repeat(2, 1fr);
+                    }
+
+                    .chart-row {
+                        grid-template-columns: 1fr;
+                    }
+
+                    .chart-container {
+                        min-height: 200px;
+                    }
+
+                    .dashboard-header {
+                        flex-direction: column;
+                        align-items: flex-start;
+                    }
+
+                    .dashboard-header h1 {
+                        margin-bottom: 10px;
+                    }
+
+                    .period-selector {
+                        width: 100%;
+                        justify-content: space-between;
+                    }
+
+                    .period-selector button {
+                        flex: 1;
+                        text-align: center;
+                        padding: 8px 0;
+                    }
+                }
+
+                @media (max-width: 480px) {
+                    .stats-cards {
+                        grid-template-columns: 1fr;
+                    }
+
+                    .stat-card {
+                        padding: 15px;
+                    }
+
+                    .stat-value {
+                        font-size: 24px;
+                    }
+                }
+            `}</style>
         </div>
     );
 };
