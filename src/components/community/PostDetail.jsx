@@ -24,7 +24,7 @@ const Container = styled.div`
 const CategoryName = styled.div`
   font-size: 22px;
   font-weight: bold;
-  color: #4d82f3;
+  color: #666;
   margin-bottom: 20px;
   padding-bottom: 15px;
   border-bottom: 1px solid #eee;
@@ -70,7 +70,7 @@ const ActionButton = styled.button`
   align-items: center;
   gap: 3px;
   &:hover {
-    color: #4d82f3;
+    color: #333;
   }
 
   svg {
@@ -193,7 +193,7 @@ const VoteCount = styled.span`
 `;
 
 const ReportButton = styled.button`
-  color: #ff4d4d;
+  color: #666;
   background: none;
   border: none;
   cursor: pointer;
@@ -203,8 +203,13 @@ const ReportButton = styled.button`
   gap: 5px;
   position: absolute;
   right: 0;
+
   &:hover {
-    text-decoration: underline;
+    color: #333;
+  }
+  svg {
+    position: relative;
+    top: 1px;
   }
 `;
 
@@ -239,11 +244,11 @@ const ActionBtn = styled.button`
 `;
 
 const WriteBtn = styled(ActionBtn)`
-  background-color: #4d82f3;
+  background-color: #777;
   color: white;
   border: none;
   &:hover {
-    background-color: #3a6ad4;
+    background-color: #555;
   }
 `;
 
@@ -275,7 +280,7 @@ const formatFileSize = (bytes) => {
 
 const PostDetail = () => {
   const navigate = useNavigate();
-
+  
   const { id } = useParams();
   const [post, setPost] = useState(null);
   const [showReportModal, setShowReportModal] = useState(false);
@@ -344,7 +349,7 @@ const PostDetail = () => {
       targetType: "POST",
       targetId: post.id
     });
-    
+
     if (alreadyReported) {
       alert("이미 신고한 대상입니다.");
       return;
@@ -405,7 +410,7 @@ const PostDetail = () => {
           <VoteCount>{post.voteCount}</VoteCount>
           <VoteButton type="down" active={post.userVote === -1} onClick={() => handleVote(-1)}><FaArrowDown /></VoteButton>
         </VoteButtons>
-        {!isAuthor && (
+        {!isAuthor && post.categoryCode !== "notice" && (
           <ReportButton onClick={() => handleReportClick()}><FaFlag /> 신고</ReportButton>
         )}
         {showReportModal && (
@@ -418,9 +423,10 @@ const PostDetail = () => {
           />
         )}
       </Footer>
-
-      <CommentSection postId={post.id} commentCount={post.commentCount} anonymous={post.anonymous}></CommentSection>
-
+      {
+        post.categoryCode !== 'notice' &&
+        <CommentSection postId={post.id} commentCount={post.commentCount} anonymous={post.anonymous}></CommentSection>
+      }
       <PostActionsBar>
         <LeftActions>
           <WriteBtn onClick={() => navigate("/community/board/write")}><FaPen /> 글쓰기</WriteBtn>
