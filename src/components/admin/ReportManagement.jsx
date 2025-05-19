@@ -145,6 +145,11 @@ const ReportManagement = () => {
     };
 
     const handleConfirm = async (id) => {
+
+        if (!window.confirm('이 신고를 처리하시겠습니까?')) {
+            return; 
+        }
+
         try {
             await reportAPI.confirmReport(id);
             fetchList();
@@ -192,7 +197,7 @@ const ReportManagement = () => {
                     {filtered.map((report) => (
                         <TableRow key={report.id} onClick={() => openDetail(report.id)}>
                             <TableCell>{report.id}</TableCell>
-                            <TableCell><Link to={`/community/post/${report.targetId}`}>{report.reportTypeName}</Link></TableCell>
+                            <TableCell><Link to={`/community/post/${report.targetId}`} style={{ textDecoration: 'none', color: '#1a73e8', fontWeight: '500' }}>{report.reportTypeName}</Link></TableCell>
                             <TableCell>{report.reporterId}</TableCell>
                             <TableCell>{report.reportedUserId}</TableCell>
                             <TableCell>

@@ -107,9 +107,15 @@ const UserManagement = () => {
         }
     };
 
-    const handleToggleActive = async (userId, currentStatus) => {
-        // 서버가 토글 로직을 처리하는 방식에 따라 조정 필요
+    const handleToggleActive = async (userId, currentStatus, userName) => {
+        // 확인 창 표시
         const targetStatus = !currentStatus;
+        const actionText = targetStatus ? '활성화' : '비활성화';
+        const confirmMessage = `${userName} 사용자를 ${actionText}하시겠습니까?`;
+
+        if (!window.confirm(confirmMessage)) {
+            return; // 사용자가 취소를 클릭했을 경우
+        }
 
         try {
             // 처리 중인 상태로 설정
@@ -133,9 +139,16 @@ const UserManagement = () => {
         }
     };
 
-    const handleChangeRole = async (userId, currentRole) => {
+    const handleChangeRole = async (userId, currentRole, userName) => {
         // 서버가 토글 로직을 처리하는 방식에 따라 조정 필요
         const targetRole = currentRole === 'ADMIN' ? 'USER' : 'ADMIN';
+
+        // 확인 창 표시
+        const confirmMessage = `${userName}의 권한을 ${currentRole === 'ADMIN' ? 'USER' : 'ADMIN'}로 변경하시겠습니까?`;
+
+        if (!window.confirm(confirmMessage)) {
+            return; // 사용자가 취소를 클릭했을 경우
+        }
 
         try {
             // 처리 중인 상태로 설정
@@ -186,14 +199,14 @@ const UserManagement = () => {
                                 <ButtonContainer>
                                     <ActionButton
                                         color="#2196F3"
-                                        onClick={() => handleChangeRole(user.userId, user.role)}
+                                        onClick={() => handleChangeRole(user.userId, user.role, user.name)}
                                         disabled={processingUsers[user.userId]}
                                     >
                                         권한 변경
                                     </ActionButton>
                                     <ActionButton
                                         color={user.active ? "#f44336" : "#4CAF50"}
-                                        onClick={() => handleToggleActive(user.userId, user.active)}
+                                        onClick={() => handleToggleActive(user.userId, user.active, user.name)}
                                         disabled={processingUsers[user.userId]}
                                     >
                                         {user.active ? '비활성화' : '활성화'}
