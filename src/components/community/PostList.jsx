@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
+import usePageStore from "../../store/pageStore";
 import styled from "styled-components";
 import { FaSearch } from "react-icons/fa";
 import useCategoryStore from "../../store/categoryStore";
@@ -217,7 +218,9 @@ const PostList = () => {
   const { selectedCategory } = useCategoryStore();
 
   const [posts, setPosts] = useState([]);
-  const [page, setPage] = useState(0);
+  const [pendingPosts, setPendingPosts] = useState(null); // 임시 저장
+  const [pendingCategoryCode, setPendingCategoryCode] = useState(null);
+  const { page, setPage, resetPage } = usePageStore();
   const [totalPages, setTotalPages] = useState(1);
   const searchRef = useRef(null);
   const [searchType, setSearchType] = useState("title_content"); // 기본값: 제목 + 내용
@@ -225,27 +228,22 @@ const PostList = () => {
 
 
   useEffect(() => {
-    const rawPage = parseInt(searchParams.get("page"));
-    const safePage = isNaN(rawPage) || rawPage < 1 ? 1 : rawPage;
+    const raw = parseInt(searchParams.get("page"));
+    const urlPage = isNaN(raw) || raw < 1 ? null : raw - 1;
 
-    // page 상태 동기화
-    setPage(safePage - 1);
-
-    // URL 정정도 여기서 같이 처리
-    if (safePage !== rawPage) {
-      searchParams.set("page", safePage);
+    if (urlPage !== null) {
+      setPage(urlPage); // URL 우선
+    } else {
+      // page 쿼리 없거나 잘못된 경우 → store 값 사용해서 URL 설정
+      searchParams.set("page", page + 1);
       setSearchParams(searchParams, { replace: true });
     }
-  }, [searchParams, setSearchParams]);
+  }, [searchParams]);
 
   useEffect(() => {
-    if (page >= totalPages && totalPages > 0) {
-      searchParams.set("page", "1");
-      setSearchParams(searchParams, { replace: true });
-      setPage(0);
-    }
-
+    if (!selectedCategory) return;
     const fetchPosts = async () => {
+      if (!selectedCategory) return;
       try {
         const data = await postAPI.getPostsByCategory(
           selectedCategory.code,
@@ -254,25 +252,34 @@ const PostList = () => {
           searchParams.get("searchType") || "title_content",
           searchParams.get("search") || ""
         );
-        setPosts(data.content);
+        setPendingPosts(data.content);                 // 임시 저장
         setTotalPages(data.totalPages);
-
+        setPendingCategoryCode(selectedCategory.code); // 어떤 카테고리용인지 기억
       } catch (err) {
         console.error("게시글 목록 조회 실패", err);
       }
     };
 
-    if (selectedCategory) {
-      fetchPosts();
-    }
+    fetchPosts();
+
   }, [selectedCategory, page, searchParams]);
 
+  useEffect(() => {
+    if (pendingCategoryCode === selectedCategory?.code && pendingPosts) {
+      setPosts(pendingPosts);
+      setPendingPosts(null);
+    }
+  }, [pendingPosts, pendingCategoryCode, selectedCategory]);
 
   const handlePageClick = (newPage) => {
     if (newPage >= 0 && newPage < totalPages) {
+      // store 업데이트
       setPage(newPage);
-      searchParams.set("page", newPage + 1); // URL에선 1부터 시작
-      setSearchParams(searchParams);
+
+      // URL 반영
+      const newParams = new URLSearchParams(searchParams);
+      newParams.set("page", newPage + 1);
+      setSearchParams(newParams);
 
       const offset = 90;
       const top = searchRef.current?.getBoundingClientRect().top + window.pageYOffset - offset;
@@ -287,6 +294,7 @@ const PostList = () => {
     newParams.set("searchType", searchType);
     newParams.set("search", searchKeyword);
     setSearchParams(newParams);
+    resetPage(); // store 초기화
   };
 
   return (
@@ -320,7 +328,7 @@ const PostList = () => {
                 navigate("/login");
               }
               return;
-            }else {
+            } else {
               navigate("/community/board/write")
             }
           }}>글쓰기</WriteButton>
@@ -337,9 +345,7 @@ const PostList = () => {
           <View>조회</View>
         </TableHeader>
 
-        {posts.length === 0 ? (
-          <NoData>게시글이 없습니다.</NoData>
-        ) : (
+        {
           posts.map((post) => (
             <TableRow key={post.id} className={post.notice ? "notice" : ""}>
               <Num>{post.id}</Num>
@@ -355,7 +361,7 @@ const PostList = () => {
               <View>{post.views}</View>
             </TableRow>
           ))
-        )}
+        }
       </Table>
 
       <Pagination>

@@ -289,7 +289,7 @@ const PostDetail = () => {
 
     try {
       await postAPI.delete(id);
-      navigate(`/community?category=${selectedCategory?.code || 'all'}`);
+      navigate(`/community?category=${selectedCategory?.code || 'all'}&page=1`);
     } catch (error) {
       console.error("게시글 삭제 실패:", error);
       alert("삭제에 실패했습니다. 다시 시도해주세요.");

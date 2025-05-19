@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import styled from "styled-components";
 import { Link } from "react-router-dom";
 import useCategoryStore from "../../store/categoryStore";
+import usePageStore from "../../store/pageStore";
 
 
 // #region styled-components
@@ -133,6 +134,7 @@ const ArrowIcon = styled.span`
 
 const CategorySection = () => {
   const { categories } = useCategoryStore();
+  const { resetPage } = usePageStore();
 
   const [scrollPosition, setScrollPosition] = useState(0);
   const [showButtons, setShowButtons] = useState(false);
@@ -200,7 +202,7 @@ const CategorySection = () => {
               <CardContent>
                 <CardTitle>전체</CardTitle>
                 <CardDescription>회원들이 작성한 모든 게시글을 한눈에 확인할 수 있는 공간입니다.</CardDescription>
-                <CardButton as={Link} to={`/community?category=all`}>바로가기</CardButton>
+                <CardButton as={Link} to={`/community?category=all`} onClick={resetPage}>바로가기</CardButton>
               </CardContent>
             </Card>
             {categories.map((category) => (
@@ -208,7 +210,7 @@ const CategorySection = () => {
                 <CardContent>
                   <CardTitle>{category.name}</CardTitle>
                   <CardDescription>{category.description}</CardDescription>
-                  <CardButton as={Link} to={`/community?category=${category.code}`}>바로가기</CardButton>
+                  <CardButton as={Link} to={`/community?category=${category.code}`} onClick={resetPage}>바로가기</CardButton>
                 </CardContent>
               </Card>
             ))}
