@@ -1,6 +1,7 @@
 {
   "name": "mock-voting-front",
   "version": "0.1.0",
+  "proxy": "http://localhost",
   "private": true,
   "dependencies": {
     "@google-analytics/data": "^5.1.0",
