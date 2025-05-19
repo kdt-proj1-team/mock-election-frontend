@@ -33,7 +33,7 @@ const CommunityPage = () => {
 
     useEffect(() => {
         if (categoryCode === "all") {
-            setSelectedCategory({ code: "all", name: "전체", description: "모든 게시글을 한눈에 확인할 수 있는 공간입니다." });
+            setSelectedCategory({ code: "all", name: "전체", description: "회원들이 작성한 모든 게시글을 한눈에 확인할 수 있는 공간입니다." });
             return;
         }
 
