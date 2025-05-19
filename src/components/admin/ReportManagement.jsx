@@ -53,7 +53,9 @@ const Message = styled.p`
     margin: 20px 0;
 `;
 
-const ActionButton = styled.button`
+const ActionButton = styled.button.withConfig({
+    shouldForwardProp: (prop) => prop !== 'marginRight' && prop !== 'color'
+})`
     padding: 5px 10px;
     margin-right: ${props => props.marginRight ? '5px' : '0'};
     background-color: ${props => props.color || '#4CAF50'};
@@ -72,6 +74,7 @@ const ActionButton = styled.button`
         }};
     }
 `;
+
 
 // Modal 스타일
 const ModalBackdrop = styled.div`
@@ -100,19 +103,22 @@ const FilterContainer = styled.div`
   margin-bottom: 20px;
 `;
 
-const FilterButton = styled.button`
-  padding: 8px 16px;
-  background-color: ${props => props.active ? '#1a73e8' : '#f5f5f5'};
-  color: ${props => props.active ? 'white' : '#333'};
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: ${props => props.active ? '600' : '400'};
-  
-  &:hover {
-    background-color: ${props => props.active ? '#1557b0' : '#e0e0e0'};
-  }
+const FilterButton = styled.button.withConfig({
+    shouldForwardProp: (prop) => prop !== 'active'
+})`
+    padding: 8px 16px;
+    background-color: ${props => props.active ? '#1a73e8' : '#f5f5f5'};
+    color: ${props => props.active ? 'white' : '#333'};
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: ${props => props.active ? '600' : '400'};
+
+    &:hover {
+        background-color: ${props => props.active ? '#1557b0' : '#e0e0e0'};
+    }
 `;
+
 
 const ReportManagement = () => {
     const [filter, setFilter] = useState('all');
@@ -147,7 +153,7 @@ const ReportManagement = () => {
     const handleConfirm = async (id) => {
 
         if (!window.confirm('이 신고를 처리하시겠습니까?')) {
-            return; 
+            return;
         }
 
         try {

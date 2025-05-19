@@ -21,6 +21,7 @@ const styles = {
         cursor: 'pointer',
         boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
         transition: 'background 0.2s, transform 0.2s',
+        zIndex: 9999
     },
     glossaryToggleHover: {
         background: '#333', // 호버 색상 변경
@@ -38,7 +39,7 @@ const styles = {
         padding: '16px',
         display: 'flex',
         flexDirection: 'column',
-        zIndex: 1000,
+        zIndex: 10000,
         animation: 'slideIn 0.3s forwards',
     },
     glossaryHeader: {

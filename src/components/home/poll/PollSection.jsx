@@ -192,7 +192,6 @@ const PollSection = () => {
         setHasVoted(true);
       }
     } catch (err) {
-      console.error('Failed to read from local storage:', err);
     }
   }, [pollData]);
 
@@ -211,7 +210,6 @@ const PollSection = () => {
           setUserSelection(data.userSelectedOptionId);
           setSelectedOption(data.userSelectedOptionId);
           setHasVoted(true);
-          console.log('User has already voted for option:', data.userSelectedOptionId);
         } else if (data && data.id) {
           // 백업: 서버에서 userSelectedOptionId가 제공되지 않은 경우 별도 API 호출
           try {
@@ -220,16 +218,12 @@ const PollSection = () => {
               setUserSelection(userSelectionData.selectOptionId);
               setSelectedOption(userSelectionData.selectOptionId);
               setHasVoted(true);
-              console.log('Got user selection from API:', userSelectionData.selectOptionId);
             }
           } catch (selectionErr) {
-            console.error('Failed to fetch user selection:', selectionErr);
-            // 사용자 선택을 가져오는데 실패해도 치명적인 오류는 아님
           }
         }
       } catch (err) {
-        console.error('Failed to fetch policy question:', err);
-        setError('정책 질문을 불러오는데 실패했습니다. 잠시 후 다시 시도해주세요.');
+        setError('로그인 후 사용가능한 서비스입니다.');
       } finally {
         setLoading(false);
       }
@@ -286,11 +280,9 @@ const PollSection = () => {
         votedQuestions[pollData.id] = selectedOption;
         localStorage.setItem('votedQuestions', JSON.stringify(votedQuestions));
       } catch (storageErr) {
-        console.error('Failed to save vote to local storage:', storageErr);
       }
 
     } catch (err) {
-      console.error('Failed to vote:', err);
       setError('투표 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
     } finally {
       setLoading(false);

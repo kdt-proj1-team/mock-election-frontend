@@ -23,7 +23,6 @@ export const categoryAPI = {
     getCategories: async () => {
         try {
             const response = await api.get('');
-            console.log('API response:', response); // 응답 데이터 확인
 
             // API 응답 구조에 따라 적절히 처리
             if (response.data.data) {
@@ -31,11 +30,9 @@ export const categoryAPI = {
             } else if (Array.isArray(response.data)) {
                 return response.data;
             } else {
-                console.error('Unexpected API response format:', response.data);
                 return [];
             }
         } catch (error) {
-            console.error('Error fetching categories:', error);
             throw error;
         }
     },
@@ -43,7 +40,6 @@ export const categoryAPI = {
     getCategoriesByIsActive: async () => {
         try {
             const response = await api.get('/isActive');
-            console.log('API response:', response); // 응답 데이터 확인
 
             // API 응답 구조에 따라 적절히 처리
             if (response.data.data) {
@@ -51,11 +47,9 @@ export const categoryAPI = {
             } else if (Array.isArray(response.data)) {
                 return response.data;
             } else {
-                console.error('Unexpected API response format:', response.data);
                 return [];
             }
         } catch (error) {
-            console.error('Error fetching categories:', error);
             throw error;
         }
     },
@@ -69,11 +63,9 @@ export const categoryAPI = {
             if (response.data.success) {
                 return response.data.data;
             } else {
-                console.error('게시글 수 조회 실패:', response.data.message);
                 return 0;
             }
         } catch (error) {
-            console.error('Error fetching post count by category:', error);
             throw error;
         }
     },

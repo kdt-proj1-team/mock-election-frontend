@@ -12,7 +12,7 @@ import {
     Legend,
     Filler
 } from 'chart.js';
-import { Bar, Line, Doughnut } from 'react-chartjs-2';
+import { Bar, Line } from 'react-chartjs-2';
 import { adminAPI } from '../../api/AdminApi';
 import { reportAPI } from "../../api/ReportApi";
 
@@ -182,15 +182,10 @@ const AdminDashboard = () => {
                 setLoading(true);
                 const response = await adminAPI.getUserStats();
 
-                console.log("Fetching report stats...");
                 // 신고 데이터 가져오기
                 let dailyReportData = await reportAPI.getDailyStats();
                 let weeklyReportData = await reportAPI.getWeeklyStats();
                 let monthlyReportData = await reportAPI.getMonthlyStats();
-
-                console.log("Daily report data:", dailyReportData);
-                console.log("Weekly report data:", weeklyReportData);
-                console.log("Monthly report data:", monthlyReportData);
 
                 // 기본 데이터 변환 체크
                 dailyReportData = Array.isArray(dailyReportData) ? dailyReportData : [0, 0, 0, 0, 0, 0, 0];
@@ -258,8 +253,6 @@ const AdminDashboard = () => {
                     });
                 }
             } catch (error) {
-                console.error('통계 데이터를 가져오는데 실패했습니다:', error);
-                // 에러 표시 또는 기본 데이터 유지
             } finally {
                 setLoading(false);
             }
@@ -366,7 +359,6 @@ const AdminDashboard = () => {
     // getReport 함수 수정
     const getReport = () => {
         const data = statsData.report[period];
-        console.log("Report data for", period, ":", data); // 디버깅용
 
         if (!data || data.length === 0) return 0;
 
@@ -383,25 +375,143 @@ const AdminDashboard = () => {
         return 0;
     };
 
+    const styles = {
+        adminDashboard: {
+            padding: '20px',
+            backgroundColor: '#f5f7fa',
+            fontFamily: "'Pretendard', sans-serif"
+        },
+        dashboardHeader: {
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '20px'
+        },
+        dashboardTitle: {
+            fontSize: '24px',
+            margin: 0,
+            color: '#333'
+        },
+        periodSelector: {
+            display: 'flex',
+            gap: '10px'
+        },
+        periodButton: {
+            padding: '8px 16px',
+            border: '1px solid #e0e0e0',
+            backgroundColor: 'white',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            transition: 'all 0.2s'
+        },
+        activeButton: {
+            backgroundColor: '#4a6cf7',
+            color: 'white',
+            borderColor: '#4a6cf7'
+        },
+        statsCards: {
+            display: 'grid',
+            gridTemplateColumns: 'repeat(4, 1fr)',
+            gap: '20px',
+            marginBottom: '20px'
+        },
+        statCard: {
+            backgroundColor: 'white',
+            borderRadius: '10px',
+            padding: '20px',
+            boxShadow: '0 2px 10px rgba(0, 0, 0, 0.05)'
+        },
+        statCardTitle: {
+            margin: '0 0 10px 0',
+            fontSize: '16px',
+            color: '#666',
+            fontWeight: 500
+        },
+        statValue: {
+            fontSize: '28px',
+            fontWeight: 600,
+            color: '#333',
+            marginBottom: '5px'
+        },
+        chartsContainer: {
+            marginBottom: '20px'
+        },
+        chartCard: {
+            backgroundColor: 'white',
+            borderRadius: '10px',
+            padding: '20px',
+            boxShadow: '0 2px 10px rgba(0, 0, 0, 0.05)',
+            marginBottom: '20px'
+        },
+        chartTitle: {
+            margin: '0 0 15px 0',
+            fontSize: '18px',
+            color: '#333'
+        },
+        wideCard: {
+            gridColumn: 'span 2'
+        },
+        chartContainer: {
+            height: 'auto',
+            minHeight: '250px',
+            maxHeight: '350px',
+            width: '100%',
+            position: 'relative'
+        },
+        loadingIndicator: {
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            height: '100%',
+            fontSize: '16px',
+            color: '#666'
+        },
+        chartRow: {
+            display: 'grid',
+            gridTemplateColumns: 'repeat(2, 1fr)',
+            gap: '20px'
+        },
+        // 미디어 쿼리를 위한 스타일은 여기서 정의하지 않고
+        // CSS 미디어 쿼리나 별도 스타일 시트를 사용해야 함
+        '@media (max-width: 768px)': {
+            statsCards: {
+                gridTemplateColumns: 'repeat(2, 1fr)'
+            },
+            chartRow: {
+                gridTemplateColumns: '1fr'
+            }
+            // 기타 모바일 스타일...
+        }
+    };
+
     return (
-        <div className="admin-dashboard">
-            <div className="dashboard-header">
-                <h1>관리자 대시보드</h1>
-                <div className="period-selector">
+        <div style={styles.adminDashboard}>
+            <div style={styles.dashboardHeader}>
+                <h1 style={styles.dashboardTitle}>관리자 대시보드</h1>
+                <div style={styles.periodSelector}>
                     <button
-                        className={period === 'day' ? 'active' : ''}
+                        style={{
+                            ...styles.periodButton,
+                            ...(period === 'day' ? styles.activeButton : {})
+                        }}
                         onClick={() => setPeriod('day')}
                     >
                         일간
                     </button>
                     <button
-                        className={period === 'week' ? 'active' : ''}
+                        style={{
+                            ...styles.periodButton,
+                            ...(period === 'week' ? styles.activeButton : {})
+                        }}
                         onClick={() => setPeriod('week')}
                     >
                         주간
                     </button>
                     <button
-                        className={period === 'month' ? 'active' : ''}
+                        style={{
+                            ...styles.periodButton,
+                            ...(period === 'month' ? styles.activeButton : {})
+                        }}
                         onClick={() => setPeriod('month')}
                     >
                         월간
@@ -410,40 +520,40 @@ const AdminDashboard = () => {
             </div>
 
             {/* 주요 지표 카드 */}
-            <div className="stats-cards">
-                <div className="stat-card">
-                    <h3>전체 회원 수</h3>
-                    <div className="stat-value">
+            <div style={styles.statsCards}>
+                <div style={styles.statCard}>
+                    <h3 style={styles.statCardTitle}>전체 회원 수</h3>
+                    <div style={styles.statValue}>
                         {loading ? '로딩 중...' : getTotalUsers()}
                     </div>
                 </div>
-                <div className="stat-card">
-                    <h3>신규 회원 수</h3>
-                    <div className="stat-value">
+                <div style={styles.statCard}>
+                    <h3 style={styles.statCardTitle}>신규 회원 수</h3>
+                    <div style={styles.statValue}>
                         {loading ? '로딩 중...' : getNewUsers()}
                     </div>
                 </div>
-                <div className="stat-card">
-                    <h3>총 게시물 수</h3>
-                    <div className="stat-value">
+                <div style={styles.statCard}>
+                    <h3 style={styles.statCardTitle}>총 게시물 수</h3>
+                    <div style={styles.statValue}>
                         {loading ? '로딩 중...' : getTotalPosts()}
                     </div>
                 </div>
-                <div className="stat-card">
-                    <h3>신고</h3>
-                    <div className="stat-value">
+                <div style={styles.statCard}>
+                    <h3 style={styles.statCardTitle}>신고</h3>
+                    <div style={styles.statValue}>
                         {loading ? '로딩 중...' : getReport()}
                     </div>
                 </div>
             </div>
 
             {/* 차트 영역 */}
-            <div className="charts-container">
-                <div className="chart-card wide">
-                    <h2>회원 통계</h2>
-                    <div className="chart-container">
+            <div style={styles.chartsContainer}>
+                <div style={{...styles.chartCard, ...styles.wideCard}}>
+                    <h2 style={styles.chartTitle}>회원 통계</h2>
+                    <div style={styles.chartContainer}>
                         {loading ? (
-                            <div className="loading-indicator">데이터 로딩 중...</div>
+                            <div style={styles.loadingIndicator}>데이터 로딩 중...</div>
                         ) : (
                             <Line
                                 data={userChartData}
@@ -453,21 +563,21 @@ const AdminDashboard = () => {
                     </div>
                 </div>
 
-                <div className="chart-row">
-                    <div className="chart-card">
-                        <h2>게시물 수</h2>
-                        <div className="chart-container">
+                <div style={styles.chartRow}>
+                    <div style={styles.chartCard}>
+                        <h2 style={styles.chartTitle}>게시물 수</h2>
+                        <div style={styles.chartContainer}>
                             <Bar
                                 data={boardChartData}
                                 options={barChartOptions}
                             />
                         </div>
                     </div>
-                    <div className="chart-card">
-                        <h2>신고 통계</h2>
-                        <div className="chart-container">
+                    <div style={styles.chartCard}>
+                        <h2 style={styles.chartTitle}>신고 통계</h2>
+                        <div style={styles.chartContainer}>
                             {loading ? (
-                                <div className="loading-indicator">데이터 로딩 중...</div>
+                                <div style={styles.loadingIndicator}>데이터 로딩 중...</div>
                             ) : (
                                 <Bar
                                     data={reportChartData}
@@ -478,181 +588,6 @@ const AdminDashboard = () => {
                     </div>
                 </div>
             </div>
-
-            <style jsx>{`
-                .admin-dashboard {
-                    padding: 20px;
-                    background-color: #f5f7fa;
-                    font-family: 'Pretendard', sans-serif;
-                }
-
-                .dashboard-header {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    margin-bottom: 20px;
-                }
-
-                .dashboard-header h1 {
-                    font-size: 24px;
-                    margin: 0;
-                    color: #333;
-                }
-
-                .period-selector {
-                    display: flex;
-                    gap: 10px;
-                }
-
-                .period-selector button {
-                    padding: 8px 16px;
-                    border: 1px solid #e0e0e0;
-                    background-color: white;
-                    border-radius: 4px;
-                    cursor: pointer;
-                    transition: all 0.2s;
-                }
-
-                .period-selector button.active {
-                    background-color: #4a6cf7;
-                    color: white;
-                    border-color: #4a6cf7;
-                }
-
-                .stats-cards {
-                    display: grid;
-                    grid-template-columns: repeat(4, 1fr);
-                    gap: 20px;
-                    margin-bottom: 20px;
-                }
-
-                .stat-card {
-                    background-color: white;
-                    border-radius: 10px;
-                    padding: 20px;
-                    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-                }
-
-                .stat-card h3 {
-                    margin: 0 0 10px 0;
-                    font-size: 16px;
-                    color: #666;
-                    font-weight: 500;
-                }
-
-                .stat-value {
-                    font-size: 28px;
-                    font-weight: 600;
-                    color: #333;
-                    margin-bottom: 5px;
-                }
-
-                .stat-change {
-                    font-size: 14px;
-                    font-weight: 500;
-                }
-
-                .stat-change.positive {
-                    color: #34c759;
-                }
-
-                .stat-change.negative {
-                    color: #ff3b30;
-                }
-
-                .charts-container {
-                    margin-bottom: 20px;
-                }
-
-                .chart-card {
-                    background-color: white;
-                    border-radius: 10px;
-                    padding: 20px;
-                    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-                    margin-bottom: 20px;
-                }
-
-                .chart-card h2 {
-                    margin: 0 0 15px 0;
-                    font-size: 18px;
-                    color: #333;
-                }
-
-                .chart-card.wide {
-                    grid-column: span 2;
-                }
-
-                .chart-container {
-                    height: auto;
-                    min-height: 250px;
-                    max-height: 350px;
-                    width: 100%;
-                    position: relative;
-                }
-
-                .loading-indicator {
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    height: 100%;
-                    font-size: 16px;
-                    color: #666;
-                }
-
-                .chart-row {
-                    display: grid;
-                    grid-template-columns: repeat(2, 1fr);
-                    gap: 20px;
-                }
-
-                @media (max-width: 768px) {
-                    .stats-cards {
-                        grid-template-columns: repeat(2, 1fr);
-                    }
-
-                    .chart-row {
-                        grid-template-columns: 1fr;
-                    }
-
-                    .chart-container {
-                        min-height: 200px;
-                    }
-
-                    .dashboard-header {
-                        flex-direction: column;
-                        align-items: flex-start;
-                    }
-
-                    .dashboard-header h1 {
-                        margin-bottom: 10px;
-                    }
-
-                    .period-selector {
-                        width: 100%;
-                        justify-content: space-between;
-                    }
-
-                    .period-selector button {
-                        flex: 1;
-                        text-align: center;
-                        padding: 8px 0;
-                    }
-                }
-
-                @media (max-width: 480px) {
-                    .stats-cards {
-                        grid-template-columns: 1fr;
-                    }
-
-                    .stat-card {
-                        padding: 15px;
-                    }
-
-                    .stat-value {
-                        font-size: 24px;
-                    }
-                }
-            `}</style>
         </div>
     );
 };

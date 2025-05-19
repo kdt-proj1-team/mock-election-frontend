@@ -332,7 +332,6 @@ const MyPage = () => {
                 setUserInfo(data);
                 setNickname(data.nickname);
             } catch (err) {
-                console.error('사용자 정보 조회 실패:', err);
                 navigate('/login');
             } finally {
                 setIsLoading(false);
@@ -399,7 +398,6 @@ const MyPage = () => {
             setSelectedFile(null);
             setNicknameError('');
         } catch (err) {
-            console.error('정보 수정 실패:', err);
             alert('정보 수정 중 오류가 발생했습니다.');
         } finally {
             setIsLoading(false);
@@ -417,7 +415,6 @@ const MyPage = () => {
                     alert('회원 탈퇴 중 오류 발생: ' + (result.error || '알 수 없는 오류'));
                 }
             } catch (err) {
-                console.error('회원 탈퇴 실패:', err);
                 alert('회원 탈퇴 중 오류 발생');
             } finally {
                 setIsLoading(false);

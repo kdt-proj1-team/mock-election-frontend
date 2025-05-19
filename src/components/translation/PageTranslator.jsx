@@ -173,7 +173,6 @@ function PageTranslator({ inHeader = false }) {
             `;
 
             const elements = document.querySelectorAll(selector);
-            console.log('잠재적 번역 대상 요소 수:', elements.length);
 
             // 원본 콘텐츠 저장
             const originals = {};
@@ -230,13 +229,11 @@ function PageTranslator({ inHeader = false }) {
 
             // 번역할 텍스트가 없으면 종료
             if (validElementCount === 0) {
-                console.log('번역할 텍스트를 찾을 수 없습니다.');
                 setIsLoading(false);
                 setError('번역할 텍스트를 찾을 수 없습니다. 페이지 내용을 확인해주세요.');
                 return;
             }
 
-            console.log(`${validElementCount}개의 텍스트 요소에 대해 번역을 시작합니다.`);
 
             // 큰 페이지의 경우 배치로 처리
             const BATCH_SIZE = 50; // 한 번에 처리할 텍스트 개수
@@ -266,12 +263,10 @@ function PageTranslator({ inHeader = false }) {
                 const progressPercentage = Math.round((translatedCount / textsToTranslate.length) * 100);
                 setTranslateProgress(progressPercentage);
 
-                console.log(`번역 진행 중: ${translatedCount}/${textsToTranslate.length} 완료 (${progressPercentage}%)`);
             }
 
             setIsTranslated(true);
         } catch (err) {
-            console.error('페이지 번역 오류:', err);
             setError('번역 중 오류가 발생했습니다: ' + (err.response?.data?.error || err.message));
         } finally {
             setIsLoading(false);

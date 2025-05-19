@@ -74,16 +74,6 @@ export const adminAPI = {
         } catch (error) {
             throw error;
         }
-    },
-
-    getPostCount:async () => {
-        try {
-            const response = await api.get('/postCount');
-            console.log(response.data);
-            return response.data;
-        } catch (error) {
-            throw error;
-        }
     }
 
 
