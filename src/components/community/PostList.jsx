@@ -212,6 +212,7 @@ const NoData = styled.div`
 
 const PostList = () => {
   const navigate = useNavigate();
+  const userId = localStorage.getItem("userId");
   const [searchParams, setSearchParams] = useSearchParams();
   const { selectedCategory } = useCategoryStore();
 
@@ -313,7 +314,16 @@ const PostList = () => {
               <FaSearch />
             </SearchButton>
           </SearchBox>
-          <WriteButton onClick={() => navigate("/community/board/write")}>글쓰기</WriteButton>
+          <WriteButton onClick={() => {
+            if (!userId) {
+              if (window.confirm("로그인 후 이용 가능한 기능입니다.\n로그인하시겠습니까?")) {
+                navigate("/login");
+              }
+              return;
+            }else {
+              navigate("/community/board/write")
+            }
+          }}>글쓰기</WriteButton>
         </Controls>
       </Header>
 
