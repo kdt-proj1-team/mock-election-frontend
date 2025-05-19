@@ -362,6 +362,10 @@ const PostList = () => {
             </TableRow>
           ))
         }
+
+        {posts.length === 0 && pendingPosts === null && (
+          <NoData>검색 결과가 없습니다.</NoData>
+        )}
       </Table>
 
       <Pagination>
