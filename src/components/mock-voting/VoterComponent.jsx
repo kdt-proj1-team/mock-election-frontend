@@ -173,11 +173,8 @@ const ErrorBox = styled.div`
 
 // 대체 통계 생성 함수
 const generateFallbackStats = (candidates) => {
-    // 디버깅 로그 추가
-    console.log("[VoterComponent] 대체 통계 생성, 후보자 목록:", candidates);
 
     if (!Array.isArray(candidates) || candidates.length === 0) {
-        console.warn("[VoterComponent] 유효한 후보자 데이터 없음, 기본 통계 반환");
         return {
             votes: [],
             participation: 0,
@@ -241,7 +238,7 @@ const VoterComponent = ({ election, candidates, onBackClick }) => {
                 const statsData = await votingAPI.getVoteStats(election.sgId);
                 setVoteStats(statsData);
             } catch (error) {
-                console.error('투표 통계 조회 실패:', error);
+                // console.error('투표 통계 조회 실패:', error);
             } finally {
                 setLoading(false);
             }
