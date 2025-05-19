@@ -5,7 +5,7 @@ import useAuthStore from '../store/authStore';
 import useWalletStore from '../store/walletStore';
 import MetaMaskUtil from '../utils/MetaMaskUtil';
 import PageTranslator from './translation/PageTranslator';
-
+import logo from '../../src/assets/images/mock-voting/logo.png'
 // Neumorphism 스타일 적용
 const HeaderContainer = styled.header`
   display: flex;
@@ -19,14 +19,33 @@ const HeaderContainer = styled.header`
   z-index: 100;
 `;
 
+const DisclaimerBar = styled.div`
+  background-color: #f9f9f9;
+  color: #555;
+  font-size: 14px;
+  padding: 8px 16px;
+  text-align: center;
+  width:305px;
+  border-bottom: 1px solid #ddd;
+  strong {
+    font-weight: bold;
+    color: #000000;
+  }
+`;
+
+
 const Logo = styled.h1`
   font-size: 22px;
   font-weight: 700;
   color: #333333;
   margin: 0;
   cursor: pointer;
-  span {
-    color: #999999;
+
+  img {
+    width: 150px;
+    height: 60px;
+    object-fit: contain;
+    margin-right: 8px;
   }
 `;
 
@@ -464,8 +483,11 @@ const Header = () => {
 
   return (
       <HeaderContainer>
-        <Logo onClick={() => navigate('/')}>선견<span>지표</span></Logo>
 
+        <Logo onClick={() => navigate('/')}><img src={logo} alt="logo"/> </Logo>
+        <DisclaimerBar>
+          본 사이트는 <strong>교육 목적</strong>으로 제작된 모의 플랫폼이며, 특정 정당이나 후보를 지지하지 않습니다.
+        </DisclaimerBar>
         <MobileMenuButton onClick={toggleMobileMenu}>
           ☰
         </MobileMenuButton>

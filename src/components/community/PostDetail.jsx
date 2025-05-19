@@ -4,10 +4,12 @@ import { useNavigate, useParams, Link } from "react-router-dom";
 import styled from 'styled-components';
 import { FaPencilAlt, FaTrash, FaArrowUp, FaArrowDown, FaFlag, FaReply, FaPen, FaHome, FaList, FaEye, FaCommentDots } from 'react-icons/fa';
 import { postAPI } from '../../api/PostApi';
+import { reportAPI } from '../../api/ReportApi';
 import { formatDateTime } from '../../utils/DateFormatter';
 import CommentSection from './comment/CommentSection';
 import { communityVoteAPI } from '../../api/CommunityVoteApi';
 import ReportModal from '../report/ReportModal';
+import useCategoryStore from '../../store/categoryStore';
 
 // #region styled-components
 const Container = styled.div`
@@ -279,6 +281,7 @@ const PostDetail = () => {
   const [showReportModal, setShowReportModal] = useState(false);
   const userId = localStorage.getItem("userId");
   const isAuthor = post && post.authorId === userId;
+  const { selectedCategory } = useCategoryStore();
 
   // 게시글 삭제 핸들러
   const handleDelete = async () => {
@@ -328,6 +331,28 @@ const PostDetail = () => {
       console.error("vote error", err);
     }
   };
+
+  // 신고 버튼 클릭 핸들러
+  const handleReportClick = async () => {
+    if (!userId) {
+      const confirmed = window.confirm("로그인 후 이용 가능한 기능입니다.\n로그인하시겠습니까?");
+      if (confirmed) navigate("/login");
+      return;
+    }
+
+    const alreadyReported = await reportAPI.checkExists({
+      targetType: "POST",
+      targetId: post.id
+    });
+    
+    if (alreadyReported) {
+      alert("이미 신고한 대상입니다.");
+      return;
+    }
+
+    setShowReportModal(true);
+  };
+
 
   if (!post) return null;
   return (
@@ -381,18 +406,20 @@ const PostDetail = () => {
           <VoteButton type="down" active={post.userVote === -1} onClick={() => handleVote(-1)}><FaArrowDown /></VoteButton>
         </VoteButtons>
         {!isAuthor && (
-          <ReportButton onClick={() => setShowReportModal(true)}><FaFlag /> 신고</ReportButton>
+          <ReportButton onClick={() => handleReportClick()}><FaFlag /> 신고</ReportButton>
         )}
         {showReportModal && (
           <ReportModal
             onClose={() => setShowReportModal(false)}
             authorNickname={post.authorNickname}
             contentText={post.title}
+            targetType="POST"
+            targetId={post.id}
           />
         )}
       </Footer>
 
-      <CommentSection postId={post.id} commentCount={post.commentCount}></CommentSection>
+      <CommentSection postId={post.id} commentCount={post.commentCount} anonymous={post.anonymous}></CommentSection>
 
       <PostActionsBar>
         <LeftActions>
@@ -400,7 +427,7 @@ const PostDetail = () => {
         </LeftActions>
         <RightActions>
           <GrayBtn onClick={() => navigate("/community")}><FaHome /> 커뮤니티 메인</GrayBtn>
-          <GrayBtn as={Link} to={`/community?category=${post.categoryCode}`}><FaList /> 목록</GrayBtn>
+          <GrayBtn as={Link} to={`/community?category=${selectedCategory?.code || 'all'}`}><FaList /> 목록</GrayBtn>
           <GrayBtn><FaArrowUp /> TOP</GrayBtn>
         </RightActions>
       </PostActionsBar>

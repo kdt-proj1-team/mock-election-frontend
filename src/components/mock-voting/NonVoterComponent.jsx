@@ -259,7 +259,7 @@ const NonVoterComponent = ({ election, candidates, onVoteComplete, onBackClick, 
                     <ModalContent onClick={(e) => e.stopPropagation()}>
                         <ModalTitle>투표 확인</ModalTitle>
                         <ModalBody>
-                            <p>다음 정당에게 투표하시겠습니까?</p>
+                            <p>다음 공약에 투표하시겠습니까?</p>
                             <SelectedPartyInfo>
                                 <strong>{selectedCandidate.partyName}</strong>
                             </SelectedPartyInfo>

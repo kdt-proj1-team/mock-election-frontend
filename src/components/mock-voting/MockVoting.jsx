@@ -229,7 +229,6 @@ const MockVoting = () => {
                     );
                 }
             } catch (error) {
-                console.error('사용자 투표 상태 확인 중 오류:', error);
             } finally {
                 setLoading(false);
             }

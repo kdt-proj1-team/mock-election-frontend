@@ -137,10 +137,6 @@ const MockVotingDetail = () => {
     const [checkingVoteStatus, setCheckingVoteStatus] = useState(true);
     const [showStatsAnyway, setShowStatsAnyway] = useState(false);
 
-    // 디버깅용 로그 출력
-    const logDebug = (message, data) => {
-        console.log(`[MockVotingDetail] ${message}:`, data);
-    };
 
     // 가상투표 목록으로 돌아가기
     const handleBackToList = () => {
@@ -149,14 +145,13 @@ const MockVotingDetail = () => {
 
     // 투표 완료 처리 핸들러
     const handleVoteComplete = (result) => {
-        logDebug('투표 완료', result);
+
         setHasVoted(true);
 
         // 전역 상태 업데이트 (authStore의 isElection 상태 업데이트)
         try {
             authAPI.updateElectionStatus(true)
                 .then(() => {
-                    console.log('선거 참여 상태 업데이트 완료');
                     // 토큰 잔액 새로고침 (투표 후 변경된 잔액 반영)
                     refreshTokenBalance();
                 })
@@ -186,9 +181,9 @@ const MockVotingDetail = () => {
         // 후보자 배열 생성 (mainPolicies에 정책 제목들 저장)
         const candidatesArray = Object.values(groupedByParty).map((party, index) => ({
             id: index + 1,
-            candidateLabel: `후보${index + 1}`,
+            candidateLabel: `공약${index + 1}`,
             partyName: party.partyName,
-            position: `${party.partyName} 후보`,
+            position: `${party.partyName} 공약`,
             mainPolicies: party.policies // policies를 mainPolicies로 매핑
         }));
 
@@ -234,7 +229,6 @@ const MockVotingDetail = () => {
             try {
                 // 지갑 상태 확인 (연결 여부, 토큰 잔액)
                 const walletStatus = await checkWalletStatus();
-                logDebug('지갑 상태 확인 결과', walletStatus);
 
                 // 이미 투표한 사용자라면 토큰 체크 건너뛰기
                 if (hasVoted) {
@@ -248,8 +242,6 @@ const MockVotingDetail = () => {
                     return;
                 }
 
-                // 토큰 잔액 확인
-                logDebug('현재 토큰 잔액', tokenBalance);
                 if (tokenBalance < 1) {
                     setTokenError(`투표하려면 최소 1개의 토큰이 필요합니다. 현재 잔액: ${tokenBalance}개`);
                     setHasToken(false);
@@ -259,7 +251,6 @@ const MockVotingDetail = () => {
                 setHasToken(true);
                 setTokenError(null);
             } catch (error) {
-                console.error('지갑 상태 확인 중 오류:', error);
                 setTokenError("지갑 상태를 확인할 수 없습니다.");
                 setHasToken(false);
             }
@@ -292,7 +283,6 @@ const MockVotingDetail = () => {
                 // 투표 가능 여부 확인 - 새로운 API 사용
                 try {
                     const eligibility = await votingAPI.checkVotingEligibility(basicElection.sgId);
-                    logDebug('투표 가능 여부 확인 결과', eligibility);
 
                     setHasVoted(eligibility.hasVoted);
                     setHasToken(eligibility.canVote || eligibility.hasVoted); // 이미 투표했으면 토큰 있는 것으로 간주
@@ -301,7 +291,6 @@ const MockVotingDetail = () => {
                         setTokenError("투표하려면 지갑을 연결하고 충분한 토큰이 필요합니다.");
                     }
                 } catch (eligibilityError) {
-                    console.error('투표 가능 여부 확인 중 오류:', eligibilityError);
 
                     // 이전 방식으로 대체 - 사용자 정보와 투표 상태 확인
                     try {
@@ -310,22 +299,18 @@ const MockVotingDetail = () => {
                         const userData = userInfoResponse.data.data;
 
                         if (userData && userData.isElection === true) {
-                            console.log('사용자가 이미 투표했음 (사용자 정보 기준)');
                             setHasVoted(true);
                         } else {
                             // 선거 ID로 투표 상태 추가 확인
                             const votingStatus = await votingAPI.checkVoteStatus(basicElection.sgId);
-                            console.log('투표 API 확인 결과:', votingStatus);
 
                             if (votingStatus === true) {
-                                console.log('사용자가 이미 투표했음 (투표 API 기준)');
                                 setHasVoted(true);
                             } else {
                                 setHasVoted(false);
                             }
                         }
                     } catch (statusError) {
-                        console.error('투표 상태 확인 중 오류:', statusError);
                         // 오류 발생 시 기본값으로 false 설정
                         setHasVoted(false);
                     }
@@ -333,26 +318,21 @@ const MockVotingDetail = () => {
 
                 // 정당별 정책 데이터 가져오기 (투표 여부와 관계없이 항상 로드)
                 try {
-                    console.log('정당 정책 데이터 요청', basicElection.sgId);
                     const policies = await votingAPI.getPartyPoliciesByElectionId(basicElection.sgId);
-                    console.log('정당 정책 데이터 응답', policies);
 
                     // 정책 데이터로 후보자 배열 생성
                     if (Array.isArray(policies) && policies.length > 0) {
                         const candidatesArray = createCandidatesWithPolicies(policies);
-                        console.log('생성된 후보자 배열 (정책 포함)', candidatesArray);
                         setCandidates(candidatesArray);
                     } else {
                         throw new Error('정당 정책 데이터가 없습니다');
                     }
                 } catch (policyError) {
-                    console.error('정당 정책 데이터를 가져오는 중 오류 발생:', policyError);
                     // 오류 발생 시 샘플 데이터 사용
                     const sampleCandidates = createSampleCandidatesWithPolicies();
                     setCandidates(sampleCandidates);
                 }
             } catch (error) {
-                console.error('선거 데이터 로드 중 오류 발생:', error);
                 setError('선거 정보를 불러오는 중 오류가 발생했습니다.');
                 // 에러 시 샘플 데이터 사용
                 const sampleCandidates = createSampleCandidatesWithPolicies();
@@ -397,7 +377,6 @@ const MockVotingDetail = () => {
 
     // 후보자가 없는 경우
     if (!candidates || candidates.length === 0) {
-        logDebug('후보자 데이터 없음', { candidates });
         return (
             <PageContainer>
                 <ContentContainer>
@@ -448,24 +427,24 @@ const MockVotingDetail = () => {
                 )}
 
                 {/* 디버그 정보 */}
-                {process.env.NODE_ENV === 'development' && (
-                    <div style={{
-                        margin: '20px 0',
-                        padding: '10px',
-                        border: '1px solid #ccc',
-                        borderRadius: '5px',
-                        fontSize: '12px',
-                        backgroundColor: '#f9f9f9'
-                    }}>
-                        <p><strong>디버그 정보:</strong></p>
-                        <p>투표 여부: {hasVoted ? '예' : '아니오'}</p>
-                        <p>지갑 연결: {isWalletConnected ? '예' : '아니오'}</p>
-                        <p>지갑 타입: {walletType || '없음'}</p>
-                        <p>토큰 잔액: {tokenBalance}</p>
-                        <p>토큰 있음: {hasToken ? '예' : '아니오'}</p>
-                        <p>후보자 수: {candidates.length}</p>
-                    </div>
-                )}
+                {/*{process.env.NODE_ENV === 'development' && (*/}
+                {/*    <div style={{*/}
+                {/*        margin: '20px 0',*/}
+                {/*        padding: '10px',*/}
+                {/*        border: '1px solid #ccc',*/}
+                {/*        borderRadius: '5px',*/}
+                {/*        fontSize: '12px',*/}
+                {/*        backgroundColor: '#f9f9f9'*/}
+                {/*    }}>*/}
+                {/*        <p><strong>디버그 정보:</strong></p>*/}
+                {/*        <p>투표 여부: {hasVoted ? '예' : '아니오'}</p>*/}
+                {/*        <p>지갑 연결: {isWalletConnected ? '예' : '아니오'}</p>*/}
+                {/*        <p>지갑 타입: {walletType || '없음'}</p>*/}
+                {/*        <p>토큰 잔액: {tokenBalance}</p>*/}
+                {/*        <p>토큰 있음: {hasToken ? '예' : '아니오'}</p>*/}
+                {/*        <p>후보자 수: {candidates.length}</p>*/}
+                {/*    </div>*/}
+                {/*)}*/}
 
                 {/* 컴포넌트 렌더링 조건 명확화 */}
                 {hasVoted ? (

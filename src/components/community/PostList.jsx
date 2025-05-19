@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
-import { format, formatDistanceToNowStrict, isBefore, subHours } from 'date-fns';
-import { ko } from 'date-fns/locale';
 import styled from "styled-components";
+import { FaSearch } from "react-icons/fa";
 import useCategoryStore from "../../store/categoryStore";
 import { postAPI } from "../../api/PostApi";
+import { formatPostTimeSmart } from "../../utils/DateFormatter";
 
 // #region styled-components
 const Section = styled.section`
@@ -22,17 +22,24 @@ const Header = styled.div`
   border-bottom: 1px solid #f0f0f0;
 `;
 
+const CategoryLabel = styled.div`
+  padding-left: 3px;
+  font-size: 20px;
+  font-weight: 600;
+`;
+
 const Controls = styled.div`
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 5px;
 `;
 
 const Select = styled.select`
-  padding: 8px 12px;
+  padding: 8px 8px;
   border: 1px solid #e1e1e1;
   border-radius: 4px;
-  font-size: 14px;
+  font-size: 13px;
+  cursor: pointer;
 `;
 
 const SearchBox = styled.div`
@@ -62,6 +69,7 @@ const WriteButton = styled.button`
   color: white;
   border: none;
   padding: 8px 16px;
+  margin-left: 20px;
   border-radius: 4px;
   font-size: 14px;
   cursor: pointer;
@@ -117,7 +125,7 @@ const Title = styled(Column)`
     text-decoration: none;
 
     &:hover {
-      text-decoration: underline;
+      font-weight: bold;
     }
   }
 `;
@@ -150,6 +158,9 @@ const NoticeTag = styled.span`
 const CommentCount = styled.span`
   color: #3182f6;
   font-size: 12px;
+  position: relative;
+  top: -1px;
+  font-weight: normal !important;
 `;
 
 const NewTag = styled.span`
@@ -199,18 +210,6 @@ const NoData = styled.div`
 `;
 // #endregion
 
-// 날짜 변환
-const formatPostTime = (isoString) => {
-  const createdAt = new Date(isoString);
-  const twentyFourHoursAgo = subHours(new Date(), 24);
-
-  if (isBefore(twentyFourHoursAgo, createdAt)) {
-    return formatDistanceToNowStrict(createdAt, { addSuffix: true, locale: ko });
-  } else {
-    return format(createdAt, "yyyy.MM.dd");
-  }
-};
-
 const PostList = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -220,6 +219,9 @@ const PostList = () => {
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const searchRef = useRef(null);
+  const [searchType, setSearchType] = useState("title_content"); // 기본값: 제목 + 내용
+  const [searchKeyword, setSearchKeyword] = useState(searchParams.get("search") || "");
+
 
   useEffect(() => {
     const rawPage = parseInt(searchParams.get("page"));
@@ -244,7 +246,13 @@ const PostList = () => {
 
     const fetchPosts = async () => {
       try {
-        const data = await postAPI.getPostsByCategory(selectedCategory.code, page, 10); // 10은 페이지 당 게시글 수
+        const data = await postAPI.getPostsByCategory(
+          selectedCategory.code,
+          page,
+          10, // 10은 페이지 당 게시글 수
+          searchParams.get("searchType") || "title_content",
+          searchParams.get("search") || ""
+        );
         setPosts(data.content);
         setTotalPages(data.totalPages);
 
@@ -256,7 +264,7 @@ const PostList = () => {
     if (selectedCategory) {
       fetchPosts();
     }
-  }, [selectedCategory, page]);
+  }, [selectedCategory, page, searchParams]);
 
 
   const handlePageClick = (newPage) => {
@@ -271,21 +279,42 @@ const PostList = () => {
     }
   };
 
+  // 검색 핸들러
+  const handleSearch = () => {
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set("page", 1); // 검색 시 1페이지로
+    newParams.set("searchType", searchType);
+    newParams.set("search", searchKeyword);
+    setSearchParams(newParams);
+  };
 
   return (
     <Section>
       <Header>
+        <CategoryLabel>{selectedCategory?.name}</CategoryLabel>
+
         <Controls>
+          <Select value={searchType} onChange={(e) => setSearchType(e.target.value)}>
+            <option value="title_content">제목 + 내용</option>
+            <option value="title">제목</option>
+            <option value="content">내용</option>
+            <option value="author">작성자</option>
+          </Select>
+
           <SearchBox ref={searchRef}>
-            <SearchInput placeholder="검색어를 입력하세요" />
-            <SearchButton>
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="18" height="18">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
+            <SearchInput placeholder="검색어를 입력하세요"
+              value={searchKeyword}
+              onChange={(e) => setSearchKeyword(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleSearch();
+              }}
+            />
+            <SearchButton onClick={handleSearch}>
+              <FaSearch />
             </SearchButton>
           </SearchBox>
+          <WriteButton onClick={() => navigate("/community/board/write")}>글쓰기</WriteButton>
         </Controls>
-        <WriteButton onClick={() => navigate("/community/board/write")}>글쓰기</WriteButton>
       </Header>
 
       <Table>
@@ -312,7 +341,7 @@ const PostList = () => {
                 </Link>
               </Title>
               <Author>{post.authorNickname}</Author>
-              <DateCol>{formatPostTime(post.createdAt)}</DateCol>
+              <DateCol>{formatPostTimeSmart(post.createdAt)}</DateCol>
               <View>{post.views}</View>
             </TableRow>
           ))

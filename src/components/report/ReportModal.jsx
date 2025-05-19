@@ -3,7 +3,9 @@ import { useEffect } from 'react';
 import { FaChevronDown, FaTimes } from 'react-icons/fa';
 import styled from 'styled-components';
 import { reportTypeAPI } from '../../api/ReportTypeApi';
+import { reportAPI } from '../../api/ReportApi';
 
+// #region styled-components;
 const Overlay = styled.div`
   position: fixed;
   inset: 0;
@@ -167,108 +169,123 @@ const SubmitButton = styled.button`
     background-color: #1f2937;
   }
 `;
+// #endregion
 
-const ReportModal = ({ onClose, authorNickname, contentText }) => {
-    const [selectedReason, setSelectedReason] = useState(null);
-    const [customReason, setCustomReason] = useState('');
-    const [openDescription, setOpenDescription] = useState(null);
-    const [reportTypes, setReportTypes] = useState([]);
+const ReportModal = ({ onClose, authorNickname, contentText, targetType, targetId }) => {
+  const [selectedReportType, setSelectedReportType] = useState(null);
+  const [reasonInput, setReasonInput] = useState('');
+  const [openDescription, setOpenDescription] = useState(null);
+  const [reportTypes, setReportTypes] = useState([]);
 
-    useEffect(() => {
-        const fetchReportTypes = async () => {
-            try {
-                const data = await reportTypeAPI.getReportTypes();
-                setReportTypes(data);
-            } catch (error) {
-                console.error('신고 유형 불러오기 실패:', error);
-            }
-        };
-        fetchReportTypes();
-    }, []);
+  useEffect(() => {
+    const fetchReportTypes = async () => {
+      try {
+        const data = await reportTypeAPI.getReportTypes();
+        setReportTypes(data);
+      } catch (error) {
+        console.error('신고 유형 불러오기 실패:', error);
+      }
+    };
+    fetchReportTypes();
+  }, []);
 
-    const toggleDescription = (id) => {
-        setOpenDescription(openDescription === id ? null : id);
+  const toggleDescription = (id) => {
+    setOpenDescription(openDescription === id ? null : id);
+  };
+
+  const handleReportTypeSelect = (reportType) => {
+    setSelectedReportType(reportType);
+  };
+
+  const handleSubmit = async () => {
+    if (!selectedReportType) {
+      alert('신고 사유를 선택해주세요.');
+      return;
+    }
+    if (selectedReportType.code === 'OTHER' && !reasonInput.trim()) {
+      alert("신고 사유를 입력해주세요.");
+      return;
+    }
+
+    if (!window.confirm("신고는 관리자 검토 후 처리되며, 취소할 수 없습니다.\n신고를 진행하시겠습니까?")) {
+      return;
+    }
+
+    const reportData = {
+      reportTypeId: selectedReportType.id,
+      targetType: targetType,
+      targetId: targetId,
+      reason: selectedReportType.code === 'OTHER' ? reasonInput : null
     };
 
-    const handleReasonSelect = (reportType) => {
-        setSelectedReason(reportType);
-    };
+    try {
+      await reportAPI.create(reportData);
+      onClose();
+    } catch (error) {
+      console.error("신고 실패:", error);
+      alert("신고 처리 중 문제가 발생했습니다.");
+    }
+  };
 
-    const handleSubmit = () => {
-        const selectedReasonData = reportTypes.find((r) => r.id === selectedReason);
-        if (!selectedReason) {
-            alert('신고 사유를 선택해주세요.');
-            return;
-        }
+  return (
+    <Overlay>
+      <ModalContainer>
+        <ModalHeader>
+          <Title>신고하기</Title>
+          <CloseButton onClick={onClose}><FaTimes size={20} /></CloseButton>
+        </ModalHeader>
 
-        const reportData = {
-            reasonId: selectedReason.id,
-            reasonText: selectedReasonData?.name,
-            customReason: selectedReason === 'OTHER' ? customReason : '',
-        };
+        <InfoSection>
+          <InfoRow>
+            <InfoLabel>작성자</InfoLabel>
+            <InfoValue>{authorNickname}</InfoValue>
+          </InfoRow>
+          <InfoRow>
+            <InfoLabel>내용</InfoLabel>
+            <InfoValue>{contentText}</InfoValue>
+          </InfoRow>
+        </InfoSection>
 
-        onClose();
-    };
+        <Section>
+          <SectionTitle>신고사유</SectionTitle>
+          {reportTypes.map((reportType) => (
+            <ReasonCard key={reportType.id}>
+              <ReasonHeader onClick={() => handleReportTypeSelect(reportType)}>
+                <RadioCircle selected={selectedReportType?.id === reportType.id}>
+                  {selectedReportType?.id === reportType.id && <InnerDot />}
+                </RadioCircle>
+                <ReasonName>{reportType.name}</ReasonName>
+                <DescriptionButton onClick={(e) => {
+                  e.stopPropagation();
+                  toggleDescription(reportType.id);
+                }}>
+                  <FaChevronDown
+                    size={18}
+                    style={{
+                      transform: openDescription === reportType.id ? 'rotate(180deg)' : 'rotate(0deg)',
+                      transition: 'transform 0.2s',
+                      color: '#9ca3af',
+                    }}
+                  />
+                </DescriptionButton>
+              </ReasonHeader>
+              {openDescription === reportType.id && <Description>{reportType.description}</Description>}
+            </ReasonCard>
+          ))}
 
-    return (
-        <Overlay>
-            <ModalContainer>
-                <ModalHeader>
-                    <Title>신고하기</Title>
-                    <CloseButton onClick={onClose}><FaTimes size={20} /></CloseButton>
-                </ModalHeader>
+          {selectedReportType?.code === 'OTHER' && (
+            <Textarea
+              placeholder="신고 사유를 직접 입력해주세요."
+              value={reasonInput}
+              onChange={(e) => setReasonInput(e.target.value)}
+            />
+          )}
 
-                <InfoSection>
-                    <InfoRow>
-                        <InfoLabel>작성자</InfoLabel>
-                        <InfoValue>{authorNickname}</InfoValue>
-                    </InfoRow>
-                    <InfoRow>
-                        <InfoLabel>내용</InfoLabel>
-                        <InfoValue>{contentText}</InfoValue>
-                    </InfoRow>
-                </InfoSection>
-
-                <Section>
-                    <SectionTitle>신고사유</SectionTitle>
-                    {reportTypes.map((reportType) => (
-                        <ReasonCard key={reportType.id}>
-                            <ReasonHeader onClick={() => handleReasonSelect(reportType)}>
-                                <RadioCircle selected={selectedReason?.id === reportType.id}>
-                                    {selectedReason?.id === reportType.id && <InnerDot />}
-                                </RadioCircle>
-                                <ReasonName>{reportType.name}</ReasonName>
-                                <DescriptionButton onClick={(e) => {
-                                            e.stopPropagation();
-                                            toggleDescription(reportType.id);
-                                        }}>
-                                    <FaChevronDown
-                                        size={18}
-                                        style={{
-                                            transform: openDescription === reportType.id ? 'rotate(180deg)' : 'rotate(0deg)',
-                                            transition: 'transform 0.2s',
-                                            color: '#9ca3af',
-                                        }}
-                                    />
-                                </DescriptionButton>
-                            </ReasonHeader>
-                            {openDescription === reportType.id && <Description>{reportType.description}</Description>}
-                        </ReasonCard>
-                    ))}
-
-                    {selectedReason?.code === 'OTHER' && (
-                        <Textarea
-                            placeholder="신고 사유를 직접 입력해주세요."
-                            value={customReason}
-                            onChange={(e) => setCustomReason(e.target.value)}
-                        />
-                    )}
-
-                    <SubmitButton onClick={handleSubmit}>신고하기</SubmitButton>
-                </Section>
-            </ModalContainer>
-        </Overlay>
-    );
+          <SubmitButton onClick={handleSubmit}>신고하기</SubmitButton>
+        </Section>
+      </ModalContainer>
+    </Overlay>
+  );
 };
 
 export default ReportModal;

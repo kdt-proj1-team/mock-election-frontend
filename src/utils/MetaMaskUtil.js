@@ -16,11 +16,6 @@ class MetaMaskUtil {
      */
     static async connectMetaMask() {
 
-        console.log("[WalletStore] 환경 변수 확인:");
-        console.log("- REACT_APP_BLOCKCHAIN_CHAIN_ID:", process.env.REACT_APP_BLOCKCHAIN_CHAIN_ID);
-        console.log("- REACT_APP_BLOCKCHAIN_RPC_URL:", process.env.REACT_APP_BLOCKCHAIN_RPC_URL);
-        console.log("- REACT_APP_TOKEN_CONTRACT_ADDRESS:", process.env.REACT_APP_TOKEN_CONTRACT_ADDRESS);
-
         if (!this.isMetaMaskInstalled()) {
             throw new Error("메타마스크가 설치되어 있지 않습니다. 메타마스크를 설치하세요.");
         }
@@ -36,7 +31,6 @@ class MetaMaskUtil {
 
             return accounts[0]; // 연결된 첫 번째 계정 주소 반환
         } catch (error) {
-            console.error("메타마스크 연결 오류:", error);
             throw error;
         }
     }
@@ -53,7 +47,6 @@ class MetaMaskUtil {
             const accounts = await window.ethereum.request({ method: 'eth_accounts' });
             return accounts;
         } catch (error) {
-            console.error("계정 조회 오류:", error);
             throw error;
         }
     }
@@ -68,10 +61,8 @@ class MetaMaskUtil {
 
         try {
             const chainId = await window.ethereum.request({ method: 'eth_chainId' });
-            console.log("[MetaMaskUtil] 체인 ID 응답:", chainId);
             return chainId;
         } catch (error) {
-            console.error("[MetaMaskUtil] 체인 ID 조회 오류:", error);
             throw error;
         }
     }
@@ -81,17 +72,14 @@ class MetaMaskUtil {
             throw new Error("메타마스크가 설치되어 있지 않습니다.");
         }
 
-        console.log("[MetaMaskUtil] 네트워크 전환 시도:", chainId);
 
         try {
             await window.ethereum.request({
                 method: 'wallet_switchEthereumChain',
                 params: [{ chainId: chainId }],
             });
-            console.log("[MetaMaskUtil] 네트워크 전환 성공");
             return true;
         } catch (error) {
-            console.error("[MetaMaskUtil] 네트워크 전환 오류:", error);
             // 요청한 체인이 메타마스크에 추가되어 있지 않은 경우
             if (error.code === 4902) {
                 throw new Error("해당 네트워크가 메타마스크에 추가되어 있지 않습니다. 먼저 네트워크를 추가하세요.");
@@ -117,19 +105,19 @@ class MetaMaskUtil {
             blockExplorerUrls: ['https://amoy.polygonscan.com/']
         };
 
-        console.log("[MetaMaskUtil] Amoy 네트워크 추가 시도:", amoyNetworkParams);
+        // console.log("[MetaMaskUtil] Amoy 네트워크 추가 시도:", amoyNetworkParams);
 
         try {
             await window.ethereum.request({
                 method: 'wallet_addEthereumChain',
                 params: [amoyNetworkParams],
             });
-            console.log("[MetaMaskUtil] Amoy 네트워크 추가 성공");
+            // console.log("[MetaMaskUtil] Amoy 네트워크 추가 성공");
             return true;
         } catch (error) {
-            console.error("[MetaMaskUtil] Amoy 네트워크 추가 오류:", error);
-            console.error("[MetaMaskUtil] 오류 코드:", error.code);
-            console.error("[MetaMaskUtil] 오류 메시지:", error.message);
+            // console.error("[MetaMaskUtil] Amoy 네트워크 추가 오류:", error);
+            // console.error("[MetaMaskUtil] 오류 코드:", error.code);
+            // console.error("[MetaMaskUtil] 오류 메시지:", error.message);
             throw error;
         }
     }
@@ -149,7 +137,6 @@ class MetaMaskUtil {
             const signer = provider.getSigner();
             return new ethers.Contract(contractAddress, abi, signer);
         } catch (error) {
-            console.error("컨트랙트 인스턴스 생성 오류:", error);
             throw error;
         }
     }
@@ -168,7 +155,6 @@ class MetaMaskUtil {
             const signature = await signer.signMessage(message);
             return signature;
         } catch (error) {
-            console.error("메시지 서명 오류:", error);
             throw error;
         }
     }
@@ -187,12 +173,7 @@ class MetaMaskUtil {
             // 투표 트랜잭션 전송
             const tx = await contract.vote(candidateId);
 
-            // 트랜잭션 해시 반환
-            console.log("투표 트랜잭션 전송됨:", tx.hash);
-
-            // 트랜잭션 확인 대기 (선택 사항)
             const receipt = await tx.wait();
-            console.log("트랜잭션 확인됨:", receipt);
 
             return {
                 success: true,
@@ -200,7 +181,6 @@ class MetaMaskUtil {
                 receipt: receipt
             };
         } catch (error) {
-            console.error("투표 트랜잭션 오류:", error);
 
             // 사용자가 트랜잭션을 거부한 경우 특별 처리
             if (error.code === 4001) {

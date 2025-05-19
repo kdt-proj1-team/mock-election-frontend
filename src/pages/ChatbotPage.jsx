@@ -120,7 +120,6 @@ const ChatbotPage = () => {
                 setIsServerOnline(healthData.status === 'ok');
                 setServerInfo(healthData);
             } catch (error) {
-                console.error('서버 상태 확인 실패:', error);
                 setIsServerOnline(false);
             }
         };

@@ -1,7 +1,10 @@
 // python과 통신합니다..! 참고하지 마세요!
 import axios from 'axios';
 
-const API_URL = 'http://localhost:8000';  // FastAPI 서버 주소
+const LOCAL_API_URL = 'http://10.10.55.16:8000';
+const NGROK_API_URL = 'https://42ac-221-150-27-169.ngrok-free.app';
+
+const API_URL = window.location.hostname === 'localhost' ? LOCAL_API_URL : NGROK_API_URL;
 
 export const sendMessage = async (message, sessionId = null) => {
     try {
@@ -15,7 +18,6 @@ export const sendMessage = async (message, sessionId = null) => {
         const data = response.data;
 
         // FastAPI 서버의 응답 구조에 맞게 조정
-        // schemas.py의 ChatResponse 모델 구조에 맞춤
         return {
             answer: data.response,  // 'response' 필드를 'answer'로 매핑
             sources: data.sources || [],
