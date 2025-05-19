@@ -7,6 +7,7 @@ import { postCommentAPI } from '../../../api/PostCommentApi';
 import { communityVoteAPI } from '../../../api/CommunityVoteApi';
 import CommentForm from './CommentForm';
 import ReportModal from '../../report/ReportModal';
+import { reportAPI } from '../../../api/ReportApi';
 
 // #region styled-components
 const Comment = styled.div`
@@ -116,7 +117,7 @@ const Reply = styled.div`
 `;
 // #endregion 
 
-const CommentItem = ({ comment, onDeleted, maxDepth = 4 }) => {
+const CommentItem = ({ comment, onDeleted, maxDepth = 4, anonymous }) => {
   const userId = localStorage.getItem("userId");
   const navigate = useNavigate();
   const isAuthor = comment && comment.authorId === userId;
@@ -180,6 +181,27 @@ const CommentItem = ({ comment, onDeleted, maxDepth = 4 }) => {
     }
   };
 
+  // 신고 버튼 클릭 핸들러
+  const handleReportClick = async () => {
+    if (!userId) {
+      const confirmed = window.confirm("로그인 후 이용 가능한 기능입니다.\n로그인하시겠습니까?");
+      if (confirmed) navigate("/login");
+      return;
+    }
+
+    const alreadyReported = await reportAPI.checkExists({
+      targetType: "POST_COMMENT",
+      targetId: comment.id
+    });
+
+    if (alreadyReported) {
+      alert("이미 신고한 대상입니다.");
+      return;
+    }
+
+    setShowReportModal(true);
+  };
+
   if (comment.isDeleted) {
     return (
       <CommentItemWrapper>
@@ -195,6 +217,7 @@ const CommentItem = ({ comment, onDeleted, maxDepth = 4 }) => {
                 comment={child}
                 onDeleted={onDeleted}
                 maxDepth={maxDepth}
+                anonymous={anonymous}
               />
             ))}
           </ReplyList>
@@ -208,7 +231,7 @@ const CommentItem = ({ comment, onDeleted, maxDepth = 4 }) => {
       {!showEditForm && (
         <>
           <CommentHeader>
-            <CommentAuthor>{comment.authorNickname}</CommentAuthor>
+            <CommentAuthor>{comment.anonymousNickname || comment.authorNickname}</CommentAuthor>
             <CommentDateInfo>{comment.updatedAt ? `${formatDateTime(comment.updatedAt)} 수정됨` : formatDateTime(comment.createdAt)}</CommentDateInfo>
           </CommentHeader>
           <CommentContent>
@@ -226,16 +249,25 @@ const CommentItem = ({ comment, onDeleted, maxDepth = 4 }) => {
               <CommentVoteButton type="down" active={localComment.userVote === -1} onClick={() => handleVote(-1)}><FaArrowDown /></CommentVoteButton>
             </CommentVoteButtons>
             {comment.depth < maxDepth && (
-              <ActionButton onClick={() => setShowReplyForm(prev => !prev)}><FaReply /> 답글</ActionButton>
+              <ActionButton onClick={() => {
+                if (!userId) {
+                  const confirmed = window.confirm("로그인 후 이용 가능한 기능입니다.\n로그인하시겠습니까?");
+                  if (confirmed) navigate("/login");
+                  return;
+                }
+                setShowReplyForm(prev => !prev)
+              }}><FaReply /> 답글</ActionButton>
             )}
             {!isAuthor && (
-              <ActionButton onClick={() => setShowReportModal(true)}><FaFlag /> 신고</ActionButton>
+              <ActionButton onClick={() => handleReportClick()}><FaFlag /> 신고</ActionButton>
             )}
             {showReportModal && (
               <ReportModal
                 onClose={() => setShowReportModal(false)}
-                authorNickname={comment.authorNickname}
+                authorNickname={comment.anonymousNickname || comment.authorNickname}
                 contentText={comment.content}
+                targetType="POST_COMMENT"
+                targetId={comment.id}
               />
             )}
             {isAuthor && (
@@ -256,6 +288,7 @@ const CommentItem = ({ comment, onDeleted, maxDepth = 4 }) => {
             onDeleted?.();
           }}
           onCancel={() => setShowReplyForm(false)}
+          anonymous={anonymous}
         />
       )}
 
@@ -271,6 +304,7 @@ const CommentItem = ({ comment, onDeleted, maxDepth = 4 }) => {
             onDeleted?.();
           }}
           onCancel={() => setShowEditForm(false)}
+          anonymous={anonymous}
         />
       )}
 
@@ -283,6 +317,7 @@ const CommentItem = ({ comment, onDeleted, maxDepth = 4 }) => {
               comment={child}
               onDeleted={onDeleted}
               maxDepth={maxDepth}
+              anonymous={anonymous}
             />
           ))}
         </ReplyList>

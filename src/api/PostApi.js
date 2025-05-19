@@ -23,8 +23,8 @@ export const postAPI = {
     // 게시글 상세 조회
     getPostDetail: async (postId) => {
         const userId = localStorage.getItem("userId");
-        const response = await api.get(`/${postId}`, { 
-            params: {userId},
+        const response = await api.get(`/${postId}`, {
+            params: { userId },
             withCredentials: true
         });
         return response.data.data;
@@ -37,13 +37,21 @@ export const postAPI = {
     },
 
     // 카테고리별 게시글 조회
-    getPostsByCategory: async (categoryCode, page = 0, size = 10) => {
+    getPostsByCategory: async (categoryCode, page = 0, size = 10, searchType, keyword) => {
         const response = await api.get(`/category/${categoryCode}`, {
             params: {
                 page,
-                size
+                size,
+                searchType,
+                keyword,
             }
         });
+        return response.data.data;
+    },
+
+    // 인기 게시글 조회
+    getPopularPosts: async () => {
+        const response = await api.get(`/popular`);
         console.log(response.data.data);
         return response.data.data;
     },

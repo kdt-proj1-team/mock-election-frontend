@@ -1,6 +1,8 @@
-import React from "react";
 import styled from "styled-components";
+import { Link } from "react-router-dom";
+import { formatDateOnly } from "../../utils/DateFormatter";
 
+// #region styled-components
 const Section = styled.section`
 
 `;
@@ -42,6 +44,15 @@ const NewsTitle = styled.h3`
   font-size: 16px;
   font-weight: 700;
   margin-bottom: 10px;
+  text-decoration: none;
+  cursor: pointer;
+  color: inherit;
+  display: block;
+  transition: font-size 0.2s ease;
+
+  &:hover {
+    font-size: 17px;
+  }
 `;
 
 const PostContent = styled.p`
@@ -59,6 +70,7 @@ const PostButton = styled.button`
   border-radius: 4px;
   font-size: 13px;
   cursor: pointer;
+  text-decoration: none;
 `;
 
 const NewsList = styled.div`
@@ -89,51 +101,55 @@ const NewsListContent = styled.div`
 const NewsListTitle = styled.div`
   font-size: 14px;
   margin-bottom: 5px;
+  text-decoration: none;
+  cursor: pointer;
+  color: inherit;
+  display: block;
+
+  &:hover {
+    font-weight: bold;
+  }
 `;
 
 const NewsListDate = styled.div`
   font-size: 12px;
   color: #999;
 `;
+// #endregion
 
+const CommunityNewsSection = ({ recentNotices }) => {
+  const mainNotice = recentNotices[0];
+  const listNotices = recentNotices.slice(1);
 
+  return (
+    <Section>
+      <Title>커뮤니티 소식</Title>
+      <NewsGrid>
+        <NewsMain>
+          <NewsContent>
+            <NewsDate>{formatDateOnly(mainNotice.createdAt)}</NewsDate>
+            <NewsTitle as={Link} to={`/community/post/${mainNotice.id}`}>{mainNotice.title}</NewsTitle>
+            <PostContent>
+              {mainNotice.summaryContent}
+            </PostContent>
+            <PostButton as={Link} to={`/community/post/${mainNotice.id}`}>자세히 보기</PostButton>
+          </NewsContent>
+        </NewsMain>
 
-const CommunityNewsSection = () => {
-    return (
-        <Section>
-            <Title>커뮤니티 소식</Title>
-            <NewsGrid>
-                <NewsMain>
-                    <NewsContent>
-                        <NewsDate>2025.05.01</NewsDate>
-                        <NewsTitle>5월 커뮤니티 이벤트 안내</NewsTitle>
-                        <PostContent>
-                            5월을 맞이하여 커뮤니티 활성화를 위한 다양한 이벤트를 준비했습니다. 출석 체크 이벤트부터 인증샷 콘테스트까지 다양한 혜택이 준비되어 있으니 많은 참여 부탁드립니다. 자세한 내용은 공지사항 게시판을 확인해주세요.
-                        </PostContent>
-                        <PostButton>자세히 보기</PostButton>
-                    </NewsContent>
-                </NewsMain>
-
-                <NewsList>
-                    {[
-                        ["커뮤니티 이용 가이드라인 업데이트 안내", "2025.04.28"],
-                        ["새로운 게시판 '취미 공유' 오픈 안내", "2025.04.25"],
-                        ["모바일 앱 출시 이벤트 당첨자 발표", "2025.04.20"],
-                        ["커뮤니티 화상 미팅 일정 안내", "2025.04.15"],
-                        ["사이트 서버 점검 안내 (5/5 02:00-05:00)", "2025.04.10"],
-                    ].map(([title, date], idx) => (
-                        <NewsListItem key={idx}>
-                            <NewsListItemDot />
-                            <NewsListContent>
-                                <NewsListTitle>{title}</NewsListTitle>
-                                <NewsListDate>{date}</NewsListDate>
-                            </NewsListContent>
-                        </NewsListItem>
-                    ))}
-                </NewsList>
-            </NewsGrid>
-        </Section>
-    );
+        <NewsList>
+          {listNotices.map((notice) => (
+            <NewsListItem key={notice.id}>
+              <NewsListItemDot />
+              <NewsListContent>
+                <NewsListTitle as={Link} to={`/community/post/${notice.id}`}>{notice.title}</NewsListTitle>
+                <NewsListDate>{formatDateOnly(notice.createdAt)}</NewsListDate>
+              </NewsListContent>
+            </NewsListItem>
+          ))}
+        </NewsList>
+      </NewsGrid>
+    </Section>
+  );
 };
 
 export default CommunityNewsSection;
