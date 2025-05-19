@@ -350,18 +350,8 @@ const ElectionQuiz = () => {
                 {/* 퀴즈 모드 토글 및 진행 상황 */}
                 <div className="quiz-header">
                     <div className="quiz-mode-toggle">
-                        <button
-                            className={`mode-button ${quizMode === 'sequential' ? 'active' : ''}`}
-                            onClick={() => setQuizMode('sequential')}
-                        >
-                            {quizMode === 'sequential' ? '순차 모드 ✓' : '순차 모드로 바꾸기'}
-                        </button>
-                        <button
-                            className={`mode-button ${quizMode === 'random' ? 'active' : ''}`}
-                            onClick={() => setQuizMode('random')}
-                        >
-                            {quizMode === 'random' ? '랜덤 모드 ✓' : '랜덤 모드로 바꾸기'}
-                        </button>
+
+
                     </div>
 
                     {/* 진행 상황 표시 */}

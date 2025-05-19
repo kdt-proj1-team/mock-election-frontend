@@ -20,6 +20,7 @@ const PageTitle = styled.h1`
     color: #333;
     margin-bottom: 2rem;
     text-align: center;
+    font-family: Georgia;
 `;
 
 const ProfileContainer = styled.div`

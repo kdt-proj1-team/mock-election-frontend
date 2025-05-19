@@ -1,4 +1,4 @@
-// PageTranslator.jsx - 모바일 아이콘 기능 추가
+// PageTranslator.jsx - 헤더 요소 번역 기능 추가 및 이벤트 핸들러 유지
 
 import React, { useState, useEffect } from 'react';
 import { TranslateAPI } from '../../api/TranslationApi';
@@ -64,30 +64,68 @@ function PageTranslator({ inHeader = false }) {
         }
     };
 
-    // 요소가 Header 내부에 있는지 확인하는 함수
-    const isElementInHeader = (element) => {
-        let currentElement = element;
-
-        // 부모 요소를 따라 올라가며 header 요소 확인
-        while (currentElement) {
-            if (
-                currentElement.tagName === 'HEADER' ||
-                currentElement.classList.contains('app-header') ||
-                currentElement.classList.contains('header') ||
-                currentElement.classList.contains('HeaderContainer') ||
-                currentElement.id === 'header' ||
-                currentElement.id === 'app-header'
-            ) {
-                return true;
-            }
-            currentElement = currentElement.parentElement;
-        }
-        return false;
-    };
-
     // 아이콘 클릭 핸들러 (모바일용)
     const handleIconClick = () => {
         setIsExpanded(!isExpanded);
+    };
+
+    // 텍스트 노드 번역 함수 (이벤트 핸들러 보존을 위해)
+    const translateTextNode = (node, translation) => {
+        node.nodeValue = translation;
+    };
+
+    // 요소의 텍스트 노드 찾아서 번역하기
+    const translateElementTextNodes = (element, translation) => {
+        // 자식 노드가 없거나 텍스트 노드만 있는 경우
+        if (element.childNodes.length === 0 ||
+            (element.childNodes.length === 1 && element.childNodes[0].nodeType === Node.TEXT_NODE)) {
+            if (element.innerText !== undefined) {
+                element.innerText = translation;
+            } else if (element.textContent !== undefined) {
+                element.textContent = translation;
+            }
+            return;
+        }
+
+        // 자식 노드가 여러 개인 경우, 텍스트 노드만 찾아서 번역
+        const textNodes = [];
+        const getTextNodes = (node) => {
+            if (node.nodeType === Node.TEXT_NODE && node.nodeValue.trim() !== '') {
+                textNodes.push(node);
+            } else if (node.childNodes) {
+                for (let i = 0; i < node.childNodes.length; i++) {
+                    getTextNodes(node.childNodes[i]);
+                }
+            }
+        };
+
+        getTextNodes(element);
+
+        // 찾은 텍스트 노드들이 모두 합쳐서 원본 텍스트와 일치하는지 확인
+        const allText = textNodes.map(n => n.nodeValue.trim()).join(' ');
+        if (allText.trim() === element.innerText.trim()) {
+            // 모든 텍스트 노드들의 내용을 번역본으로 분할
+            const words = translation.split(' ');
+            let wordIndex = 0;
+
+            for (let i = 0; i < textNodes.length; i++) {
+                const node = textNodes[i];
+                const nodeWordCount = node.nodeValue.trim().split(' ').length;
+
+                // 이 노드에 할당할 번역된 단어들
+                const nodeTranslation = words.slice(wordIndex, wordIndex + nodeWordCount).join(' ');
+                translateTextNode(node, nodeTranslation);
+
+                wordIndex += nodeWordCount;
+            }
+        } else {
+            // 복잡한 구조인 경우 간단히 전체 내용 대체
+            if (element.innerText !== undefined) {
+                element.innerText = translation;
+            } else if (element.textContent !== undefined) {
+                element.textContent = translation;
+            }
+        }
     };
 
     // 페이지 번역 함수
@@ -129,7 +167,9 @@ function PageTranslator({ inHeader = false }) {
                 .quiz-question,
                 .quiz-title,
                 .explanation-text,
-                .answer-title
+                .answer-title,
+                .nav-link,
+                .menu-item
             `;
 
             const elements = document.querySelectorAll(selector);
@@ -145,11 +185,6 @@ function PageTranslator({ inHeader = false }) {
             let validElementCount = 0;
 
             elements.forEach((el, index) => {
-                // Header 내부 요소인지 확인하고 제외
-                if (isElementInHeader(el)) {
-                    return;
-                }
-
                 // 번역 제외 속성 확인
                 if (el.hasAttribute('data-no-translate')) {
                     return;
@@ -160,8 +195,9 @@ function PageTranslator({ inHeader = false }) {
                     return;
                 }
 
-                // 보이지 않는 요소 스킵
-                if (el.offsetParent === null && !el.classList.contains('active')) {
+                // 보이지 않는 요소 스킵 (display:none은 제외하되, visibility:hidden이나 투명 요소는 포함)
+                const style = window.getComputedStyle(el);
+                if (style.display === 'none') {
                     return;
                 }
 
@@ -218,11 +254,11 @@ function PageTranslator({ inHeader = false }) {
                     const elementId = batchMap[index];
                     const element = document.getElementById(elementId);
                     if (element) {
-                        if (element.innerText !== undefined) {
-                            element.innerText = translation.translatedText;
-                        } else if (element.textContent !== undefined) {
-                            element.textContent = translation.translatedText;
-                        }
+                        // 이벤트 핸들러 보존을 위한 방식으로 텍스트 변경
+                        translateElementTextNodes(element, translation.translatedText);
+
+                        // data 속성에 번역 여부 표시
+                        element.setAttribute('data-translated', 'true');
                     }
                 });
 
@@ -248,11 +284,11 @@ function PageTranslator({ inHeader = false }) {
         Object.entries(originalContents).forEach(([elementId, originalText]) => {
             const element = document.getElementById(elementId);
             if (element) {
-                if (element.innerText !== undefined) {
-                    element.innerText = originalText;
-                } else if (element.textContent !== undefined) {
-                    element.textContent = originalText;
-                }
+                // 이벤트 핸들러 보존을 위한 방식으로 텍스트 복원
+                translateElementTextNodes(element, originalText);
+
+                // 번역 표시 제거
+                element.removeAttribute('data-translated');
             }
         });
 
@@ -280,7 +316,7 @@ function PageTranslator({ inHeader = false }) {
     // 번역 상태에 따른 버튼 텍스트
     const getButtonText = () => {
         if (isLoading) return '번역 중...';
-        if (isTranslated) return '원문 보기';
+        if (isTranslated) return '원문';
         return inHeader ? '번역' : '번역하기';
     };
 
