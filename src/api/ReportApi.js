@@ -48,21 +48,158 @@ export const reportAPI = {
         return res.data.data;
     },
 
-    // 일별 신고 통계 조회
+    // 일별 신고 통계 조회 - API 응답 구조에 맞게 수정
     getDailyStats: async () => {
-        const res = await api.get('/stats/daily');
-        return res.data.data;
+        try {
+            const res = await api.get('/stats/daily');
+            console.log("Daily stats response:", res.data);
+
+            // 날짜별 매핑을 위한 준비
+            const currentDate = new Date();
+            const dateMap = {}; // period를 키로 사용하여 count 값을 매핑
+
+            // 기본 데이터 배열 초기화 (모든 날짜를 0으로 설정)
+            const dailyData = Array(7).fill(0);
+
+            // 각 일자별 매핑 생성 (최근 7일)
+            for (let i = 6; i >= 0; i--) {
+                const date = new Date(currentDate);
+                date.setDate(currentDate.getDate() - i);
+
+                // API 응답과 비교를 위한 period 형식 (YYYY-MM-DD)
+                const year = date.getFullYear();
+                const month = (date.getMonth() + 1).toString().padStart(2, '0');
+                const day = date.getDate().toString().padStart(2, '0');
+                const periodKey = `${year}-${month}-${day}`;
+
+                // periodKey와 해당 인덱스 매핑
+                dateMap[periodKey] = 6 - i; // 역순으로 인덱스 매핑 (오늘이 배열의 마지막에 위치)
+            }
+
+            // API 응답 데이터 매핑
+            if (res.data && res.data.data && Array.isArray(res.data.data)) {
+                res.data.data.forEach(item => {
+                    const { period, count } = item;
+
+                    // period가 매핑에 있는지 확인 후 해당 인덱스에 count 할당
+                    if (dateMap.hasOwnProperty(period)) {
+                        const index = dateMap[period];
+                        dailyData[index] = count;
+                    }
+                });
+            }
+
+            return dailyData;
+        } catch (error) {
+            console.error("일간 신고 통계 조회 실패:", error);
+            return [0, 0, 0, 0, 0, 0, 0];
+        }
     },
 
-    // 주별 신고 통계 조회
+// 주별 신고 통계 조회 - API 응답 구조에 맞게 수정
+    // 주별 신고 통계 조회 - API 응답 구조에 맞게 수정
     getWeeklyStats: async () => {
-        const res = await api.get('/stats/weekly');
-        return res.data.data;
+        try {
+            const res = await api.get('/stats/weekly');
+            console.log("Weekly stats response:", res.data);
+
+            // 기본 데이터 배열 초기화 (7주를 0으로 설정)
+            const weeklyData = Array(7).fill(0);
+
+            // 현재 날짜 기준으로 최근 7주 계산
+            const currentDate = new Date();
+            const weekMap = {}; // {year-week: index} 형태로 매핑
+
+            // ISO 주차 계산 함수
+            const getWeekNumber = (d) => {
+                const date = new Date(d.getTime());
+                date.setHours(0, 0, 0, 0);
+                date.setDate(date.getDate() + 3 - (date.getDay() + 6) % 7);
+                const week1 = new Date(date.getFullYear(), 0, 4);
+                return 1 + Math.round(((date.getTime() - week1.getTime()) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
+            };
+
+            // 최근 7주 정보 생성
+            for (let i = 0; i < 7; i++) {
+                const weekDate = new Date(currentDate);
+                weekDate.setDate(currentDate.getDate() - (i * 7));
+
+                const weekNum = getWeekNumber(weekDate);
+                const year = weekDate.getFullYear();
+
+                // 매핑 키 생성 (형식: "2025-21")
+                const mapKey = `${year}-${weekNum}`;
+
+                // 역순으로 인덱스 매핑 (현재 주가 마지막에 위치)
+                weekMap[mapKey] = 6 - i;
+            }
+
+            // API 응답 데이터 매핑
+            if (res.data && res.data.data && Array.isArray(res.data.data)) {
+                res.data.data.forEach(item => {
+                    const { week, year, count } = item;
+
+                    // 매핑 키 생성
+                    const mapKey = `${year}-${week}`;
+
+                    // 해당 주차가 매핑에 있는지 확인 후 데이터 할당
+                    if (weekMap.hasOwnProperty(mapKey)) {
+                        const index = weekMap[mapKey];
+                        weeklyData[index] = count;
+                    }
+                });
+            }
+
+            return weeklyData;
+        } catch (error) {
+            console.error("주간 신고 통계 조회 실패:", error);
+            return [0, 0, 0, 0, 0, 0, 0];
+        }
     },
 
-    // 월별 신고 통계 조회
     getMonthlyStats: async () => {
-        const res = await api.get('/stats/monthly');
-        return res.data.data;
+        try {
+            const res = await api.get('/stats/monthly');
+            console.log("Monthly stats response:", res.data);
+
+            // 월별 라벨 생성 (현재 월부터 5개월 전까지)
+            const currentDate = new Date();
+            const monthMap = {}; // period를 키로 사용하여 count 값을 매핑
+
+            // 기본 데이터 배열 초기화 (모든 달을 0으로 설정)
+            const monthlyData = Array(6).fill(0);
+
+            // 각 월별 라벨 생성 및 인덱스 매핑
+            for (let i = 5; i >= 0; i--) {
+                const monthDate = new Date(currentDate);
+                monthDate.setMonth(currentDate.getMonth() - i);
+
+                // API 응답과 비교를 위한 period 형식 (YYYY-MM)
+                const year = monthDate.getFullYear();
+                const month = (monthDate.getMonth() + 1).toString().padStart(2, '0');
+                const periodKey = `${year}-${month}`;
+
+                // periodKey와 해당 인덱스 매핑
+                monthMap[periodKey] = 5 - i; // 역순으로 인덱스 매핑 (최근 월이 배열의 마지막에 위치)
+            }
+
+            // API 응답 데이터 매핑
+            if (res.data && res.data.data && Array.isArray(res.data.data)) {
+                res.data.data.forEach(item => {
+                    const { period, count } = item;
+
+                    // period가 매핑에 있는지 확인 후 해당 인덱스에 count 할당
+                    if (monthMap.hasOwnProperty(period)) {
+                        const index = monthMap[period];
+                        monthlyData[index] = count;
+                    }
+                });
+            }
+
+            return monthlyData;
+        } catch (error) {
+            console.error("월간 신고 통계 조회 실패:", error);
+            return [0, 0, 0, 0, 0, 0];
+        }
     }
 };

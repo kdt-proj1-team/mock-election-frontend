@@ -64,6 +64,30 @@ export const adminAPI = {
             throw error;
         }
     },
+
+// 추가: 사용자 통계 데이터 조회
+    getUserStats: async () => {
+        try {
+            const response = await api.get('/stats');
+
+            return response.data;
+        } catch (error) {
+            throw error;
+        }
+    },
+
+    getPostCount:async () => {
+        try {
+            const response = await api.get('/postCount');
+            console.log(response.data);
+            return response.data;
+        } catch (error) {
+            throw error;
+        }
+    }
+
+
+
 };
 
 export default api;
