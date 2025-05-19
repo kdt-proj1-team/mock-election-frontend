@@ -283,6 +283,12 @@ const BoardManagement = () => {
 
     // 카테고리 상태 변경 핸들러
     const handleStatusChange = async (categoryId, isActive) => {
+        const message = isActive
+            ? '해당 카테고리를 비활성화하시겠습니까?'
+            : '해당 카테고리를 활성화하시겠습니까?';
+        if (!window.confirm(message)) {
+            return; // 사용자가 취소하면 함수 종료
+        }
         try {
             await categoryAPI.updateCategoryStatus(categoryId, !isActive);
 
