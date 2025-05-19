@@ -101,7 +101,10 @@
 }
 
 .chart-container {
-    height: 300px;
+    height: auto;
+    min-height: 250px;
+    max-height: 350px;
+    width: 100%;
     position: relative;
 }
 
@@ -111,85 +114,91 @@
     gap: 20px;
 }
 
-.activity-section {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
-}
-
-.activity-card {
-    background-color: white;
-    border-radius: 10px;
-    padding: 20px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-}
-
-.activity-card h2 {
-    margin: 0 0 15px 0;
-    font-size: 18px;
-    color: #333;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 10px;
-}
-
-.activity-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.activity-list li {
-    padding: 10px 0;
-    border-bottom: 1px solid #f0f0f0;
-    font-size: 14px;
-}
-
-.activity-time {
-    color: #888;
-    margin-right: 10px;
-}
-
-.activity-user {
-    font-weight: 500;
-    color: #4a6cf7;
-    margin-right: 10px;
-}
-
-.notification-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.notification-item {
-    padding: 12px;
-    border-radius: 8px;
-    background-color: #f8f9fa;
-    margin-bottom: 10px;
-}
-
-.notification-item.urgent {
-    background-color: #fff2f2;
-    border-left: 3px solid #ff3b30;
-}
-
-.notification-title {
-    font-weight: 500;
-    margin-bottom: 5px;
-    font-size: 15px;
-}
-
-.notification-desc {
+.loading-indicator {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    font-size: 16px;
     color: #666;
-    font-size: 13px;
 }
 
+/* 태블릿 화면 (768px 이하) */
 @media (max-width: 768px) {
     .stats-cards {
         grid-template-columns: repeat(2, 1fr);
     }
 
-    .chart-row, .activity-section {
+    .chart-row {
         grid-template-columns: 1fr;
+    }
+
+    .chart-container {
+        min-height: 200px;
+    }
+
+    .dashboard-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .dashboard-header h1 {
+        margin-bottom: 10px;
+    }
+
+    .period-selector {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .period-selector button {
+        flex: 1;
+        text-align: center;
+        padding: 8px 0;
+        font-size: 14px;
+    }
+
+    .stat-card h3 {
+        font-size: 14px;
+    }
+
+    .stat-value {
+        font-size: 24px;
+    }
+
+    .chart-card h2 {
+        font-size: 16px;
+    }
+}
+
+/* 모바일 화면 (480px 이하) */
+@media (max-width: 480px) {
+    .stats-cards {
+        grid-template-columns: 1fr;
+    }
+
+    .stat-card {
+        padding: 15px;
+    }
+
+    .stat-value {
+        font-size: 22px;
+    }
+
+    .admin-dashboard {
+        padding: 10px;
+    }
+
+    .dashboard-header h1 {
+        font-size: 20px;
+    }
+
+    .period-selector button {
+        font-size: 12px;
+        padding: 6px 0;
+    }
+
+    .chart-container {
+        min-height: 180px;
     }
 }
