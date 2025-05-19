@@ -280,7 +280,7 @@ const VoterComponent = ({ election, candidates, onBackClick }) => {
                     ) : (
                         <>
                             <ResultChart>
-                                <ChartTitle>정당별 득표율</ChartTitle>
+                                <ChartTitle>공약별 득표율</ChartTitle>
                                 {renderVoteResults()}
                                 <ParticipationInfo>
                                     투표 참여율: {voteStats?.participation?.toFixed(1) || 0}%
