@@ -19,6 +19,21 @@ const HeaderContainer = styled.header`
   z-index: 100;
 `;
 
+const DisclaimerBar = styled.div`
+  background-color: #f9f9f9;
+  color: #555;
+  font-size: 14px;
+  padding: 8px 16px;
+  text-align: center;
+  width:305px;
+  border-bottom: 1px solid #ddd;
+  strong {
+    font-weight: bold;
+    color: #000000;
+  }
+`;
+
+
 const Logo = styled.h1`
   font-size: 22px;
   font-weight: 700;
@@ -468,8 +483,11 @@ const Header = () => {
 
   return (
       <HeaderContainer>
-        <Logo onClick={() => navigate('/')}><img src={logo} alt="logo"/> </Logo>
 
+        <Logo onClick={() => navigate('/')}><img src={logo} alt="logo"/> </Logo>
+        <DisclaimerBar>
+          본 사이트는 <strong>교육 목적</strong>으로 제작된 모의 플랫폼이며, 특정 정당이나 후보를 지지하지 않습니다.
+        </DisclaimerBar>
         <MobileMenuButton onClick={toggleMobileMenu}>
           ☰
         </MobileMenuButton>
