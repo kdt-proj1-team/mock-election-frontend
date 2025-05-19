@@ -148,30 +148,21 @@ const View = styled(Column)`
 
 const NoticeTag = styled.span`
   display: inline-block;
-  background-color: #ff6b6b;
+  background-color: #888;
   color: white;
-  font-size: 12px;
-  padding: 2px 8px;
+  font-size: 11px;
+  padding: 4px 10px;
   border-radius: 10px;
   font-weight: 700;
+  line-height: 1;
 `;
 
 const CommentCount = styled.span`
-  color: #3182f6;
+  color: #888;
   font-size: 12px;
   position: relative;
   top: -1px;
   font-weight: normal !important;
-`;
-
-const NewTag = styled.span`
-  display: inline-block;
-  background-color: #ff6b6b;
-  color: white;
-  font-size: 11px;
-  padding: 1px 4px;
-  border-radius: 4px;
-  margin-left: 5px;
 `;
 
 const Pagination = styled.div`
@@ -348,12 +339,17 @@ const PostList = () => {
         {
           posts.map((post) => (
             <TableRow key={post.id} className={post.notice ? "notice" : ""}>
-              <Num>{post.id}</Num>
+              <Num>
+                {post.categoryName === "공지사항" ? (
+                  <NoticeTag>공지</NoticeTag>
+                ) : (
+                  post.id
+                )}
+              </Num>
               <Category>{post.categoryName}</Category>
               <Title>
                 <Link to={`/community/post/${post.id}`}>
                   {post.title} {post.commentCount > 0 && <CommentCount>[{post.commentCount}]</CommentCount>}
-                  {post.isNew && <NewTag>N</NewTag>}
                 </Link>
               </Title>
               <Author>{post.authorNickname}</Author>
