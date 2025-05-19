@@ -15,8 +15,7 @@ api.interceptors.request.use(
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }
-        // 디버깅 로그 추가
-        console.log(`투표 API 요청: ${config.method.toUpperCase()} ${config.url}`, config.data || '');
+
         return config;
     },
     (error) => Promise.reject(error)
@@ -25,22 +24,10 @@ api.interceptors.request.use(
 // 응답 인터셉터 - 응답 로깅
 api.interceptors.response.use(
     response => {
-        // 디버깅 로그 추가
-        console.log(`투표 API 응답: ${response.config.method.toUpperCase()} ${response.config.url}`, response.data);
+
         return response;
     },
     error => {
-        // 에러 상세 로깅
-        if (error.response) {
-            console.error(`투표 API 오류 응답: ${error.config?.method?.toUpperCase()} ${error.config?.url}`, {
-                status: error.response.status,
-                data: error.response.data
-            });
-        } else if (error.request) {
-            console.error(`투표 API 요청 오류: ${error.config?.method?.toUpperCase()} ${error.config?.url}`, error.request);
-        } else {
-            console.error(`투표 API 설정 오류: ${error.message}`);
-        }
         return Promise.reject(error);
     }
 );
@@ -52,7 +39,6 @@ export const votingAPI = {
             const response = await api.get('/');
             return response.data.data; // ApiResponse 구조 처리
         } catch (error) {
-            console.error('선거 목록 조회 실패:', error);
             throw error;
         }
     },
@@ -63,7 +49,6 @@ export const votingAPI = {
             const response = await api.get(`/${id}`);
             return response.data.data; // ApiResponse 구조 처리
         } catch (error) {
-            console.error(`선거 정보 조회 실패 (ID: ${id}):`, error);
             throw error;
         }
     },
@@ -71,26 +56,21 @@ export const votingAPI = {
     // 특정 선거의 정당별 정책 조회
     getPartyPoliciesByElectionId: async (id) => {
         try {
-            console.log(`정당 정책 조회 요청: 선거 ID ${id}`);
             const response = await api.get(`/${id}/party-policies`);
 
             // 백엔드 응답 구조 확인
             if (!response.data || !response.data.data) {
-                console.warn('정당 정책 데이터 없음:', response.data);
                 return [];
             }
 
             const policies = response.data.data;
 
             if (!Array.isArray(policies)) {
-                console.warn('정당 정책 데이터가 배열이 아닙니다:', policies);
                 return [];
             }
 
-            console.log(`정당 정책 데이터 처리 완료: ${policies.length}개 항목`);
             return policies;
         } catch (error) {
-            console.error(`정당 정책 조회 실패 (ID: ${id}):`, error);
             throw error;
         }
     },
@@ -98,18 +78,15 @@ export const votingAPI = {
     // 내부 지갑 투표 제출 (기존 submitVote 함수)
     submitVote: async (electionId, policyId) => {
         try {
-            console.log(`내부 지갑 투표 제출 요청: 선거 ID ${electionId}, 정책 ID ${policyId}`);
             // candidateId로 보내지만 백엔드에서는 policyId로 처리됨
             const response = await api.post(`/${electionId}/vote`, { candidateId: policyId });
 
             if (!response.data || !response.data.data) {
-                console.warn('투표 제출 후 결과 데이터 없음:', response.data);
                 return null;
             }
 
             return response.data.data;
         } catch (error) {
-            console.error('투표 제출 실패:', error);
             throw error;
         }
     },
@@ -117,20 +94,17 @@ export const votingAPI = {
     // 메타마스크 투표 제출 (블록체인 트랜잭션 해시 포함)
     submitMetaMaskVote: async (electionId, policyId, transactionHash) => {
         try {
-            console.log(`메타마스크 투표 제출 요청: 선거 ID ${electionId}, 정책 ID ${policyId}, 트랜잭션 ${transactionHash}`);
             const response = await api.post(`/${electionId}/vote/metamask`, {
                 candidateId: policyId,  // candidateId로 보내지만 백엔드에서는 policyId로 처리됨
                 transactionHash
             });
 
             if (!response.data || !response.data.data) {
-                console.warn('메타마스크 투표 제출 후 결과 데이터 없음:', response.data);
                 return null;
             }
 
             return response.data.data;
         } catch (error) {
-            console.error('메타마스크 투표 제출 실패:', error);
             throw error;
         }
     },
@@ -138,20 +112,16 @@ export const votingAPI = {
     // 투표 통계 조회
     getVoteStats: async (electionId) => {
         try {
-            console.log(`투표 통계 조회 요청: 선거 ID ${electionId}`);
             const response = await api.get(`/${electionId}/stats`);
 
             if (!response.data || !response.data.data) {
-                console.warn('투표 통계 데이터 없음:', response.data);
                 return null;
             }
 
             const statsData = response.data.data;
-            console.log('투표 통계 데이터:', statsData);
 
             // VotingStatsDTO의 구조에 맞게 데이터 확인
             if (!statsData.votes || !Array.isArray(statsData.votes)) {
-                console.warn('투표 통계 데이터 형식 오류:', statsData);
                 return {
                     sgId: electionId,
                     participation: 0,
@@ -161,7 +131,6 @@ export const votingAPI = {
 
             return statsData;
         } catch (error) {
-            console.error(`투표 통계 조회 실패 (ID: ${electionId}):`, error);
             throw error;
         }
     },
@@ -169,19 +138,16 @@ export const votingAPI = {
     // 사용자 투표 상태 확인
     checkVoteStatus: async (electionId) => {
         try {
-            console.log(`투표 상태 확인 요청: 선거 ID ${electionId}`);
             const response = await api.get(`/${electionId}/status`);
 
             // ApiResponse 구조 처리
             if (!response.data || response.data.data === undefined) {
-                console.warn('투표 상태 데이터 없음:', response.data);
                 return false;
             }
 
             // 백엔드에서는 Boolean 타입을 반환하므로 boolean으로 변환
             return !!response.data.data;
         } catch (error) {
-            console.error(`투표 상태 확인 실패 (ID: ${electionId}):`, error);
             return false; // 오류 발생 시 기본값으로 false 반환
         }
     },
@@ -189,7 +155,6 @@ export const votingAPI = {
     // votingAPI에 메타마스크 내부 처리용 함수 추가
     submitMetaMaskVoteInternal: async (electionId, policyId) => {
         try {
-            console.log(`메타마스크 지갑 내부 투표 제출: 선거 ID ${electionId}, 정책 ID ${policyId}`);
 
             const response = await api.post(`/${electionId}/vote/metamask`, {
                 candidateId: policyId,  // candidateId로 보내지만 백엔드에서는 policyId로 처리됨
@@ -197,13 +162,11 @@ export const votingAPI = {
             });
 
             if (!response.data || !response.data.data) {
-                console.warn('내부 투표 제출 후 결과 데이터 없음:', response.data);
                 return null;
             }
 
             return response.data.data;
         } catch (error) {
-            console.error('내부 투표 제출 실패:', error);
             throw error;
         }
     },
@@ -211,18 +174,15 @@ export const votingAPI = {
     // 사용자 투표 가능 여부 확인
     checkVotingEligibility: async (electionId) => {
         try {
-            console.log(`투표 가능 여부 확인 요청: 선거 ID ${electionId}`);
             const response = await api.get(`/${electionId}/eligibility`);
 
             // ApiResponse 구조 처리
             if (!response.data || !response.data.data) {
-                console.warn('투표 가능 여부 데이터 없음:', response.data);
                 return { canVote: false, hasVoted: false };
             }
 
             return response.data.data;
         } catch (error) {
-            console.error(`투표 가능 여부 확인 실패 (ID: ${electionId}):`, error);
             return { canVote: false, hasVoted: false }; // 오류 발생 시 기본값 반환
         }
     }

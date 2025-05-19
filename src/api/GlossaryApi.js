@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-    baseURL: process.env.REACT_GLOSSARY_API_URL || 'http://localhost/api/glossary',
+    baseURL: process.env.REACT_APP_GLOSSARY_API_URL || 'http://localhost/api/glossary',
     headers: {
         'Content-Type': 'application/json',
     },

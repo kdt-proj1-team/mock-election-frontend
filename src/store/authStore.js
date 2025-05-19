@@ -24,7 +24,6 @@ const useAuthStore = create((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const response = await authAPI.googleLogin(token);
-      console.log('구글 로그인 응답:', response.data);
 
       if (response.data.success && response.data.data) {
         const { token: authToken, userId, role, email, name, nickname, profileImgUrl } = response.data.data;
@@ -61,7 +60,6 @@ const useAuthStore = create((set, get) => ({
         throw new Error('응답 데이터 구조가 올바르지 않습니다.');
       }
     } catch (error) {
-      console.error('구글 로그인 에러:', error);
       set({
         error: error.response?.data?.message || error.message || '구글 로그인 중 오류가 발생했습니다.'
       });
@@ -151,7 +149,6 @@ const useAuthStore = create((set, get) => ({
 
     try {
       const response = await authAPI.getUserInfo();
-      console.log('사용자 정보 응답:', response.data);
 
       if (response.data && response.data.data) {
         const userData = response.data.data;
@@ -173,8 +170,6 @@ const useAuthStore = create((set, get) => ({
         });
       }
     } catch (error) {
-      console.error('사용자 정보 가져오기 오류:', error);
-
       // 토큰이 유효하지 않은 경우 로그아웃
       if (error.response?.status === 401) {
         get().logout();

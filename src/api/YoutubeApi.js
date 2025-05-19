@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-    baseURL: process.env.REACT_YOUTUBE_API_URL || 'http://localhost/api/youtube',
+    baseURL: process.env.REACT_APP_YOUTUBE_API_URL || 'http://localhost/api/youtube',
     headers: {
         'Content-Type': 'application/json',
     },

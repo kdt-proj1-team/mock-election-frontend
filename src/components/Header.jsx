@@ -5,7 +5,7 @@ import useAuthStore from '../store/authStore';
 import useWalletStore from '../store/walletStore';
 import MetaMaskUtil from '../utils/MetaMaskUtil';
 import PageTranslator from './translation/PageTranslator';
-
+import logo from '../../src/assets/images/mock-voting/logo.png'
 // Neumorphism 스타일 적용
 const HeaderContainer = styled.header`
   display: flex;
@@ -25,8 +25,12 @@ const Logo = styled.h1`
   color: #333333;
   margin: 0;
   cursor: pointer;
-  span {
-    color: #999999;
+
+  img {
+    width: 150px;
+    height: 60px;
+    object-fit: contain;
+    margin-right: 8px;
   }
 `;
 
@@ -464,7 +468,7 @@ const Header = () => {
 
   return (
       <HeaderContainer>
-        <Logo onClick={() => navigate('/')}>선견<span>지표</span></Logo>
+        <Logo onClick={() => navigate('/')}><img src={logo} alt="logo"/> </Logo>
 
         <MobileMenuButton onClick={toggleMobileMenu}>
           ☰

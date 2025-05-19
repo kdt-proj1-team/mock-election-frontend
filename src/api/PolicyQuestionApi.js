@@ -75,8 +75,6 @@ export const PolicyQuestionAPI = {
             const response = await api.get(`/user-selection/${questionId}`);
             return response.data;
         } catch (error) {
-            // 선택한 적이 없는 경우 등의 오류는 조용히 처리
-            console.log('User has not voted yet or error occurred:', error.message);
             return null;
         }
     }

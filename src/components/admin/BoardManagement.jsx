@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { categoryAPI } from '../../api/CategoryApi';
+import { Link } from 'react-router-dom';
+
 
 const CardTitle = styled.h3`
     margin-bottom: 20px;
@@ -54,7 +56,7 @@ const Message = styled.p`
 
 const ActionButton = styled.button`
     padding: 5px 10px;
-    margin-right: ${props => props.marginRight ? '5px' : '0'};
+    margin-right: ${props => props.$marginRight ? '5px' : '0'};
     background-color: ${props => props.color || '#4CAF50'};
     color: white;
     border: none;
@@ -192,15 +194,15 @@ const ModalButtonGroup = styled.div`
 
 const ModalButton = styled.button`
     padding: 8px 16px;
-    background-color: ${props => props.primary ? '#1a73e8' : '#f5f5f5'};
-    color: ${props => props.primary ? 'white' : '#333'};
+    background-color: ${props => props.$primary ? '#1a73e8' : '#f5f5f5'};
+    color: ${props => props.$primary ? 'white' : '#333'};
     border: none;
     border-radius: 4px;
     cursor: pointer;
     font-weight: 500;
 
     &:hover {
-        background-color: ${props => props.primary ? '#1557b0' : '#e0e0e0'};
+        background-color: ${props => props.$primary ? '#1557b0' : '#e0e0e0'};
     }
 `;
 
@@ -241,45 +243,50 @@ const BoardManagement = () => {
         is_active: true
     });
 
-    // 카테고리 데이터 불러오기
-    useEffect(() => {
-        const fetchCategories = async () => {
-            try {
-                const data = await categoryAPI.getCategories();
-                // DTO 필드명에 맞게 데이터 매핑
-                const mappedData = data.map(category => ({
-                    id: category.id,
-                    code: category.code,
-                    name: category.name,
-                    description: category.description,
-                    // camelCase로 오는 isAnonymous를 is_anonymous로 변환
-                    is_anonymous: category.isAnonymous,
-                    // camelCase로 오는 sortOrder 사용
-                    sort_order: category.sortOrder,
+    // 카테고리 데이터 불러오기 함수
+    const fetchCategories = async () => {
+        try {
+            setLoading(true);
+            const data = await categoryAPI.getCategories();
+            // DTO 필드명에 맞게 데이터 매핑
+            const mappedData = data.map(category => ({
+                id: category.id,
+                code: category.code,
+                name: category.name,
+                description: category.description,
+                // camelCase로 오는 isAnonymous를 is_anonymous로 변환
+                is_anonymous: category.isAnonymous,
+                // camelCase로 오는 sortOrder 사용
+                sort_order: category.sortOrder,
+                is_active: category.isActive
+            }));
 
-                    is_active: category.isActive
+            const withCounts = await Promise.all(
+                mappedData.map(async category => {
+                    const count = await categoryAPI.getPostCountByCategory(category.code);
+                    return { ...category, post_count: count };
                 }));
+            setCategories(withCounts);
+            setLoading(false);
+        } catch (err) {
+            setError('카테고리 정보를 불러오는데 실패했습니다.');
+            setLoading(false);
+        }
+    };
 
-                const withCounts = await Promise.all(
-                    mappedData.map(async category => {
-                        const count = await categoryAPI.getPostCountByCategory(category.code);
-                        return { ...category, post_count: count };
-                    }));
-                console.log('Fetched categories:', mappedData); // 데이터 확인용 로그
-                setCategories(withCounts);
-                setLoading(false);
-            } catch (err) {
-                console.error('Failed to fetch categories:', err);
-                setError('카테고리 정보를 불러오는데 실패했습니다.');
-                setLoading(false);
-            }
-        };
-
+    // 컴포넌트 마운트 시 데이터 로드
+    useEffect(() => {
         fetchCategories();
     }, []);
 
     // 카테고리 상태 변경 핸들러
     const handleStatusChange = async (categoryId, isActive) => {
+        const message = isActive
+            ? '해당 카테고리를 비활성화하시겠습니까?'
+            : '해당 카테고리를 활성화하시겠습니까?';
+        if (!window.confirm(message)) {
+            return; // 사용자가 취소하면 함수 종료
+        }
         try {
             await categoryAPI.updateCategoryStatus(categoryId, !isActive);
 
@@ -290,7 +297,6 @@ const BoardManagement = () => {
                     : category
             ));
         } catch (err) {
-            console.error('Failed to update category status:', err);
             alert('카테고리 상태 변경에 실패했습니다.');
         }
     };
@@ -318,7 +324,7 @@ const BoardManagement = () => {
                 return;
             }
 
-            const response = await categoryAPI.addCategory({
+            await categoryAPI.addCategory({
                 code: newCategory.code,
                 name: newCategory.name,
                 description: newCategory.description,
@@ -326,21 +332,6 @@ const BoardManagement = () => {
                 sortOrder: parseInt(newCategory.sort_order), // camelCase로 변환
                 isActive: newCategory.is_active // camelCase로 변환
             });
-
-            // 목록에 새로운 카테고리 추가
-            const newCategoryData = response.data || response;
-            // DTO 필드명에 맞게 프론트엔드 데이터 구조로 변환
-            const mappedCategory = {
-                id: newCategoryData.id,
-                code: newCategoryData.code,
-                name: newCategoryData.name,
-                description: newCategoryData.description,
-                is_anonymous: newCategoryData.isAnonymous,
-                sort_order: newCategoryData.sortOrder,
-                is_active: newCategoryData.isActive !== undefined ? newCategoryData.isActive : true
-            };
-
-            setCategories([...categories, mappedCategory]);
 
             // 모달 닫기 및 폼 초기화
             setShowAddModal(false);
@@ -352,8 +343,10 @@ const BoardManagement = () => {
                 sort_order: 0,
                 is_active: true
             });
+
+            // 카테고리 추가 후 전체 목록 다시 불러오기
+            await fetchCategories();
         } catch (err) {
-            console.error('Failed to add category:', err);
             alert('카테고리 추가에 실패했습니다.');
         }
     };
@@ -365,12 +358,9 @@ const BoardManagement = () => {
         try {
             await categoryAPI.deleteCategory(id);
 
-            // UI에서 바로 삭제 반영
-            setCategories(prevCategories =>
-                prevCategories.filter(category => category.id !== id)
-            );
+            // 삭제 후 전체 목록 다시 불러오기
+            await fetchCategories();
         } catch (err) {
-            console.error('삭제 실패:', err);
             alert('게시판 삭제에 실패했습니다.');
         }
     };
@@ -411,7 +401,12 @@ const BoardManagement = () => {
                         <TableRow key={category.id}>
                             <TableCell>{category.sort_order}</TableCell>
                             <TableCell>{category.code}</TableCell>
-                            <TableCell>{category.name}</TableCell>
+                            <TableCell>
+                                <Link to={`/community?category=${category.code}`} style={{ textDecoration: 'none', color: '#1a73e8', fontWeight: '500' }}>
+                                    {category.name}
+                                </Link>
+                            </TableCell>
+
                             <TableCell>{category.description}</TableCell>
                             <TableCell>{category.is_anonymous ? '익명' : '실명'}</TableCell>
                             <TableCell>{category.post_count}</TableCell>
@@ -426,7 +421,7 @@ const BoardManagement = () => {
                             <TableCell>
                                 <ActionButton
                                     color={category.is_active ? '#f44336' : '#4CAF50'}
-                                    marginRight
+                                    $marginRight
                                     onClick={() => handleStatusChange(category.id, category.is_active)}
                                 >
                                     {category.is_active ? '비활성화' : '활성화'}
@@ -520,7 +515,7 @@ const BoardManagement = () => {
                         </FormGroup>
                         <ModalButtonGroup>
                             <ModalButton onClick={toggleAddModal}>취소</ModalButton>
-                            <ModalButton primary onClick={handleAddCategory}>추가</ModalButton>
+                            <ModalButton $primary onClick={handleAddCategory}>추가</ModalButton>
                         </ModalButtonGroup>
                     </ModalContent>
                 </ModalOverlay>
