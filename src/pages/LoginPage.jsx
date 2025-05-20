@@ -145,7 +145,6 @@ const LoginPage = () => {
     useEffect(() => {
         // 구글 스크립트가 이미 로드되었는지 확인
         if (window.google && window.google.accounts) {
-            console.log("Google 스크립트가 이미 로드되어 있습니다.");
             setScriptLoaded(true);
             initializeGoogleButton();
             return;
@@ -154,11 +153,9 @@ const LoginPage = () => {
         // 스크립트가 이미 추가되었는지 확인
         const existingScript = document.getElementById('google-identity-script');
         if (existingScript) {
-            console.log("Google 스크립트가 이미 추가되어 있습니다.");
             return;
         }
 
-        console.log("Google 스크립트 로드 중...");
         const script = document.createElement('script');
         script.src = 'https://accounts.google.com/gsi/client';
         script.id = 'google-identity-script';
@@ -166,7 +163,6 @@ const LoginPage = () => {
         script.defer = true;
 
         script.onload = () => {
-            console.log("Google 스크립트 로드 완료");
             setScriptLoaded(true);
             initializeGoogleButton();
         };
@@ -186,12 +182,10 @@ const LoginPage = () => {
     // 구글 로그인 버튼 초기화
     const initializeGoogleButton = () => {
         if (!window.google || !window.google.accounts) {
-            console.error("Google API가 로드되지 않았습니다.");
             return;
         }
 
         try {
-            console.log("구글 버튼 초기화 중...");
             window.google.accounts.id.initialize({
                 client_id: process.env.REACT_APP_GOOGLE_CLIENT_ID,
                 callback: handleGoogleCredentialResponse,
@@ -211,7 +205,6 @@ const LoginPage = () => {
                     width: '100%'
                 }
             );
-            console.log("구글 버튼 렌더링 완료");
         } catch (error) {
             console.error("구글 버튼 초기화 오류:", error);
         }
@@ -220,12 +213,10 @@ const LoginPage = () => {
     // 구글 로그인 응답 처리
     const handleGoogleCredentialResponse = async (response) => {
         if (response.credential) {
-            console.log('구글 로그인 응답 수신:', response);
             try {
                 const result = await googleLogin(response.credential);
                 if (result.success) {
                     // 로그인 성공 처리
-                    console.log('로그인 성공, 홈으로 이동');
                     navigate('/');
                 } else {
                     console.error('로그인 실패:', result);

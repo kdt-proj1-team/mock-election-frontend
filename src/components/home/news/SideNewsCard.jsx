@@ -41,19 +41,19 @@ const SideNewsCard = ({ newsItems }) => {
     {
       id: 1,
       title: '선관위, 투표소 운영 시간 확대 검토',
-      date: '2025.04.27',
+      link: '2025.04.27',
       imageUrl: null
     },
     {
       id: 2,
       title: '국민 관심사 1위는 \'경제\', 2위는?',
-      date: '2025.04.26',
+      link: '2025.04.26',
       imageUrl: null
     },
     {
       id: 3,
       title: '20대 투표율, 역대 최고 기록 가능성',
-      date: '2025.04.25',
+      link: '2025.04.25',
       imageUrl: null
     }
   ];
@@ -67,7 +67,7 @@ const SideNewsCard = ({ newsItems }) => {
           <SideNewsImg src={item.imageUrl} />
           <SideNewsContent>
             <h4>{item.title}</h4>
-            <span>{item.date}</span>
+            <span>{item.link}</span>
           </SideNewsContent>
         </SideNewsItem>
       ))}

@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Axios 인스턴스 생성
 const api = axios.create({
-    baseURL: process.env.REACT_QUIZ_API_URL || 'http://localhost/api/quiz',
+    baseURL: process.env.REACT_APP_QUIZ_API_URL || 'http://localhost/api/quiz',
     headers: {
         'Content-Type': 'application/json',
     },
@@ -86,14 +86,11 @@ const saveCompletedQuiz = (quizId) => {
         if (!completedQuizzes.includes(quizId)) {
             completedQuizzes.push(quizId);
             localStorage.setItem(COMPLETED_QUIZZES_KEY, JSON.stringify(completedQuizzes));
-            console.log(`퀴즈 ID ${quizId} 완료 처리됨`);
             return true;
         } else {
-            console.log(`퀴즈 ID ${quizId}는 이미 완료됨`);
             return false;
         }
     } catch (error) {
-        console.error('완료된 퀴즈 저장 중 오류 발생:', error);
         return false;
     }
 };
@@ -104,7 +101,6 @@ const getCompletedQuizzes = () => {
         const saved = localStorage.getItem(COMPLETED_QUIZZES_KEY);
         return saved ? JSON.parse(saved) : [];
     } catch (error) {
-        console.error('완료된 퀴즈 목록 조회 중 오류 발생:', error);
         return [];
     }
 };
@@ -113,10 +109,8 @@ const getCompletedQuizzes = () => {
 const resetCompletedQuizzes = () => {
     try {
         localStorage.removeItem(COMPLETED_QUIZZES_KEY);
-        console.log('완료된 퀴즈 목록 초기화 완료');
         return true;
     } catch (error) {
-        console.error('완료된 퀴즈 목록 초기화 중 오류 발생:', error);
         return false;
     }
 };
@@ -129,18 +123,6 @@ const quizAPI = {
             const response = await api.get('/random');
             return formatQuizData(response.data.data);
         } catch (error) {
-            console.error('랜덤 퀴즈 조회 중 오류:', error);
-            throw error;
-        }
-    },
-
-    // ID로 특정 퀴즈 가져오기
-    fetchQuizById: async (id) => {
-        try {
-            const response = await api.get(`/${id}`);
-            return formatQuizData(response.data.data);
-        } catch (error) {
-            console.error(`ID ${id}의 퀴즈 조회 중 오류:`, error);
             throw error;
         }
     },
@@ -151,7 +133,6 @@ const quizAPI = {
             const response = await api.get('/first');
             return formatQuizData(response.data.data);
         } catch (error) {
-            console.error('첫 번째 퀴즈 조회 중 오류:', error);
             throw error;
         }
     },
@@ -162,7 +143,6 @@ const quizAPI = {
             const response = await api.get(`/next/${currentId}`);
             return formatQuizData(response.data.data);
         } catch (error) {
-            console.error(`ID ${currentId} 이후 퀴즈 조회 중 오류:`, error);
             throw error;
         }
     },
@@ -173,18 +153,6 @@ const quizAPI = {
             const response = await api.get(`/previous/${currentId}`);
             return formatQuizData(response.data.data);
         } catch (error) {
-            console.error(`ID ${currentId} 이전 퀴즈 조회 중 오류:`, error);
-            throw error;
-        }
-    },
-
-    // 모든 퀴즈 가져오기
-    fetchAllQuizzes: async () => {
-        try {
-            const response = await api.get('/all');
-            return response.data.data.map(quiz => formatQuizData(quiz));
-        } catch (error) {
-            console.error('모든 퀴즈 조회 중 오류:', error);
             throw error;
         }
     },
@@ -195,7 +163,6 @@ const quizAPI = {
             const response = await api.get('/all');
             return response.data.data.map(quiz => quiz.id);
         } catch (error) {
-            console.error('모든 퀴즈 ID 조회 중 오류:', error);
             throw error;
         }
     },
@@ -213,21 +180,8 @@ const quizAPI = {
     isQuizCompleted: (quizId) => {
         const completedQuizzes = getCompletedQuizzes();
         return completedQuizzes.includes(quizId);
-    },
-
-    // 모든 퀴즈를 완료했는지 확인
-    checkAllQuizzesCompleted: async () => {
-        try {
-            const allQuizIds = await quizAPI.fetchAllQuizIds();
-            const completedQuizzes = getCompletedQuizzes();
-
-            // 모든 퀴즈가 완료되었는지 확인
-            return allQuizIds.length > 0 && allQuizIds.every(id => completedQuizzes.includes(id));
-        } catch (error) {
-            console.error('모든 퀴즈 완료 여부 확인 중 오류:', error);
-            return false;
-        }
     }
+
 };
 
 export default quizAPI;

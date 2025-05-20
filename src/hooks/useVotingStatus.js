@@ -31,8 +31,6 @@ const useVotingStatus = (sgId) => {
             setHasVoted(voteResponse);
             setLoading(false);
         } catch (voteError) {
-            console.error('투표 상태 확인 API 오류:', voteError);
-
             try {
                 // 방법 2: 사용자 정보 API를 통해 확인 (백업 방법)
                 const userResponse = await authAPI.getUserInfo();
@@ -44,7 +42,6 @@ const useVotingStatus = (sgId) => {
 
                 setLoading(false);
             } catch (userError) {
-                console.error('사용자 정보 확인 중 오류:', userError);
                 setError('투표 상태를 확인할 수 없습니다.');
                 setLoading(false);
             }

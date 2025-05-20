@@ -1,5 +1,3 @@
-/* 개선된 PageTranslator.css */
-
 .page-translator {
     display: flex;
     align-items: center;
@@ -213,6 +211,41 @@
     text-align: right;
 }
 
+/* 번역된 상태에서 헤더 텍스트 요소 스타일 */
+body.translated h1 {
+    font-size: 90% !important; /* 헤더 글자 크기 10% 축소 */
+    line-height: 1.2 !important;
+    transition: font-size 0.3s ease, line-height 0.3s ease;
+}
+
+body.translated h2 {
+    font-size: 88% !important;
+    line-height: 1.2 !important;
+    transition: font-size 0.3s ease, line-height 0.3s ease;
+}
+
+body.translated h3,
+body.translated h4,
+body.translated h5,
+body.translated h6 {
+    font-size: 85% !important;
+    line-height: 1.2 !important;
+    transition: font-size 0.3s ease, line-height 0.3s ease;
+}
+
+body.translated .header-title,
+body.translated .nav-title,
+body.translated .page-title {
+    font-size: 90% !important;
+    transition: font-size 0.3s ease;
+}
+
+body.translated .subtitle,
+body.translated .section-title {
+    font-size: 85% !important;
+    transition: font-size 0.3s ease;
+}
+
 /* 미디어 쿼리 - 모바일 화면에서의 표시 */
 @media (max-width: 768px) {
     /* 헤더 외부 번역기 */
@@ -285,5 +318,19 @@
         right: auto;
         margin-top: 8px;
         width: 100%;
+    }
+
+    /* 모바일에서 번역된 헤더의 글자 크기 추가 조정 */
+    body.translated h1,
+    body.translated .header-title {
+        font-size: 85% !important;
+    }
+
+    body.translated h2,
+    body.translated h3,
+    body.translated h4,
+    body.translated h5,
+    body.translated h6 {
+        font-size: 80% !important;
     }
 }

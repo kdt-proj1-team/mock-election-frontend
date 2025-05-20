@@ -68,13 +68,10 @@ export const authAPI = {
 
     // 사용자 정보 조회
     getUserInfo: async () => {
-        console.log('사용자 정보 조회 요청');
         try {
             const response = await api.get('/me');
-            console.log('사용자 정보 조회 응답:', response.data);
             return response;
         } catch (error) {
-            console.error('사용자 정보 조회 오류:', error);
             throw error;
         }
     },
@@ -85,11 +82,9 @@ export const authAPI = {
             // 데이터를 요청 바디에 포함시키는 방식으로 변경
             return await api.patch('/me/election-status', { status });
         } catch (error) {
-            console.error('투표 상태 업데이트 중 오류 발생:', error);
 
             // CORS 오류 발생 시 대체 처리
             if (error.message && error.message.includes('Network Error')) {
-                console.warn('CORS 오류 발생, 로컬 상태만 업데이트합니다.');
                 // 로컬 상태만 업데이트하는 대체 로직 (실제 구현은 상황에 맞게 조정)
                 return { data: { success: true, message: '투표 상태가 업데이트되었습니다. (로컬 전용)' } };
             }

@@ -20,6 +20,7 @@ import ChatbotPage from './pages/ChatbotPage';
 import GlossaryPopup from "./components/glossary/GlossaryPopup";
 import ChatPopup from './components/chat/ChatPopup';
 import Analytics from './components/analytics/Analytics.tsx';
+import PollingStationFinder from './components/polling-station/PollingStationFinder';
 
 const theme = {
     colors: {
@@ -115,6 +116,9 @@ const App = () => {
 
                     {/* 챗봇 페이지 경로 추가 */}
                     <Route path="/chatbot" element={<ChatbotPage />} />
+                    
+                    {/* 투표소 찾기 페이지 경로 추가 */}
+                    <Route path="/find-polling-station" element={<PollingStationFinder />} />
 
                     {/* 존재하지 않는 경로는 홈페이지로 리디렉션 */}
                     <Route path="*" element={<Navigate to="/"/>}/>

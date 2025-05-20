@@ -14,39 +14,28 @@ const useWalletStore = create((set, get) => {
 
             // 현재 체인 ID 확인
             const currentChainId = await MetaMaskUtil.getChainId();
-            console.log("[WalletStore] 현재 체인 ID (16진수):", currentChainId);
-            console.log("[WalletStore] 현재 체인 ID (10진수):", parseInt(currentChainId, 16));
 
             // 환경변수에서 체인 ID 가져오기
             const expectedChainIdDecimal = process.env.REACT_APP_BLOCKCHAIN_CHAIN_ID || '80002';
             const expectedChainIdHex = `0x${parseInt(expectedChainIdDecimal).toString(16)}`;
 
-            console.log("[WalletStore] 예상 체인 ID (10진수):", expectedChainIdDecimal);
-            console.log("[WalletStore] 예상 체인 ID (16진수):", expectedChainIdHex);
-
             // Amoy 테스트넷이 아니면 전환 시도
             if (currentChainId.toLowerCase() !== expectedChainIdHex.toLowerCase()) {
-                console.log(`[WalletStore] 네트워크 전환 필요 - 현재: ${currentChainId}, 예상: ${expectedChainIdHex}`);
 
                 try {
                     // 네트워크 전환 요청
                     await MetaMaskUtil.switchNetwork(expectedChainIdHex);
-                    console.log("[WalletStore] Amoy 테스트넷으로 전환 성공");
                     set({ networkConnected: true });
                     return true;
                 } catch (switchError) {
-                    console.error("[WalletStore] 네트워크 전환 실패:", switchError);
 
                     // 네트워크가 존재하지 않는 경우 추가 시도
                     if (switchError.code === 4902) {
-                        console.log("[WalletStore] 네트워크가 메타마스크에 없음. 추가 시도...");
                         try {
                             await MetaMaskUtil.addAmoyNetwork();
-                            console.log("[WalletStore] Amoy 테스트넷 추가 및 전환 성공");
                             set({ networkConnected: true });
                             return true;
                         } catch (addError) {
-                            console.error("[WalletStore] Amoy 테스트넷 추가 실패:", addError);
                             set({
                                 error: "Polygon Amoy 테스트넷을 추가할 수 없습니다. 메타마스크에서 수동으로 추가해주세요.",
                                 networkConnected: false
@@ -62,12 +51,10 @@ const useWalletStore = create((set, get) => {
                     return false;
                 }
             } else {
-                console.log("[WalletStore] 이미 Amoy 테스트넷에 연결되어 있습니다.");
                 set({ networkConnected: true });
                 return true;
             }
         } catch (error) {
-            console.error("[WalletStore] 네트워크 확인 오류:", error);
             set({
                 error: "네트워크 상태를 확인할 수 없습니다: " + error.message,
                 networkConnected: false
@@ -143,7 +130,6 @@ const useWalletStore = create((set, get) => {
 
                 // 메타마스크 연결
                 const address = await MetaMaskUtil.connectMetaMask();
-                console.log("[WalletStore] 메타마스크 연결:", address);
 
                 // 네트워크 확인
                 const networkConnected = await checkAndSwitchNetwork();
@@ -153,7 +139,6 @@ const useWalletStore = create((set, get) => {
 
                 // 백엔드에 지갑 연결 요청
                 const response = await walletAPI.connectMetaMaskWallet(address);
-                console.log("[WalletStore] 백엔드 응답:", response.data);
 
                 if (!response.data.success) {
                     throw new Error(response.data.message || "지갑 연결 실패");
@@ -208,7 +193,6 @@ const useWalletStore = create((set, get) => {
                 return { success: true, address, tokenBalance };
 
             } catch (error) {
-                console.error("[WalletStore] 메타마스크 연결 오류:", error);
                 set({
                     isLoading: false,
                     error: error.message || "메타마스크 연결 실패"
@@ -232,7 +216,6 @@ const useWalletStore = create((set, get) => {
                 const wallet = MetaMaskUtil.createNewWallet();
                 const address = wallet.address;
                 const privateKey = wallet.privateKey;
-                console.log("[WalletStore] 새 지갑 생성:", address);
 
                 // 백엔드에 새 지갑 주소 저장 요청
                 const response = await walletAPI.createWallet(address, privateKey);
@@ -243,7 +226,6 @@ const useWalletStore = create((set, get) => {
 
                 // 백엔드에서 반환한 토큰 잔액 가져오기
                 const tokenBalance = response.data.data.tokenBalance || 0;
-                console.log("[WalletStore] 지갑 생성 후 토큰 잔액:", tokenBalance);
 
                 // 지갑 생성 성공 후 상태 업데이트
                 set({
@@ -265,7 +247,6 @@ const useWalletStore = create((set, get) => {
                     tokenBalance
                 };
             } catch (error) {
-                console.error("[WalletStore] 지갑 생성 오류:", error);
                 set({
                     isLoading: false,
                     error: error.message || "지갑 생성 중 오류가 발생했습니다."
@@ -286,7 +267,6 @@ const useWalletStore = create((set, get) => {
                 if (isAuthenticated && isWalletConnected) {
                     try {
                         await walletAPI.disconnectWallet();
-                        console.log('[WalletStore] 지갑 연결 해제 API 호출 성공');
                     } catch (error) {
                         console.error("[WalletStore] 지갑 연결 해제 API 호출 오류:", error);
                     }
@@ -314,7 +294,6 @@ const useWalletStore = create((set, get) => {
 
                 return { success: true };
             } catch (error) {
-                console.error("[WalletStore] 지갑 연결 해제 오류:", error);
                 set({
                     isLoading: false,
                     error: error.message || "지갑 연결 해제 중 오류가 발생했습니다."
@@ -354,7 +333,6 @@ const useWalletStore = create((set, get) => {
                 }
 
                 const balance = response.data.data.balance || 0;
-                console.log("[WalletStore] 토큰 잔액:", balance);
 
                 set({
                     tokenBalance: balance,
@@ -365,7 +343,6 @@ const useWalletStore = create((set, get) => {
                 return { success: true, balance };
 
             } catch (error) {
-                console.error("[WalletStore] 토큰 잔액 조회 오류:", error);
                 set({
                     isLoading: false,
                     error: error.message
@@ -386,7 +363,6 @@ const useWalletStore = create((set, get) => {
                 }
 
                 const response = await walletAPI.getWalletStatus();
-                console.log("[WalletStore] 지갑 상태:", response.data);
 
                 if (response.data.success && response.data.data?.connected) {
                     const walletData = response.data.data;
@@ -443,7 +419,6 @@ const useWalletStore = create((set, get) => {
                 }
 
             } catch (error) {
-                console.error("[WalletStore] 지갑 상태 확인 오류:", error);
                 set({
                     isLoading: false,
                     error: error.message
@@ -474,7 +449,6 @@ const useWalletStore = create((set, get) => {
 
                 return { success: true };
             } catch (error) {
-                console.error("[WalletStore] 지갑 주소 업데이트 오류:", error);
                 set({
                     isLoading: false,
                     error: error.message
@@ -496,10 +470,8 @@ const useWalletStore = create((set, get) => {
                 const balance = await contract.balanceOf(walletAddress);
                 const tokenBalance = balance.div(ethers.BigNumber.from(10).pow(18)).toNumber();
 
-                console.log("[WalletStore] 블록체인 토큰 잔액:", tokenBalance);
                 return tokenBalance;
             } catch (error) {
-                console.error("[WalletStore] 블록체인 토큰 확인 오류:", error);
                 return 0;
             }
         },
@@ -526,15 +498,11 @@ const useWalletStore = create((set, get) => {
                     throw new Error("컨트랙트 인스턴스가 초기화되지 않았습니다.");
                 }
 
-                console.log("[WalletStore] 투표 트랜잭션 실행: candidateId=", candidateId);
-
                 // 투표 트랜잭션 전송
                 const tx = await contract.vote(candidateId);
-                console.log("[WalletStore] 투표 트랜잭션 전송됨:", tx.hash);
 
                 // 트랜잭션 확인 대기
                 const receipt = await tx.wait();
-                console.log("[WalletStore] 트랜잭션 확인됨:", receipt);
 
                 // 잔액 업데이트
                 await get().refreshTokenBalance();
@@ -549,7 +517,6 @@ const useWalletStore = create((set, get) => {
                     transactionHash: tx.hash
                 };
             } catch (error) {
-                console.error("[WalletStore] 투표 트랜잭션 오류:", error);
 
                 if (error.code === 4001) {
                     set({
