@@ -142,15 +142,17 @@ const CategorySection = () => {
   const sliderRef = useRef(null);
   const containerRef = useRef(null);
 
-  const cardCount = categories.length;
+  const cardCount = categories.length+1;
+  const cardWidth = 250;
+  const gap = 20;
+  const slideOffset = cardWidth + gap;
 
   // 화면 크기에 따라 보여질 카드 수와 버튼 표시 여부 계산
   const calculateLayout = () => {
     if (!containerRef.current) return;
 
     const containerWidth = containerRef.current.clientWidth;
-    const cardWidth = 250; // 카드 너비
-    const gap = 20; // 카드 간격
+
     const buttonSpace = 60; // 왼쪽, 오른쪽 버튼 공간
 
     // 컨테이너에 표시 가능한 카드 수 계산 (버튼 공간 고려)
@@ -197,7 +199,7 @@ const CategorySection = () => {
 
       <CardSliderWrapper ref={containerRef}>
         <CardSliderContainer>
-          <CardSlider ref={sliderRef} style={{ transform: allCardsVisible ? 'none' : `translateX(-${scrollPosition * 270}px)` }}>
+          <CardSlider ref={sliderRef} style={{ transform: allCardsVisible ? 'none' : `translateX(-${scrollPosition * slideOffset}px)` }}>
             <Card>
               <CardContent>
                 <CardTitle>전체</CardTitle>

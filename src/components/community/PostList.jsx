@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import usePageStore from "../../store/pageStore";
 import styled from "styled-components";
-import { FaSearch, FaThLarge, FaListUl } from "react-icons/fa";
+import { FaSearch, FaThLarge, FaListUl, FaHome, FaPen } from "react-icons/fa";
 import useCategoryStore from "../../store/categoryStore";
 import useViewStore from "../../store/postViewStore";
 import { postAPI } from "../../api/PostApi";
@@ -69,12 +69,43 @@ const SearchButton = styled.button`
 const WriteButton = styled.button`
   background-color: ${({ theme }) => theme.colors.dark};
   color: white;
-  border: none;
-  padding: 8px 16px;
-  margin-left: 20px;
+  border: 1px solid ${({ theme }) => theme.colors.dark};
+  padding: 7px 11px;
+  margin-left: 17px;
+  border-radius: 4px;
+  font-size: 15px;
+  cursor: pointer;
+  gap: 5px;
+
+  svg {
+    position: relative;
+    top: 1px;
+  }
+`;
+
+const GoHomeButton = styled.button`
+  padding: 8px 12px;
   border-radius: 4px;
   font-size: 14px;
+  font-weight: bold;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: all 0.2s;
+  gap: 5px;
+
+  background-color: #f1f1f1;
+  color: #333;
+  border: 1px solid #ddd;
+  text-decoration: none;
+  &:hover {
+    background-color: #e5e5e5;
+  }
+
+  svg {
+    position: relative;
+    top: 1px;
+  }
 `;
 
 const Table = styled.div`
@@ -411,8 +442,8 @@ const PostList = () => {
 
         <Controls>
           <ViewToggle>
-            <ViewButton active={!isCardView} onClick={() => setCardView(false)}><FaThLarge></FaThLarge></ViewButton>
-            <ViewButton active={isCardView} onClick={() => setCardView(true)}><FaListUl></FaListUl></ViewButton>
+            <ViewButton active={!isCardView} onClick={() => setCardView(false)}><FaListUl /></ViewButton>
+            <ViewButton active={isCardView} onClick={() => setCardView(true)}><FaThLarge /></ViewButton>
           </ViewToggle>
           <Select value={searchType} onChange={(e) => setSearchType(e.target.value)}>
             <option value="title_content">제목 + 내용</option>
@@ -442,32 +473,38 @@ const PostList = () => {
             } else {
               navigate("/community/board/write")
             }
-          }}>글쓰기</WriteButton>
+          }}><FaPen /></WriteButton>
+          <GoHomeButton onClick={() => navigate("/community")}><FaHome />커뮤니티</GoHomeButton>
         </Controls>
       </Header>
 
       {isCardView ? (
-        <CardGrid>
-          {posts.map((post) => (
-            <CardItem key={post.id} onClick={() => navigate(`/community/post/${post.id}`)}>
-              <CardImage src={post.thumbnailUrl || "/api/placeholder/250/180"} alt={post.title} />
-              <CardContent>
-                <CardTitle>
-                  {post.title}
-                  {post.isNew && <CardNewBadge>N</CardNewBadge>}
-                </CardTitle>
-                <CardMeta>
-                  <CardAuthor>
-                    <CardAuthorBadge className="purple">{post.authorNickname}</CardAuthorBadge>
-                  </CardAuthor>
-                </CardMeta>
-                <CardStats>
-                  <span>{post.categoryName} · {formatPostTimeSmart(post.createdAt)} · 조회 {post.views} · 댓글 {post.commentCount}</span>
-                </CardStats>
-              </CardContent>
-            </CardItem>
-          ))}
-        </CardGrid>
+        <>
+          <CardGrid>
+            {posts.map((post) => (
+              <CardItem key={post.id} onClick={() => navigate(`/community/post/${post.id}`)}>
+                <CardImage src={post.thumbnailUrl || "/api/placeholder/250/180"} alt={post.title} />
+                <CardContent>
+                  <CardTitle>
+                    {post.title}
+                    {post.isNew && <CardNewBadge>N</CardNewBadge>}
+                  </CardTitle>
+                  <CardMeta>
+                    <CardAuthor>
+                      <CardAuthorBadge className="purple">{post.authorNickname}</CardAuthorBadge>
+                    </CardAuthor>
+                  </CardMeta>
+                  <CardStats>
+                    <span>{post.categoryName} · {formatPostTimeSmart(post.createdAt)} · 조회 {post.views} · 댓글 {post.commentCount}</span>
+                  </CardStats>
+                </CardContent>
+              </CardItem>
+            ))}
+          </CardGrid>
+          {posts.length === 0 && pendingPosts === null && (
+            <NoData>검색 결과가 없습니다.</NoData>
+          )}
+        </>
       ) : (
         <Table>
           <TableHeader>
@@ -509,46 +546,46 @@ const PostList = () => {
       )}
 
       < Pagination >
-      {/* 현재 페이지 기준으로 블록 계산 */ }
+        {/* 현재 페이지 기준으로 블록 계산 */}
         {(() => {
-        const pageSize = 10; // 블록당 페이지 수
-        const currentBlock = Math.floor(page / pageSize);
-        const startPage = currentBlock * pageSize;
-        const endPage = Math.min(startPage + pageSize, totalPages);
+          const pageSize = 10; // 블록당 페이지 수
+          const currentBlock = Math.floor(page / pageSize);
+          const startPage = currentBlock * pageSize;
+          const endPage = Math.min(startPage + pageSize, totalPages);
 
-        return (
-          <>
-            {/* 이전 블록 화살표 */}
-            {startPage > 0 && (
-              <PageButton onClick={() => handlePageClick(startPage - 1)}>
-                &lt;
-              </PageButton>
-            )}
-
-            {/* 현재 블록 내 페이지 번호 */}
-            {Array.from({ length: endPage - startPage }, (_, i) => {
-              const pageIndex = startPage + i;
-              return (
-                <PageButton
-                  key={pageIndex}
-                  onClick={() => handlePageClick(pageIndex)}
-                  active={pageIndex === page}
-                >
-                  {pageIndex + 1}
+          return (
+            <>
+              {/* 이전 블록 화살표 */}
+              {startPage > 0 && (
+                <PageButton onClick={() => handlePageClick(startPage - 1)}>
+                  &lt;
                 </PageButton>
-              );
-            })}
+              )}
 
-            {/* 다음 블록 화살표 */}
-            {endPage < totalPages && (
-              <PageButton onClick={() => handlePageClick(endPage)}>
-                &gt;
-              </PageButton>
-            )}
-          </>
-        );
-      })()}
-    </Pagination>
+              {/* 현재 블록 내 페이지 번호 */}
+              {Array.from({ length: endPage - startPage }, (_, i) => {
+                const pageIndex = startPage + i;
+                return (
+                  <PageButton
+                    key={pageIndex}
+                    onClick={() => handlePageClick(pageIndex)}
+                    active={pageIndex === page}
+                  >
+                    {pageIndex + 1}
+                  </PageButton>
+                );
+              })}
+
+              {/* 다음 블록 화살표 */}
+              {endPage < totalPages && (
+                <PageButton onClick={() => handlePageClick(endPage)}>
+                  &gt;
+                </PageButton>
+              )}
+            </>
+          );
+        })()}
+      </Pagination>
     </Section >
   );
 };

@@ -145,6 +145,7 @@ const AttachmentSize = styled.span`
 `;
 
 const Content = styled.div`
+  padding: 20px;
   font-size: 16px;
   line-height: 1.8;
   margin-bottom: 40px;
@@ -280,13 +281,13 @@ const formatFileSize = (bytes) => {
 
 const PostDetail = () => {
   const navigate = useNavigate();
-  
+
   const { id } = useParams();
   const [post, setPost] = useState(null);
   const [showReportModal, setShowReportModal] = useState(false);
   const userId = localStorage.getItem("userId");
   const isAuthor = post && post.authorId === userId;
-  const { selectedCategory } = useCategoryStore();
+  const { categories, selectedCategory, setSelectedCategory } = useCategoryStore();
 
   // 게시글 삭제 핸들러
   const handleDelete = async () => {
@@ -309,6 +310,13 @@ const PostDetail = () => {
     try {
       const data = await postAPI.getPostDetail(id);
       setPost(data);
+
+      if (selectedCategory?.code !== 'all') {
+        const matchedCategory = categories.find(c => c.code === data.categoryCode);
+        if (matchedCategory) {
+          setSelectedCategory(matchedCategory);
+        }
+      }
     } catch (error) {
       console.error("게시글 조회 실패:", error);
     }
@@ -434,7 +442,7 @@ const PostDetail = () => {
         <RightActions>
           <GrayBtn onClick={() => navigate("/community")}><FaHome /> 커뮤니티 메인</GrayBtn>
           <GrayBtn as={Link} to={`/community?category=${selectedCategory?.code || 'all'}`}><FaList /> 목록</GrayBtn>
-          <GrayBtn><FaArrowUp /> TOP</GrayBtn>
+          <GrayBtn onClick={() => window.scrollTo(0, 0)}><FaArrowUp /> TOP</GrayBtn>
         </RightActions>
       </PostActionsBar>
     </Container>

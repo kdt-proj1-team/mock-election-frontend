@@ -37,6 +37,12 @@ const CommentList = forwardRef(({ postId, anonymous }, ref) => {
     const [loading, setLoading] = useState(false);
     const limit = 10;
 
+    // activeCommentId: 어느 댓글에 폼이 열려 있는지
+    // isEditMode: 수정폼인지, 답글폼인지 구분
+    const [activeCommentId, setActiveCommentId] = useState(null);
+    const [isEditMode, setIsEditMode] = useState(false);
+
+
     // 외부에서 fetchComments를 호출 가능하게 만듦
     useImperativeHandle(ref, () => ({
         refetch: fetchComments,
@@ -84,7 +90,17 @@ const CommentList = forwardRef(({ postId, anonymous }, ref) => {
     return (
         <CommentListWrapper>
             {comments.map(root => (
-                <CommentItem key={root.id} comment={root} onDeleted={() => fetchComments(true)} anonymous={anonymous} />
+                <CommentItem
+                    key={root.id}
+                    comment={root}
+                    onDeleted={() => fetchComments(true)}
+                    anonymous={anonymous}
+
+                    activeCommentId={activeCommentId}
+                    setActiveCommentId={setActiveCommentId}
+                    isEditMode={isEditMode}
+                    setIsEditMode={setIsEditMode}
+                />
             ))}
 
             {hasMore && (
