@@ -1,5 +1,10 @@
 import React, {useState, useEffect, useRef} from 'react';
-import {FaComments, FaUsers, FaTimes, FaExclamationTriangle } from 'react-icons/fa';
+import {
+    FaComments, FaUsers, FaTimes, FaExclamationTriangle,
+    FaSmile, FaLaugh, FaSadTear, FaAngry, FaHeart,
+    FaThumbsUp, FaThumbsDown, FaSurprise, FaGrinStars,
+    FaArrowDown
+} from 'react-icons/fa';
 import {chatAPI} from '../../api/ChatApi';
 
 
@@ -311,7 +316,78 @@ const styles = {
         fontSize: '14px',
         cursor: 'pointer',
         color: '#666',
-    }
+    },
+    // 이모티콘
+    emoticonsButton: {
+        background: 'none',
+        border: 'none',
+        fontSize: '18px',
+        cursor: 'pointer',
+        color: '#666',
+        transition: 'color 0.2s',
+        marginRight: '10px',
+        display: 'flex',
+        alignItems: 'center',
+    },
+    emoticonsPanel: {
+        position: 'absolute',
+        bottom: '60px',
+        left: '15px',
+        width: 'auto',
+        backgroundColor: '#fff',
+        border: '1px solid #eee',
+        borderRadius: '8px',
+        boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)',
+        padding: '10px',
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: '10px',
+        zIndex: 10,
+    },
+    emoticonItem: {
+        fontSize: '24px',
+        cursor: 'pointer',
+        padding: '5px',
+        borderRadius: '4px',
+        transition: 'background-color 0.2s',
+    },
+    emoticonItemHover: {
+        backgroundColor: '#f0f0f0',
+    },
+    // 스크롤 버튼 스타일 추가
+    scrollButton: {
+        position: 'absolute',
+        bottom: '70px',
+        right: '20px',
+        backgroundColor: '#555',
+        color: 'white',
+        borderRadius: '50%',
+        width: '40px',
+        height: '40px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        cursor: 'pointer',
+        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)',
+        zIndex: 10,
+        animation: 'fadeIn 0.3s forwards',
+        border: 'none',
+        transition: 'transform 0.2s, background-color 0.2s',
+    },
+    scrollButtonHover: {
+        backgroundColor: '#333',
+        transform: 'scale(1.05)',
+    },
+    newMessageIndicator: {
+        position: 'absolute',
+        top: '0',
+        right: '0',
+        width: '12px',
+        height: '12px',
+        backgroundColor: '#ff4757',
+        borderRadius: '50%',
+        border: '2px solid white',
+    },
 };
 
 export default function ChatPopup() {
@@ -329,26 +405,120 @@ export default function ChatPopup() {
         send: false,
         input: false
     });
+    const [showEmoticons, setShowEmoticons] = useState(false);
+    const [hoveredEmoticon, setHoveredEmoticon] = useState(null);
+
+    // 스크롤 관련 상태 추가
+    const [isScrolledUp, setIsScrolledUp] = useState(false);
+    const [showScrollButton, setShowScrollButton] = useState(false);
+    const [hasNewMessage, setHasNewMessage] = useState(false);
 
     const stompClientRef = useRef(null); // useRef로 stompClient 참조 관리
     const messagesEndRef = useRef(null);
     const inputRef = useRef(null);
+    const messagesContainerRef = useRef(null);
     const subscriptionRef = useRef(null);
     const participantsSubscriptionRef = useRef(null);
+    const isAutoScrollEnabledRef = useRef(true);
 
     // 사용자 정보 가져오기
     const userId = localStorage.getItem("userId");
     const nickname = localStorage.getItem("nickname");
 
+    // 이모티콘 리스트 정의
+    const emoticons = [
+        { icon: <FaSmile />, name: "smile" },
+        { icon: <FaLaugh />, name: "laugh" },
+        { icon: <FaSadTear />, name: "sad" },
+        { icon: <FaAngry />, name: "angry" },
+        { icon: <FaHeart />, name: "heart" },
+        { icon: <FaThumbsUp />, name: "thumbsUp" },
+        { icon: <FaThumbsDown />, name: "thumbsDown" },
+        { icon: <FaSurprise />, name: "surprise" },
+        { icon: <FaGrinStars />, name: "star" }
+    ];
+
+    // 이모티콘 패널 토글 함수
+    const toggleEmoticonsPanel = () => {
+        setShowEmoticons(! showEmoticons);
+    };
+
+    // 이모티콘 선택 함수
+    const handleEmoticonSelect = (emoticonName) => {
+        // 이모티콘 이름에 따라 처리
+        const emoticonMap = {
+            "smile" : "😊",
+            "laugh" : "😂",
+            "sad": "😢",
+            "angry": "😡",
+            "heart": "❤️",
+            "thumbsUp": "👍",
+            "thumbsDown": "👎",
+            "surprise": "😮",
+            "star": "🤩"
+        };
+
+        // 현재 입력창에 있는 텍스트에 이모티콘 추가
+        setMessage(prevMessage => prevMessage + emoticonMap[emoticonName]);
+
+        // 패널 닫기
+        setShowEmoticons(false);
+
+        // 입력창에 포커스 유지
+        inputRef.current?.focus();
+    };
+
     // 스크롤을 최하단으로 이동하는 함수
-    const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({behavior: 'smooth'});
+    const scrollToBottom = (behavior = 'smooth') => {
+        if (!messagesEndRef.current) return;
+        messagesEndRef.current?.scrollIntoView({ behavior });// 스크롤 동작 실행
+
+        setIsScrolledUp(false); // 스크롤을 아래로 이동했으므로 isScrolledUp을 false로 설정
+        isAutoScrollEnabledRef.current = true; // 수동으로 스크롤 다운했을 때 자동 스크롤 활성화
+        setShowScrollButton(false); // 스크롤 버튼 숨기기
+        setHasNewMessage(false); // 새 메시지 알림 초기화
     }
 
-    // 메시지가 업데이트될 때마다 스크롤 이동
+    // 스크롤 이벤트 핸들러
+    const handleScroll = () => {
+        if(!messagesContainerRef.current) return;
+
+        const { scrollTop, scrollHeight, clientHeight } = messagesContainerRef.current;
+        const isNearBottom = scrollHeight - scrollTop - clientHeight < 100; // 바닥에서 100px 이내인지 확인
+
+        // 스크롤이 바닥에서 떨어져 있으면 isScrolledUp은 true
+        setIsScrolledUp(!isNearBottom);
+
+        // 자동 스크롤 상태를 현재 스크롤 위치에 따라 업데이트
+        isAutoScrollEnabledRef.current = isNearBottom;
+
+        // 스크롤이 바닥에 있지 않을 때만 스크롤 버튼 표시
+        setShowScrollButton(!isNearBottom);
+
+        // 스크롤 상태 업데이트
+        // setIsScrolledUp(!isNearBottom);
+    }
+
+    // 메시지가 업데이트될 때마다 호출
     useEffect(() => {
-        scrollToBottom();
-    }, [messages]);
+        // 메시지가 없으면 처리하지 않음
+        if (messages.length === 0) return;
+
+        // 자동 스크롤이 활성화되어 있거나, 사용자가 스크롤을 아래에 위치시켰을 때만 스크롤 다운
+        if (!isScrolledUp || isAutoScrollEnabledRef.current) {
+            console.log("자동 스크롤 실행");
+
+            // setTimeout으로 렌더링 후 스크롤 실행
+            setTimeout(() => {
+                scrollToBottom('auto');
+            }, 50);
+        } else {
+            // 자동 스크롤이 비활성화된 경우 (사용자가 위로 스크롤한 상태)
+            console.log("새 메시지 알림 표시");
+            setHasNewMessage(true);
+            setShowScrollButton(true);
+        }
+    }, [messages, isScrolledUp]);
 
     // 팝업이 열릴 때 입력 필드에 포커스
     useEffect(() => {
@@ -358,6 +528,20 @@ export default function ChatPopup() {
             }, 300);
         }
     }, [isOpen]);
+
+    // 스크롤 이벤트 리스너 등록
+    useEffect(() => {
+        const messageContainer = messagesContainerRef.current;
+        if (!messageContainer) return;
+
+        // 스크롤 이벤트 핸들러 등록
+        messageContainer.addEventListener('scroll', handleScroll);
+
+        // 이벤트 정리 함수
+        return () => {
+            messageContainer.removeEventListener('scroll', handleScroll);
+        };
+    }, []); // 빈 의존성 배열은 컴포넌트 마운트 시 한 번만 실행함을 의미
 
 
     // 채팅방 목록 로드
@@ -431,10 +615,23 @@ export default function ChatPopup() {
     // 채팅 기록 조회
     const fetchChatHistory = async (roomId) => {
         try {
+            // 로딩 시작 시 스크롤 상태 초기화
+            setIsScrolledUp(false);
+            isAutoScrollEnabledRef.current = true;
+            setHasNewMessage(false);
+            setShowScrollButton(false);
+
             // 실제로는 roomId를 포함한 API 호출 필요
             const data = await chatAPI.getChatHistory(roomId);
             console.log("받아온 채팅 기록 : " + data);
             setMessages(data);
+
+            // 채팅 히스토리 로드 후 스크롤 맨 아래로 이동
+            // 약간의 지연을 줘서 렌더링 후 스크롤되도록 함
+            setTimeout(() => {
+                scrollToBottom('auto');
+                isAutoScrollEnabledRef.current = true;
+            }, 100);
         } catch (error) {
             console.error('Error fetching chat history:', error);
         }
@@ -750,7 +947,10 @@ export default function ChatPopup() {
                         <div style={styles.mainContent}>
                             {/* 메시지 영역 - 참여자 패널이 보이지 않을 때만 표시 */}
                             {!showParticipants && (
-                                <div style={styles.messages}>
+                                <div
+                                    style={styles.messages}
+                                    ref={messagesContainerRef}
+                                >
                                     {activeRoom ? (
                                         messages.length === 0 ? (
                                             <div style={styles.emptyStateMessage}>
@@ -761,6 +961,9 @@ export default function ChatPopup() {
                                                 // 비속어가 필터링된 메시지인지 확인
                                                 const isFiltered = msg.content === "[비속어가 감지되어 메시지가 필터링되었습니다]";
 
+                                                // 이모티콘 메시지인지 확인 (이모티콘은 보통 한 개의 이모티콘 문자로 구성)
+                                                const isEmoticon = msg.content && msg.content.length <= 2 && /\p{Emoji}/u.test(msg.content);
+
                                                 return (
                                                     <div
                                                         key={idx}
@@ -770,7 +973,8 @@ export default function ChatPopup() {
                                                                 : {
                                                                     ...styles.messageItem,
                                                                     ...(msg.userId === userId ? styles.myMessageItem : {}),
-                                                                    ...(isFiltered ? styles.filteredMessageItem : {})
+                                                                    ...(isFiltered ? styles.filteredMessageItem : {}),
+                                                                    ...(isEmoticon ? { backgroundColor: 'transparent', border: 'none', boxShadow: 'none' } : {})
                                                                 }
                                                         }
                                                     >
@@ -785,7 +989,8 @@ export default function ChatPopup() {
                                                         <div
                                                             style={{
                                                                 ...(msg.userId === null ? styles.systemContent : styles.content),
-                                                                ...(isFiltered ? styles.filteredContent : {})
+                                                                ...(isFiltered ? styles.filteredContent : {}),
+                                                                ...(isEmoticon ? { fontSize: '32px' } : {})
                                                             }}
                                                         >
                                                             {isFiltered && <FaExclamationTriangle style={{ marginRight: '5px', color: '#e74c3c' }} />}
@@ -803,6 +1008,26 @@ export default function ChatPopup() {
 
                                     {/* 스크롤 위치를 위한 참조 */}
                                     <div ref={messagesEndRef}></div>
+
+                                    {/* 스크롤 다운 버튼 - 위로 스크롤되었을 때만 표시 */}
+                                    {showScrollButton && (
+                                        <button
+                                            style={{
+                                                ...styles.scrollButton,
+                                                ...(isHovering.scrollButton ? styles.scrollButtonHover : {})
+                                            }}
+                                            onClick={() => scrollToBottom('smooth')}
+                                            onMouseEnter={() => setIsHovering({...isHovering, scrollButton : true})}
+                                            onMouseLeave={() => setIsHovering({...isHovering, scrollButton : false})}
+                                            title="최신 메시지로 이동"
+                                        >
+                                            <FaArrowDown />
+                                            {/* 새 메시지가 있을 때 붉은 점 표시 */}
+                                            {hasNewMessage && (
+                                                <span style={styles.newMessageIndicator}></span>
+                                            )}
+                                        </button>
+                                    )}
                                 </div>
                             )}
 
@@ -845,6 +1070,17 @@ export default function ChatPopup() {
                             {/* 메시지 입력 영역 */}
                             <div style={styles.inputArea}>
                                 <form onSubmit={handleSendMessage} style={styles.inputContainer}>
+                                    {/* 이모티콘 버튼 */}
+                                    <button
+                                        type="button"
+                                        style={styles.emoticonsButton}
+                                        onClick={toggleEmoticonsPanel}
+                                        title="이모티콘"
+                                    >
+                                        <FaSmile />
+                                    </button>
+
+                                    {/* 텍스트 입력란 */}
                                     <input
                                         type="text"
                                         placeholder={activeRoom ? "메시지를 입력하세요" : "채팅방을 선택해주세요"}
@@ -868,6 +1104,28 @@ export default function ChatPopup() {
                                         전송
                                     </button>
                                 </form>
+
+                                {/* 이모티콘 패널 */}
+                                {showEmoticons && (
+                                    <div style={styles.emoticonsPanel}>
+                                        {emoticons.map(emoticon => (
+                                            <div
+                                                key={emoticon.name}
+                                                style={{
+                                                    ...styles.emoticonItem,
+                                                    ...(hoveredEmoticon === emoticon.name ? styles.emoticonItemHover : {})
+                                                }}
+                                                onClick={() => handleEmoticonSelect(emoticon.name)}
+                                                onMouseEnter={() => setHoveredEmoticon(emoticon.name)}
+                                                onMouseLeave={() => setHoveredEmoticon(null)}
+                                                title={emoticon.name}
+                                            >
+                                                {emoticon.icon}
+                                            </div>
+                                        ))}
+                                    </div>
+                                )
+                                }
                             </div>
 
                         </div>
