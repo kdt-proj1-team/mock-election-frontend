@@ -52,6 +52,7 @@ const styles = {
         right: '120px',
         // width: '350px',
         // height: '450px',
+        maxWidth : '1000px',
         width: '80vw',
         height: '70vh',
         background: '#fff',
@@ -167,7 +168,7 @@ const styles = {
     },
     filteredMessageItem: {
         backgroundColor: '#f0f0f0',
-        borderLeft: '3px solid #ff6b6b',
+        borderLeft: '3px solid #333',
     },
     filteredContent: {
         color: '#555',
@@ -384,7 +385,7 @@ const styles = {
         right: '0',
         width: '12px',
         height: '12px',
-        backgroundColor: '#ff4757',
+        backgroundColor: '#333',
         borderRadius: '50%',
         border: '2px solid white',
     },
@@ -993,7 +994,7 @@ export default function ChatPopup() {
                                                                 ...(isEmoticon ? { fontSize: '32px' } : {})
                                                             }}
                                                         >
-                                                            {isFiltered && <FaExclamationTriangle style={{ marginRight: '5px', color: '#e74c3c' }} />}
+                                                            {isFiltered && <FaExclamationTriangle style={{ marginRight: '5px', color: '#333' }} />}
                                                             {msg.content}
                                                         </div>
                                                     </div>
