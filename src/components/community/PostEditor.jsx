@@ -1,6 +1,5 @@
-import React from 'react';
-import { useEffect, useState } from "react";
-import { useNavigate, useParams, useLocation } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { useEditor, EditorContent as TiptapEditorContent } from '@tiptap/react';
 import { Mark, mergeAttributes } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
@@ -13,7 +12,11 @@ import Image from '@tiptap/extension-image'
 import styled from 'styled-components';
 import { postAPI } from '../../api/PostApi';
 import { fileAPI } from '../../api/FileApi';
+import { spamCheckAPI } from '../../api/SpamCheckApi';
 import useCategoryStore from '../../store/categoryStore';
+
+import ReCAPTCHA from "react-google-recaptcha";
+import ReCaptchaModal from '../spam-check/ReCaptchaModal';
 
 // #region styled-components
 const Container = styled.div`
@@ -324,6 +327,9 @@ const PostEditor = () => {
     const remainingSlots = MAX_FILES - totalCount;   // 추가 가능한 파일 개수
     const [deletedAttachmentIds, setDeletedAttachmentIds] = useState([]);   // 삭제 파일
 
+    const [needCaptcha, setNeedCaptcha] = useState(false);
+
+    const titleRef = useRef();
 
     const fetchPost = async (id) => {
         const data = await postAPI.getPostForEdit(id);
@@ -489,14 +495,7 @@ const PostEditor = () => {
     };
 
     // 게시글 submit 핸들러
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-
-        if (!formData.title || !editor || (!isEdit && !selectedCategory)) {
-            alert("제목, 카테고리, 내용을 모두 입력해주세요.");
-            return;
-        }
-
+    const submitPost = async (captcha) => {
         const contentHTML = editor.getHTML();
 
         // 썸네일용 첫 번째 이미지 추출
@@ -519,8 +518,8 @@ const PostEditor = () => {
                     categoryId: selectedCategory.id,
                     title: formData.title,
                     content: editor.getHTML(),
-                    authorId: localStorage.getItem("userId"),
                     thumbnailUrl,
+                    captchaToken: captcha,
                 };
             }
 
@@ -549,6 +548,51 @@ const PostEditor = () => {
         }
     };
 
+
+    // 스팸 체크 후 필요하면 캡챠 띄우고, 아닐 땐 바로 submitPost 호출
+    const handleCheckThenSubmit = async (e) => {
+        if (e) e.preventDefault();
+
+        const contentHTML = editor.getHTML();
+
+        if (!formData.title.trim()) {
+            alert("제목을 입력해주세요.");
+            titleRef.current?.focus();
+            return;
+        }
+
+        if (!isEdit && !selectedCategory.id) {
+            alert("카테고리를 선택해주세요.");
+            return;
+        }
+
+        if (!contentHTML || contentHTML === '<p></p>') {
+            alert("내용을 입력해주세요.");
+            editor?.commands.focus();
+            return;
+        }
+
+        try {
+            if (!isEdit) {
+                const isSuspicious = await spamCheckAPI.check({
+                    type: "POST",
+                    title: formData.title,
+                    content: contentHTML,
+                });
+
+                if (isSuspicious) {
+                    setNeedCaptcha(true);
+                    return;
+                }
+            }
+
+            submitPost(null);
+        } catch (err) {
+            console.error("게시글 등록 실패", err);
+            alert("게시글 등록에 실패했습니다.");
+        }
+    };
+
     useEffect(() => {
         // 카테고리가 비어 있다면 서버에서 다시 불러옴
         if (categories.length === 0) {
@@ -566,7 +610,7 @@ const PostEditor = () => {
     // 사진 리사이즈
     useEffect(() => {
         if (!editor) return;
-
+        editor.commands.focus();
         const handleClick = (event) => {
             const el = event.target;
             if (el.tagName === 'IMG') {
@@ -590,7 +634,7 @@ const PostEditor = () => {
 
     return (
         <Container>
-            <WriteForm onSubmit={handleSubmit}>
+            <WriteForm onSubmit={handleCheckThenSubmit}>
                 <FormHeader>
                     <h1>{isEdit ? "게시글 수정하기" : "게시글 작성하기"}</h1>
                     <p>여러분의 생각을 자유롭게 작성해주세요. 건전한 토론 문화를 만들어갑니다.</p>
@@ -600,6 +644,7 @@ const PostEditor = () => {
                     <Label htmlFor="title">제목</Label>
                     <Input
                         id="title"
+                        ref={titleRef}
                         placeholder="제목을 입력해주세요"
                         value={formData.title}
                         onChange={(e) =>
@@ -785,6 +830,15 @@ const PostEditor = () => {
                     <PrimaryButton type="submit">{isEdit ? "수정하기" : "게시하기"}</PrimaryButton>
                 </ButtonGroup>
             </WriteForm>
+
+            <ReCaptchaModal
+                visible={needCaptcha}
+                onVerify={(token) => {
+                    setNeedCaptcha(false);
+                    submitPost(token);
+                }}
+                onClose={() => setNeedCaptcha(false)}
+            />
         </Container >
     );
 };

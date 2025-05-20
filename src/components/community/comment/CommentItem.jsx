@@ -117,16 +117,33 @@ const Reply = styled.div`
 `;
 // #endregion 
 
-const CommentItem = ({ comment, onDeleted, maxDepth = 4, anonymous }) => {
+const CommentItem = ({ comment, onDeleted, maxDepth = 4, anonymous, activeCommentId, setActiveCommentId, isEditMode, setIsEditMode }) => {
   const userId = localStorage.getItem("userId");
   const navigate = useNavigate();
   const isAuthor = comment && comment.authorId === userId;
-  const [showReplyForm, setShowReplyForm] = useState(false);
-  const [showEditForm, setShowEditForm] = useState(false);
+
   const [showReportModal, setShowReportModal] = useState(false);
   const [localComment, setLocalComment] = useState({ ...comment });
 
   const CommentItemWrapper = comment.depth === 0 ? Comment : Reply;
+
+  // 답글 버튼 핸들러
+  const onReplyClick = () => {
+    if (!userId) {
+      const confirmed = window.confirm("로그인 후 이용 가능한 기능입니다.\n로그인하시겠습니까?");
+      if (confirmed) navigate("/login");
+      return;
+    }
+
+    setActiveCommentId(comment.id);
+    setIsEditMode(false);
+  };
+
+  // 수정 버튼 핸들러
+  const onEditClick = () => {
+    setActiveCommentId(comment.id);
+    setIsEditMode(true);
+  };
 
   // 댓글 삭제 핸들러
   const handleDelete = async () => {
@@ -205,7 +222,7 @@ const CommentItem = ({ comment, onDeleted, maxDepth = 4, anonymous }) => {
   if (comment.isDeleted) {
     return (
       <CommentItemWrapper>
-        {/* 삭제된 댓글은 오직 이 한 줄만 보여준다 */}
+        {/* 삭제된 댓글 UI */}
         <DeletedComment>[삭제된 댓글입니다.]</DeletedComment>
 
         {/* 자식이 있으면 그대로 재귀 렌더링 */}
@@ -218,6 +235,11 @@ const CommentItem = ({ comment, onDeleted, maxDepth = 4, anonymous }) => {
                 onDeleted={onDeleted}
                 maxDepth={maxDepth}
                 anonymous={anonymous}
+
+                activeCommentId={activeCommentId}
+                setActiveCommentId={setActiveCommentId}
+                isEditMode={isEditMode}
+                setIsEditMode={setIsEditMode}
               />
             ))}
           </ReplyList>
@@ -228,7 +250,21 @@ const CommentItem = ({ comment, onDeleted, maxDepth = 4, anonymous }) => {
 
   return (
     <CommentItemWrapper>
-      {!showEditForm && (
+      {activeCommentId === comment.id && isEditMode ? (
+        // 수정 모드일 때 수정 폼만 보여줌
+        <CommentForm
+          postId={comment.postId}
+          commentId={comment.id}
+          mode="edit"
+          initialContent={comment.content}
+          onSuccess={() => {
+            setActiveCommentId(null);
+            onDeleted?.();
+          }}
+          onCancel={() => setActiveCommentId(null)}
+          anonymous={anonymous}
+        />
+      ) : (
         <>
           <CommentHeader>
             <CommentAuthor>{comment.anonymousNickname || comment.authorNickname}</CommentAuthor>
@@ -249,14 +285,7 @@ const CommentItem = ({ comment, onDeleted, maxDepth = 4, anonymous }) => {
               <CommentVoteButton type="down" active={localComment.userVote === -1} onClick={() => handleVote(-1)}><FaArrowDown /></CommentVoteButton>
             </CommentVoteButtons>
             {comment.depth < maxDepth && (
-              <ActionButton onClick={() => {
-                if (!userId) {
-                  const confirmed = window.confirm("로그인 후 이용 가능한 기능입니다.\n로그인하시겠습니까?");
-                  if (confirmed) navigate("/login");
-                  return;
-                }
-                setShowReplyForm(prev => !prev)
-              }}><FaReply /> 답글</ActionButton>
+              <ActionButton onClick={onReplyClick}><FaReply /> 답글</ActionButton>
             )}
             {!isAuthor && (
               <ActionButton onClick={() => handleReportClick()}><FaFlag /> 신고</ActionButton>
@@ -272,38 +301,22 @@ const CommentItem = ({ comment, onDeleted, maxDepth = 4, anonymous }) => {
             )}
             {isAuthor && (
               <>
-                <ActionButton onClick={() => setShowEditForm(prev => !prev)}><FaPencilAlt /> 수정</ActionButton>
+                <ActionButton onClick={onEditClick}><FaPencilAlt /> 수정</ActionButton>
                 <ActionButton onClick={handleDelete}><FaTrash /> 삭제</ActionButton>
               </>
             )}
           </CommentActions>
         </>)}
-      {showReplyForm && (
+      {activeCommentId === comment.id && !isEditMode && (
         <CommentForm
           postId={comment.postId}
           parentId={comment.id}
           mode="reply"
           onSuccess={() => {
-            setShowReplyForm(false);
+            setActiveCommentId(null);
             onDeleted?.();
           }}
-          onCancel={() => setShowReplyForm(false)}
-          anonymous={anonymous}
-        />
-      )}
-
-      {showEditForm && (
-        <CommentForm
-          postId={comment.postId}
-          parentId={comment.id}
-          commentId={comment.id}
-          mode="edit"
-          initialContent={comment.content}
-          onSuccess={() => {
-            setShowEditForm(false);
-            onDeleted?.();
-          }}
-          onCancel={() => setShowEditForm(false)}
+          onCancel={() => setActiveCommentId(null)}
           anonymous={anonymous}
         />
       )}
@@ -318,6 +331,11 @@ const CommentItem = ({ comment, onDeleted, maxDepth = 4, anonymous }) => {
               onDeleted={onDeleted}
               maxDepth={maxDepth}
               anonymous={anonymous}
+
+              activeCommentId={activeCommentId}
+              setActiveCommentId={setActiveCommentId}
+              isEditMode={isEditMode}
+              setIsEditMode={setIsEditMode}
             />
           ))}
         </ReplyList>

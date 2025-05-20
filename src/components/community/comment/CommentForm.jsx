@@ -123,7 +123,7 @@ const SubmitButton = styled.button`
         mode === 'comment' ? '40px' :
           '40px'
   };
-  background-color: #4d82f3;
+  background-color: #666;
   color: white;
   border: none;
   padding: ${({ mode }) =>
@@ -143,7 +143,7 @@ const SubmitButton = styled.button`
   cursor: pointer;
 
   &:hover {
-    background-color: #3a6ad4;
+    background-color: #333;
   }
   &:disabled {
     background-color: #cccccc;
