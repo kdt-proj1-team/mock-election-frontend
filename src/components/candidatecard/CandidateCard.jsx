@@ -87,7 +87,9 @@ const CandidateCard = ({candidate}) => {
 
     const handleDetailClick = (e) => {
         e.stopPropagation();
-        navigate(`/candidate-detail/${candidate.sgId}/${candidate.jdName}`);
+        navigate(`/candidate-detail/${candidate.sgId}/${candidate.jdName}`, {
+            state: {candidate},
+        });
     };
     const formatBirthday = (raw) => {
         if (!raw || raw.length !== 8) return raw; // 유효성 검사
