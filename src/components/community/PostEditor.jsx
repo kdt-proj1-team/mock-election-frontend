@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useEditor, EditorContent as TiptapEditorContent } from '@tiptap/react';
 import { Mark, mergeAttributes } from '@tiptap/core';
@@ -329,6 +329,8 @@ const PostEditor = () => {
 
     const [needCaptcha, setNeedCaptcha] = useState(false);
 
+    const titleRef = useRef();
+
     const fetchPost = async (id) => {
         const data = await postAPI.getPostForEdit(id);
 
@@ -494,11 +496,6 @@ const PostEditor = () => {
 
     // 게시글 submit 핸들러
     const submitPost = async (captcha) => {
-        if (!formData.title || !editor || (!isEdit && !selectedCategory)) {
-            alert("제목, 카테고리, 내용을 모두 입력해주세요.");
-            return;
-        }
-
         const contentHTML = editor.getHTML();
 
         // 썸네일용 첫 번째 이미지 추출
@@ -556,12 +553,24 @@ const PostEditor = () => {
     const handleCheckThenSubmit = async (e) => {
         if (e) e.preventDefault();
 
-        if (!formData.title || !editor || (!isEdit && !selectedCategory)) {
-            alert("제목, 카테고리, 내용을 모두 입력해주세요.");
+        const contentHTML = editor.getHTML();
+
+        if (!formData.title.trim()) {
+            alert("제목을 입력해주세요.");
+            titleRef.current?.focus();
             return;
         }
 
-        const contentHTML = editor.getHTML();
+        if (!isEdit && !selectedCategory.id) {
+            alert("카테고리를 선택해주세요.");
+            return;
+        }
+
+        if (!contentHTML || contentHTML === '<p></p>') {
+            alert("내용을 입력해주세요.");
+            editor?.commands.focus();
+            return;
+        }
 
         try {
             if (!isEdit) {
@@ -601,7 +610,7 @@ const PostEditor = () => {
     // 사진 리사이즈
     useEffect(() => {
         if (!editor) return;
-
+        editor.commands.focus();
         const handleClick = (event) => {
             const el = event.target;
             if (el.tagName === 'IMG') {
@@ -635,6 +644,7 @@ const PostEditor = () => {
                     <Label htmlFor="title">제목</Label>
                     <Input
                         id="title"
+                        ref={titleRef}
                         placeholder="제목을 입력해주세요"
                         value={formData.title}
                         onChange={(e) =>
