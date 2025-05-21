@@ -38,6 +38,7 @@ const Title = styled.h2`
 `;
 
 const SearchBox = styled.div`
+  display: none;  
   padding: 1rem;
   border-bottom: 1px solid #e0e0e0;
 `;
@@ -656,7 +657,7 @@ const PollingStationFinder = () => {
                             <PollingStationItem key={station.id}>
                                 <h3>{station.name}</h3>
                                 <p>{station.address}</p>
-                                <p>거리 : {station.distanceText}</p>
+                                {/*<p>거리 : {station.distanceText}</p>*/}
                             </PollingStationItem>
                         ))
                     ) : (
