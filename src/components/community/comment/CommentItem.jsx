@@ -58,7 +58,7 @@ const CommentVoteButtons = styled.div`
 const CommentVoteButton = styled.button`
   width: 18px;
   height: 18px;
-  background: ${({ active }) => active ? '#ddd' : 'transparent'};
+  background: ${({ $active }) => $active ? '#ddd' : 'transparent'};
   border: none;
   border-radius: 50%;
   cursor: pointer;
@@ -280,9 +280,9 @@ const CommentItem = ({ comment, onDeleted, maxDepth = 4, anonymous, activeCommen
           </CommentContent>
           <CommentActions>
             <CommentVoteButtons>
-              <CommentVoteButton type="up" active={localComment.userVote === 1} onClick={() => handleVote(1)}><FaArrowUp /></CommentVoteButton>
+              <CommentVoteButton type="up" $active={localComment.userVote === 1} onClick={() => handleVote(1)}><FaArrowUp /></CommentVoteButton>
               <CommentVoteCount>{localComment.voteCount}</CommentVoteCount>
-              <CommentVoteButton type="down" active={localComment.userVote === -1} onClick={() => handleVote(-1)}><FaArrowDown /></CommentVoteButton>
+              <CommentVoteButton type="down" $active={localComment.userVote === -1} onClick={() => handleVote(-1)}><FaArrowDown /></CommentVoteButton>
             </CommentVoteButtons>
             {comment.depth < maxDepth && (
               <ActionButton onClick={onReplyClick}><FaReply /> 답글</ActionButton>

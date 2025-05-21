@@ -22,7 +22,6 @@ export const communityAPI = {
     // 커뮤니티 메인 정보 조회
     getMainInfo: async () => {
         const response = await api.get('/main');
-        console.log(response.data.data);
         return response.data.data;
     },
 };
