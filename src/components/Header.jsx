@@ -494,32 +494,32 @@ const Header = () => {
         <Navigation $isOpen={mobileMenuOpen}>
           <NavList>
             <NavItem>
-              <NavLink to="/candidate-compare">후보비교</NavLink>
+              <NavLink to="/candidate-compare" onClick={() => window.scrollTo(0, 0)}>후보비교</NavLink>
             </NavItem>
             <NavItem>
-              <NavLink to="/mock-voting">모의투표</NavLink>
+              <NavLink to="/mock-voting" onClick={() => window.scrollTo(0, 0)}>모의투표</NavLink>
             </NavItem>
             <NavItem>
-              <NavLink to="/find-polling-station">투표소찾기</NavLink>
+              <NavLink to="/find-polling-station" onClick={() => window.scrollTo(0, 0)}>투표소찾기</NavLink>
             </NavItem>
             <NavItem>
-              <NavLink to="/electionQuiz">선거퀴즈</NavLink>
+              <NavLink to="/electionQuiz" onClick={() => window.scrollTo(0, 0)}>선거퀴즈</NavLink>
             </NavItem>
             <NavItem>
-              <NavLink to="/community">커뮤니티</NavLink>
+              <NavLink to="/community" onClick={() => window.scrollTo(0, 0)}>커뮤니티</NavLink>
             </NavItem>
             <NavItem>
-              <NavLink to="/chatbot">챗봇</NavLink>
+              <NavLink to="/chatbot" onClick={() => window.scrollTo(0, 0)}>챗봇</NavLink>
             </NavItem>
             {role && role.toUpperCase() === 'USER' && (
                 <NavItem>
-                  <NavLink to="/mypage">마이페이지</NavLink>
+                  <NavLink to="/mypage" onClick={() => window.scrollTo(0, 0)}>마이페이지</NavLink>
                 </NavItem>
             )}
             {/* 관리자 전용 메뉴 */}
             {role && role.toUpperCase() === 'ADMIN' && (
                 <NavItem>
-                  <NavLink to="/admin">
+                  <NavLink to="/admin" onClick={() => window.scrollTo(0, 0)}>
                     관리자페이지
                   </NavLink>
                 </NavItem>
