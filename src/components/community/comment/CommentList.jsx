@@ -13,15 +13,15 @@ const LoadMoreButton = styled.button`
   padding: 10px 20px;
   font-size: 14px;
   font-weight: bold;
-  color: #4d82f3;
-  background-color: #f4f6fc;
-  border: 1px solid #4d82f3;
+  color: #777;
+  background-color: #eee;
+  border: 1px solid #d7d7d7;
   border-radius: 5px;
   cursor: pointer;
   transition: background-color 0.2s;
 
   &:hover {
-    background-color: #e0e8fb;
+    background-color: #ddd;
   }
 
   &:disabled {
