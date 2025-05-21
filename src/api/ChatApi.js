@@ -23,25 +23,6 @@ api.interceptors.request.use(
     (error) => Promise.reject(error)
 );
 
-// 응답 인터셉터 - CORS 오류 로깅
-api.interceptors.response.use(
-    response => response,
-    error => {
-        if(error.response){
-            console.log('API Error Response:', error.response.status, error.response.data);
-        } else if (error.request) {
-            console.log('API Error Request:', error.request);
-            // CORS 오류일 가능성이 높음
-            if (error.message && error.message.includes('Network Error')) {
-                console.log('Possible CORS issue');
-            }
-        } else {
-            console.log('API Error Message:', error.message);
-        }
-        return Promise.reject(error);
-    }
-);
-
 // WebSocket 클라이언트 생성 함수
 const createStompClient = () => {
     const token = localStorage.getItem('token');
@@ -55,9 +36,6 @@ const createStompClient = () => {
         webSocketFactory: () => socket,
         connectHeaders: {
             Authorization: token ? `Bearer ${token}` : ''
-        },
-        debug: (str) => {
-            console.log(str);
         },
         reconnectDelay: 5000,
         heartbeatIncoming: 4000,
@@ -112,10 +90,8 @@ export const chatAPI = {
         return stompClient.subscribe(`/topic/chat/${chatroomId}`, (message) => {
             try {
                 const receivedMessage = JSON.parse(message.body);
-                console.log('▶ receivedMessage', receivedMessage);
                 callback(receivedMessage);
             } catch (error) {
-                console.error('메시지 파싱 오류:', error);
             }
         });
     },
@@ -126,7 +102,6 @@ export const chatAPI = {
             const response = await api.get('/rooms');
             return response.data;
         } catch (error) {
-            console.log('채팅방 목록 조회 오류 :' , error);
             throw error;
         }
     },
@@ -134,12 +109,9 @@ export const chatAPI = {
     // 참여자 목록 가져오기
     getRoomParticipants : async (chatroomId) => {
            try {
-                // const response = await api.get(`/participants/${chatroomId}`);
                const response = await api.get(`/participants/${chatroomId}`);
-               console.log('참여자 목록 응답:', response.data); // 응답 데이터 로깅 추가
                 return response.data;
            } catch (error){
-                console.log('참여자 목록 조회 오류 : ', error);
                 throw error;
            }
     },
@@ -157,7 +129,6 @@ export const chatAPI = {
     // 채팅방 참여 메시지 전송
     sendJoinMessage : (stompClient, userId, nickname, chatroomId) => {
         if (!stompClient || !stompClient.connected) {
-            console.log('Websocket이 연결되어 있지 않습니다.');
             return false;
         }
 
@@ -177,7 +148,6 @@ export const chatAPI = {
     // 채팅방 퇴장 메시지 전송
     sendLeaveMessage : (stompClient, userId, nickname, chatroomId) => {
         if (!stompClient || !stompClient.connected) {
-            console.log('Websocket이 연결되어 있지 않습니다.');
             return false;
         }
 
