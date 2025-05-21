@@ -126,8 +126,23 @@ const GoogleButtonContainer = styled.div`
     width: 100%;
     min-height: 48px;
     margin-bottom: 20px;
-    display: block;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    
+    /* 구글 로그인 버튼이 항상 중앙에 위치하도록 */
+    > div {
+        margin: 0 auto !important;
+        display: block !important;
+    }
+    
+    /* iframe이 사용될 경우에도 중앙 정렬 */
+    > iframe {
+        margin: 0 auto !important;
+        display: block !important;
+    }
 `;
+
 
 const LoginPage = () => {
     const navigate = useNavigate();

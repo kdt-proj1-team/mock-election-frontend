@@ -427,7 +427,6 @@ const Header = () => {
       console.log("메타마스크 연결 성공:", address);
 
       // 토큰 발급 상태에 따라 메시지 설정
-      // 이 부분은 백엔드 응답으로 판단 (토큰 발급 여부에 따라 응답이 달라짐)
       setWalletMessage("지갑이 성공적으로 연결되었습니다.");
       closeWalletModal();
     } catch (error) {
@@ -604,15 +603,6 @@ const Header = () => {
                         <InfoItem>
                           <InfoLabel>복구 구문 (니모닉)</InfoLabel>
                           <InfoValue>{newWalletInfo.mnemonic}</InfoValue>
-                        </InfoItem>
-                        <InfoItem>
-                          <InfoLabel>토큰 잔액</InfoLabel>
-                          <InfoValue>
-                            {newWalletInfo.alreadyReceived ?
-                                "0 VT (이미 토큰을 발급받은 계정입니다)" :
-                                `${newWalletInfo.tokenBalance} VT (초기 토큰이 발급되었습니다!)`
-                            }
-                          </InfoValue>
                         </InfoItem>
                         <WarningText>
                           중요: 복구 구문을 안전한 곳에 보관하세요. 이 정보는 지갑 복구에 필요하며, 이 창을 닫으면 다시 볼 수 없습니다!

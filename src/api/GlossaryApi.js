@@ -32,7 +32,7 @@ export const glossaryAPI = {
         } catch (error) {
             return {
                 success: false,
-                error: error.response?.data || '검색 중 오류가 발생했습니다.'
+                error: error.response?.data?.message || '검색 중 오류가 발생했습니다.'
             };
         }
     }
