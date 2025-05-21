@@ -503,7 +503,7 @@ const Header = () => {
               <NavLink to="/find-polling-station">투표소찾기</NavLink>
             </NavItem>
             <NavItem>
-              <NavLink to="/electionQuiz">정책퀴즈</NavLink>
+              <NavLink to="/electionQuiz">선거퀴즈</NavLink>
             </NavItem>
             <NavItem>
               <NavLink to="/community">커뮤니티</NavLink>
