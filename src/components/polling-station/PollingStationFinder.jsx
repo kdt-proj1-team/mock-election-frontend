@@ -60,7 +60,7 @@ const LocationInfo = styled.div`
 
 const GetLocationButton = styled.button`
   padding: 0.5rem 1rem;
-  background-color: #4dabf7;
+  background-color: #888888;
   color: white;
   border: none;
   border-radius: 4px;
@@ -68,7 +68,7 @@ const GetLocationButton = styled.button`
   font-size: 0.9rem;
   
   &:hover {
-    background-color: #339af0;
+    background-color: #888888;
   }
 `;
 
@@ -217,7 +217,7 @@ const PollingStationFinder = () => {
                                 map: map,
                                 title: stations[i].name,
                                 icon: {
-                                    content: `<div style="background-color: #4dabf7; color: white; padding: 5px; border-radius: 50%; width: 10px; height: 10px; text-align: center; font-weight: bold;">${i+1}</div>`,
+                                    content: `<div style="background-color: #888888; color: white; padding: 5px; border-radius: 50%; width: 10px; height: 10px; text-align: center; font-weight: bold;">${i+1}</div>`,
                                     anchor: new window.naver.maps.Point(12, 12)
                                 }
                             });
@@ -255,7 +255,7 @@ const PollingStationFinder = () => {
                         map: map,
                         title: stations[i].name,
                         icon: {
-                            content: `<div style="background-color: #4dabf7; color: white; padding: 5px; border-radius: 50%; width: 10px; height: 10px; text-align: center; font-weight: bold;">${i+1}</div>`,
+                            content: `<div style="background-color: #888888; color: white; padding: 5px; border-radius: 50%; width: 10px; height: 10px; text-align: center; font-weight: bold;">${i+1}</div>`,
                             anchor: new window.naver.maps.Point(12, 12)
                         }
                     });
