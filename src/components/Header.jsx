@@ -19,6 +19,10 @@ const HeaderContainer = styled.header`
   z-index: 100;
 `;
 
+const LeftGroup = styled.div`
+  display: flex;
+`;
+const RightGroup = styled.div``;
 const DisclaimerBar = styled.div`
   background-color: #f9f9f9;
   color: #555;
@@ -53,11 +57,11 @@ const Navigation = styled.nav`
   display: flex;
   align-items: center;
 
-  @media (max-width: 768px) {
+  @media (max-width: 1400px) {
     display: ${props => (props.$isOpen ? 'flex' : 'none')};
     flex-direction: column;
     position: absolute;
-    top: 60px;
+    top: 85px;
     left: 0;
     right: 0;
     background-color: #ffffff;
@@ -73,7 +77,7 @@ const NavList = styled.ul`
   margin-right: 30px;
   padding: 0;
 
-  @media (max-width: 768px) {
+  @media (max-width: 1400px) {
     flex-direction: column;
     width: 100%;
   }
@@ -110,6 +114,13 @@ const UserName = styled.span`
   font-size: 14px;
   color: #666;
   margin-right: 10px;
+
+  @media (max-width: 1680px) {
+    display: none;
+  }
+  @media (max-width: 1400px) {
+    display: inline;
+  }
 `;
 
 const UserAvatar = styled.div`
@@ -295,7 +306,7 @@ const MobileMenuButton = styled.button`
   font-size: 24px;
   cursor: pointer;
 
-  @media (max-width: 768px) {
+  @media (max-width: 1400px) {
     display: block;
   }
 `;
@@ -483,10 +494,14 @@ const Header = () => {
   return (
       <HeaderContainer>
 
+        <LeftGroup>
         <Logo onClick={() => navigate('/')}><img src={logo} alt="logo"/> </Logo>
         <DisclaimerBar>
           본 사이트는 <strong>교육 목적</strong>으로 제작된 모의 플랫폼이며, 특정 정당이나 후보를 지지하지 않습니다.
         </DisclaimerBar>
+        </LeftGroup>
+
+        <RightGroup>
         <MobileMenuButton onClick={toggleMobileMenu}>
           ☰
         </MobileMenuButton>
@@ -658,6 +673,7 @@ const Header = () => {
               </ModalContent>
             </ModalOverlay>
         )}
+        </RightGroup>
       </HeaderContainer>
   );
 };
