@@ -495,9 +495,6 @@ export default function ChatPopup() {
 
         // 스크롤이 바닥에 있지 않을 때만 스크롤 버튼 표시
         setShowScrollButton(!isNearBottom);
-
-        // 스크롤 상태 업데이트
-        // setIsScrolledUp(!isNearBottom);
     }
 
     // 메시지가 업데이트될 때마다 호출
@@ -507,15 +504,12 @@ export default function ChatPopup() {
 
         // 자동 스크롤이 활성화되어 있거나, 사용자가 스크롤을 아래에 위치시켰을 때만 스크롤 다운
         if (!isScrolledUp || isAutoScrollEnabledRef.current) {
-            console.log("자동 스크롤 실행");
 
             // setTimeout으로 렌더링 후 스크롤 실행
             setTimeout(() => {
                 scrollToBottom('auto');
             }, 50);
         } else {
-            // 자동 스크롤이 비활성화된 경우 (사용자가 위로 스크롤한 상태)
-            console.log("새 메시지 알림 표시");
             setHasNewMessage(true);
             setShowScrollButton(true);
         }
@@ -581,15 +575,11 @@ export default function ChatPopup() {
 
             client.onConnect = () => {
                 setConnected(true);
-                console.log('Connected to Websocket');
-
             };
 
             client.onDisconnect = () => {
                 setConnected(false);
-                console.log('Disconnected from Websocket');
             };
-
 
             client.activate();
             stompClientRef.current = client;
@@ -603,7 +593,6 @@ export default function ChatPopup() {
         return () => {
             if (stompClientRef.current) {
                 try {
-                    console.log('WebSocket 연결 해제 중...');
                     stompClientRef.current.deactivate();
                 } catch (error) {
                     console.error("Error disconnecting WebSocket:", error);
@@ -624,7 +613,6 @@ export default function ChatPopup() {
 
             // 실제로는 roomId를 포함한 API 호출 필요
             const data = await chatAPI.getChatHistory(roomId);
-            console.log("받아온 채팅 기록 : " + data);
             setMessages(data);
 
             // 채팅 히스토리 로드 후 스크롤 맨 아래로 이동
@@ -659,10 +647,7 @@ export default function ChatPopup() {
     // 참여자 목록 조회 함수
     const fetchParticipants = async (roomId) => {
         try {
-            console.log('참여자 목록 요청:', roomId); // 요청 시 roomId 로깅
             const data = await chatAPI.getRoomParticipants(roomId);
-            console.log('참여자 목록 데이터:', data); // 응답 데이터 로깅
-
             setParticipants(data);
         } catch (error) {
             console.error('Error fetching participants:', error);
@@ -679,7 +664,6 @@ export default function ChatPopup() {
                 try {
                     // 활성 채팅방에서 퇴장
                     if (connected && stompClientRef.current && activeRoom) {
-                        console.log(`채팅방 퇴장: roomId = ${activeRoom}`);
                         chatAPI.sendLeaveMessage(
                             stompClientRef.current,
                             userId,
@@ -742,16 +726,12 @@ export default function ChatPopup() {
             client,
             roomId,
             (update) => {
-                console.log('참여자 업데이트:', update);
-
                 // 업데이트 유형에 따른 처리
                 if (update.type === 'participants_list') {
                     // 전체 목록 업데이트
                     setParticipants(update.participants || []);
                 } else if (update.type === 'join') {
                     // 참여 이벤트는 무시 (PARTICIPANTS_LIST가 함께 전송됨)
-                    console.log(`${update.nickname} 님이 참여했습니다.`);
-
                     setMessages(prev => [...prev, {
                         sender_nickname: 'System',
                         content: `${update.nickname} 님이 참여했습니다.`,
@@ -760,8 +740,6 @@ export default function ChatPopup() {
                     }]);
                 } else if (update.type === 'leave') {
                     // 퇴장 이벤트는 무시 (PARTICIPANTS_LIST가 함께 전송됨)
-                    console.log(`${update.nickname} 님이 퇴장했습니다.`);
-
                     setMessages(prev => [...prev, {
                         sender_nickname: 'System',
                         content: `${update.nickname} 님이 퇴장했습니다.`,
@@ -777,9 +755,7 @@ export default function ChatPopup() {
     // 채팅방 변경 시 구독 변경
     useEffect(() => {
         if (connected && stompClientRef.current && activeRoom) {
-            console.log('채팅방 변경: roomId = ' + activeRoom);
-
-            // 1. 채팅 히스토리 로드
+             // 1. 채팅 히스토리 로드
             fetchChatHistory(activeRoom);
 
             // 2. 채팅방 메시지 구독
@@ -831,7 +807,6 @@ export default function ChatPopup() {
 
         const client = stompClientRef.current;
         if (!client) {
-            console.warn('WebSocket not connected yet.');
             return;
         }
 
