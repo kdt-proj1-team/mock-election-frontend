@@ -21,6 +21,7 @@ import GlossaryPopup from "./components/glossary/GlossaryPopup";
 import ChatPopup from './components/chat/ChatPopup';
 import Analytics from './components/analytics/Analytics.tsx';
 import PollingStationFinder from './components/polling-station/PollingStationFinder';
+import Footer from './components/Footer.jsx';
 
 const theme = {
     colors: {
@@ -123,6 +124,7 @@ const App = () => {
                     {/* 존재하지 않는 경로는 홈페이지로 리디렉션 */}
                     <Route path="*" element={<Navigate to="/"/>}/>
                 </Routes>
+                <Footer/>
             </Router>
         </ThemeProvider>
     );

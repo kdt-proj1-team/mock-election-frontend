@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { Section, Container, Button } from '../ui/StyledComponents';
+import { Section, Container} from '../ui/StyledComponents';
+import { Link } from 'react-router-dom';
 
 // 기본 배경 (살짝 밝은 회색)
 const Hero = styled(Section)`
@@ -35,6 +36,27 @@ const ButtonGroup = styled.div`
   @media (max-width: 768px) {
     flex-direction: column;
     align-items: center;
+  }
+`;
+
+const Button = styled.button`
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 13px 20px;
+  border: none;
+  border-radius: 5px;
+  color: #fff;
+  background-color: #222;
+  transition: all 0.2s ease;
+  text-decoration: none;
+
+  &:first-of-type {
+    background-color: #666;
+  }
+
+  &:hover {
+    background-color: #000;
   }
 `;
 
@@ -116,8 +138,8 @@ const HeroSection = () => {
             올바른 선택을 위한 모든 정보와 도구를 제공합니다. 정책을 비교하고, 가상 투표를 경험하며, 나에게 맞는 후보를 찾아보세요.
           </HeroText>
           <ButtonGroup>
-            <Button $accent>정책 성향 테스트</Button>
-            <Button $secondary="true">투표소 찾기</Button>
+            <Button as={Link} to="/candidate-compare" onClick={() => window.scrollTo(0, 0)}>후보 비교</Button>
+            <Button as={Link} to="/find-polling-station" onClick={() => window.scrollTo(0, 0)}>투표소 찾기</Button>
           </ButtonGroup>
 
           <Countdown>

@@ -79,7 +79,7 @@ const HomePage = () => {
           <YoutubeSection/>
         <PollSection />
         <KeywordsSection />
-        <CTASection/>
+        {/* <CTASection/> */}
       </PageContainer>
   );
 };
