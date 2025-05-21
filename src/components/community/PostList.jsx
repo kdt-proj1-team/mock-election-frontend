@@ -216,9 +216,9 @@ const PageButton = styled.a`
   text-decoration: none;
   color: #666;
   font-size: 14px;
-  background-color: ${(props) => (props.active ? props.theme.colors.secondary : "transparent")};
-  color: ${(props) => (props.active ? "white" : "#666")};
-  font-weight: ${(props) => (props.active ? 700 : 400)};
+  background-color: ${({ $active }) => ($active ? '#6c757d' : "transparent")};
+  color: ${({ $active }) => ( $active  ? "white" : "#666")};
+  font-weight: ${({ $active }) => ( $active  ? 700 : 400)};
   cursor: pointer;
   &:hover {
     background-color: #f0f0f0;
@@ -331,15 +331,15 @@ const ViewToggle = styled.div`
 
 const ViewButton = styled.button`
   padding: 4px 7px;
-  border: 1px solid ${({ active, theme }) => (active ? theme.colors.secondary : "#ccc")};
-  background-color: ${({ active, theme }) => (active ? theme.colors.secondary : "white")};
-  color: ${({ active }) => (active ? "white" : "#444")};
+  border: 1px solid ${({ $active, theme }) => ($active ? theme.colors.secondary : "#ccc")};
+  background-color: ${({ $active, theme }) => ($active ? theme.colors.secondary : "white")};
+  color: ${({ $active }) => ($active ? "white" : "#444")};
   font-size: 15px;
   border-radius: 4px;
   cursor: pointer;
 
   &:hover {
-    background-color: ${({ active, theme }) => (active ? theme.colors.secondary : "#f0f0f0")};
+    background-color: ${({ $active, theme }) => ($active ? theme.colors.secondary : "#f0f0f0")};
   }
   svg {
     position: relative;
@@ -442,8 +442,8 @@ const PostList = () => {
 
         <Controls>
           <ViewToggle>
-            <ViewButton active={!isCardView} onClick={() => setCardView(false)}><FaListUl /></ViewButton>
-            <ViewButton active={isCardView} onClick={() => setCardView(true)}><FaThLarge /></ViewButton>
+            <ViewButton $active={!isCardView} onClick={() => setCardView(false)}><FaListUl /></ViewButton>
+            <ViewButton $active={isCardView} onClick={() => setCardView(true)}><FaThLarge /></ViewButton>
           </ViewToggle>
           <Select value={searchType} onChange={(e) => setSearchType(e.target.value)}>
             <option value="title_content">제목 + 내용</option>
@@ -569,7 +569,7 @@ const PostList = () => {
                   <PageButton
                     key={pageIndex}
                     onClick={() => handlePageClick(pageIndex)}
-                    active={pageIndex === page}
+                    $active={pageIndex === page}
                   >
                     {pageIndex + 1}
                   </PageButton>

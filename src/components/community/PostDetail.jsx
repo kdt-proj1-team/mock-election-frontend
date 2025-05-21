@@ -170,7 +170,7 @@ const VoteButtons = styled.div`
 const VoteButton = styled.button`
   width: 40px;
   height: 40px;
-  background: ${({ active }) => active ? '#ddd' : 'transparent'};
+  background: ${({ $active }) => $active ? '#ddd' : 'transparent'};
   border: none;
   border-radius: 50%;
   cursor: pointer;
@@ -414,9 +414,9 @@ const PostDetail = () => {
 
       <Footer>
         <VoteButtons>
-          <VoteButton type="up" active={post.userVote === 1} onClick={() => handleVote(1)}><FaArrowUp /></VoteButton>
+          <VoteButton type="up" $active={post.userVote === 1} onClick={() => handleVote(1)}><FaArrowUp /></VoteButton>
           <VoteCount>{post.voteCount}</VoteCount>
-          <VoteButton type="down" active={post.userVote === -1} onClick={() => handleVote(-1)}><FaArrowDown /></VoteButton>
+          <VoteButton type="down" $active={post.userVote === -1} onClick={() => handleVote(-1)}><FaArrowDown /></VoteButton>
         </VoteButtons>
         {!isAuthor && post.categoryCode !== "notice" && (
           <ReportButton onClick={() => handleReportClick()}><FaFlag /> 신고</ReportButton>
