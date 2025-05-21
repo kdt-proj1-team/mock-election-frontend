@@ -165,9 +165,7 @@ const SubmitButton = styled.button`
   font-weight: 500;
   border-radius: 6px;
   transition: background-color 0.2s;
-  &:hover {
-    background-color: #1f2937;
-  }
+  cursor: pointer;
 `;
 // #endregion
 

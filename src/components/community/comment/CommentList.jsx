@@ -13,15 +13,15 @@ const LoadMoreButton = styled.button`
   padding: 10px 20px;
   font-size: 14px;
   font-weight: bold;
-  color: #4d82f3;
-  background-color: #f4f6fc;
-  border: 1px solid #4d82f3;
+  color: #777;
+  background-color: #eee;
+  border: 1px solid #d7d7d7;
   border-radius: 5px;
   cursor: pointer;
   transition: background-color 0.2s;
 
   &:hover {
-    background-color: #e0e8fb;
+    background-color: #ddd;
   }
 
   &:disabled {
@@ -36,6 +36,12 @@ const CommentList = forwardRef(({ postId, anonymous }, ref) => {
     const [hasMore, setHasMore] = useState(false);
     const [loading, setLoading] = useState(false);
     const limit = 10;
+
+    // activeCommentId: 어느 댓글에 폼이 열려 있는지
+    // isEditMode: 수정폼인지, 답글폼인지 구분
+    const [activeCommentId, setActiveCommentId] = useState(null);
+    const [isEditMode, setIsEditMode] = useState(false);
+
 
     // 외부에서 fetchComments를 호출 가능하게 만듦
     useImperativeHandle(ref, () => ({
@@ -84,7 +90,17 @@ const CommentList = forwardRef(({ postId, anonymous }, ref) => {
     return (
         <CommentListWrapper>
             {comments.map(root => (
-                <CommentItem key={root.id} comment={root} onDeleted={() => fetchComments(true)} anonymous={anonymous} />
+                <CommentItem
+                    key={root.id}
+                    comment={root}
+                    onDeleted={() => fetchComments(true)}
+                    anonymous={anonymous}
+
+                    activeCommentId={activeCommentId}
+                    setActiveCommentId={setActiveCommentId}
+                    isEditMode={isEditMode}
+                    setIsEditMode={setIsEditMode}
+                />
             ))}
 
             {hasMore && (

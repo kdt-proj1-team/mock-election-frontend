@@ -1,13 +1,31 @@
-import React, {useEffect, useState} from 'react';
-import {useParams} from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useParams,useLocation } from 'react-router-dom';
 import styled from 'styled-components';
-import {candidateAPI} from '../api/CandidateApi';
+import { candidateAPI } from '../api/CandidateApi';
 
 const PageContainer = styled.div`
     max-width: 1440px;
     margin: 0 auto;
     padding: 40px 20px;
     background: #fff;
+`;
+
+const Layout = styled.div`
+    display: flex;
+    gap: 32px;
+    flex-wrap: wrap;
+
+    @media (max-width: 768px) {
+        flex-direction: column;
+    }
+`;
+
+const CandidateInfoCard = styled.div`
+    width: 280px;
+    background: #f1f3f5;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.05);
 `;
 
 const SearchContainer = styled.div`
@@ -24,11 +42,11 @@ const Search = styled.input`
     border: 1px solid #ccc;
     font-size: 16px;
     outline: none;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 
     &:focus {
         border-color: #adb5bd;
-        box-shadow: 0 0 0 2px rgba(173,181,189,0.4);
+        box-shadow: 0 0 0 2px rgba(173, 181, 189, 0.4);
     }
 `;
 
@@ -47,72 +65,121 @@ const SearchBtn = styled.button`
         background-color: #5a6268;
     }
 `;
+
 const PolicyListContainer = styled.div`
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 20px;
-`;
-const Title = styled.h2`
-    margin-bottom: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
 `;
 
 const PolicyCard = styled.div`
-    white-space: pre-line;
     border: 1px solid #ddd;
     border-radius: 8px;
-    padding: 20px;
-    margin-bottom: 16px;
     background: #f9f9f9;
+    overflow: hidden;
 `;
 
-const PolicyTitle = styled.h3`
-    margin-bottom: 8px;
+const PolicyTitle = styled.div`
+  font-weight: bold;
+  padding: 16px;
+  cursor: pointer;
+  background: #e9ecef;
 `;
 
+const PolicyContent = styled.div`
+  padding: 16px;
+  display: ${({ isOpen }) => (isOpen ? 'block' : 'none')};
+  white-space: pre-line;
+`;
+
+const Title = styled.h2`
+  margin-bottom: 24px;
+`;
 const CandidateDetailPage = () => {
-    const {sgId, partyName} = useParams();
+    const location = useLocation(); // ✅ 선언
+    const { sgId, partyName } = useParams();
     const [policies, setPolicies] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
-    const [focuse,setFocuse] = useState(null);
+    const [openIndex, setOpenIndex] = useState(null);
 
     const handleSearch = () => {
-        
-    }
+        console.log("검색어:", searchTerm);
+    };
+
+    const toggleAccordion = (index) => {
+        setOpenIndex(openIndex === index ? null : index);
+    };
+
+    const highlightText = (text, keyword) => {
+        if (!keyword.trim()) return text;
+        const regex = new RegExp(`(${keyword})`, 'gi');
+        const parts = text.split(regex);
+        return parts.map((part, index) =>
+            part.toLowerCase() === keyword.toLowerCase() ? (
+                <mark key={index} style={{ backgroundColor: '#ffea00' }}>{part}</mark>
+            ) : (
+                <span key={index}>{part}</span>
+            )
+        );
+    };
 
     useEffect(() => {
-        console.log(partyName);
-        console.log(sgId);
         if (!sgId || !partyName) return;
-
         candidateAPI.getCandidateDetail(sgId, partyName)
             .then((data) => setPolicies(data))
             .catch(console.error)
             .finally(() => setLoading(false));
     }, [sgId, partyName]);
 
+    const candidateFromState = location.state?.candidate;
+    const candidate = candidateFromState || policies[0]; // ✅ 우선순위 정리
+
     if (loading) return <PageContainer>로딩 중...</PageContainer>;
-    if (policies.length === 0) return <PageContainer>정책 정보가 없습니다.</PageContainer>;
+    if (!candidate) return <PageContainer>정책 정보가 없습니다.</PageContainer>;
 
     return (
         <PageContainer>
             <Title>정책 상세 정보 - ({partyName})</Title>
 
-            <SearchContainer>
-                <Search placeholder="공약 키워드를 입력하세요" onChange={(e)=>setSearchTerm(e.target.value)} />
-                <SearchBtn onClick={handleSearch}>검색</SearchBtn>
-            </SearchContainer>
+            <Layout>
+                <CandidateInfoCard>
+                    <img
+                        src={candidate.profileUrl || '/default-profile.jpg'}
+                        alt="후보자"
+                        style={{ width: '100%', borderRadius: '8px', marginBottom: '12px' }}
+                    />
+                    <div><strong>이름:</strong> {candidate.name}</div>
+                    <div><strong>정당:</strong> {candidate.jdName || candidate.partyName}</div>
+                    <div><strong>학력:</strong> {candidate.edu || candidate.education || '정보 없음'}</div>
+                    <div><strong>경력:</strong> {candidate.career1 || candidate.career || '정보 없음'}</div>
+                </CandidateInfoCard>
 
-            <PolicyListContainer>
-                {policies.map((policy) => (
-                    <PolicyCard key={policy.id}>
-                        <PolicyTitle>{policy.title}</PolicyTitle>
-                        {policy.content.split('\n').map((line, idx) => (
-                            <p key={idx}>{line}</p>
+                <div style={{ flex: 1 }}>
+                    <SearchContainer>
+                        <Search
+                            placeholder="공약 키워드를 입력하세요"
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                        <SearchBtn onClick={handleSearch}>검색</SearchBtn>
+                    </SearchContainer>
+
+                    <PolicyListContainer>
+                        {policies.map((policy, index) => (
+                            <PolicyCard key={policy.id}>
+                                <PolicyTitle onClick={() => toggleAccordion(index)}>
+                                    {highlightText(policy.title, searchTerm)}
+                                </PolicyTitle>
+                                <PolicyContent isOpen={openIndex === index}>
+                                    {policy.content.split('\n').map((line, idx) => (
+                                        <p key={idx}>{highlightText(line, searchTerm)}</p>
+                                    ))}
+                                </PolicyContent>
+                            </PolicyCard>
                         ))}
-                    </PolicyCard>
-                ))}
-            </PolicyListContainer>
+                    </PolicyListContainer>
+                </div>
+            </Layout>
         </PageContainer>
     );
 };

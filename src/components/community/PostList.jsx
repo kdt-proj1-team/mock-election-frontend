@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
+import usePageStore from "../../store/pageStore";
 import styled from "styled-components";
-import { FaSearch } from "react-icons/fa";
+import { FaSearch, FaThLarge, FaListUl, FaHome, FaPen } from "react-icons/fa";
 import useCategoryStore from "../../store/categoryStore";
+import useViewStore from "../../store/postViewStore";
 import { postAPI } from "../../api/PostApi";
 import { formatPostTimeSmart } from "../../utils/DateFormatter";
 
@@ -67,12 +69,43 @@ const SearchButton = styled.button`
 const WriteButton = styled.button`
   background-color: ${({ theme }) => theme.colors.dark};
   color: white;
-  border: none;
-  padding: 8px 16px;
-  margin-left: 20px;
+  border: 1px solid ${({ theme }) => theme.colors.dark};
+  padding: 7px 11px;
+  margin-left: 17px;
+  border-radius: 4px;
+  font-size: 15px;
+  cursor: pointer;
+  gap: 5px;
+
+  svg {
+    position: relative;
+    top: 1px;
+  }
+`;
+
+const GoHomeButton = styled.button`
+  padding: 8px 12px;
   border-radius: 4px;
   font-size: 14px;
+  font-weight: bold;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: all 0.2s;
+  gap: 5px;
+
+  background-color: #f1f1f1;
+  color: #333;
+  border: 1px solid #ddd;
+  text-decoration: none;
+  &:hover {
+    background-color: #e5e5e5;
+  }
+
+  svg {
+    position: relative;
+    top: 1px;
+  }
 `;
 
 const Table = styled.div`
@@ -147,30 +180,21 @@ const View = styled(Column)`
 
 const NoticeTag = styled.span`
   display: inline-block;
-  background-color: #ff6b6b;
+  background-color: #888;
   color: white;
-  font-size: 12px;
-  padding: 2px 8px;
+  font-size: 11px;
+  padding: 4px 10px;
   border-radius: 10px;
   font-weight: 700;
+  line-height: 1;
 `;
 
 const CommentCount = styled.span`
-  color: #3182f6;
+  color: #888;
   font-size: 12px;
   position: relative;
   top: -1px;
   font-weight: normal !important;
-`;
-
-const NewTag = styled.span`
-  display: inline-block;
-  background-color: #ff6b6b;
-  color: white;
-  font-size: 11px;
-  padding: 1px 4px;
-  border-radius: 4px;
-  margin-left: 5px;
 `;
 
 const Pagination = styled.div`
@@ -208,70 +232,192 @@ const NoData = styled.div`
   color: #999;
   font-size: 15px;
 `;
+
+
+const CardGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 20px;
+  max-width: 1200px;
+  margin: 10px;
+  cursor: pointer;
+`;
+
+const CardItem = styled.div`
+  background-color: white;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s;
+
+  &:hover {
+    transform: translateY(-5px);
+  }
+`;
+
+const CardImage = styled.img`
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  display: block;
+`;
+
+const CardContent = styled.div`
+  padding: 12px;
+`;
+
+const CardTitle = styled.h3`
+  font-size: 16px;
+  font-weight: 500;
+  margin-bottom: 8px;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  height: 45px;
+`;
+
+const CardNewBadge = styled.span`
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  background-color: #ff3b30;
+  color: white;
+  font-size: 10px;
+  text-align: center;
+  line-height: 18px;
+  border-radius: 50%;
+  margin-left: 5px;
+  font-weight: bold;
+`;
+
+const CardMeta = styled.div`
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+`;
+
+const CardAuthor = styled.div`
+  font-size: 13px;
+  color: #666;
+  display: flex;
+  align-items: center;
+`;
+
+const CardAuthorBadge = styled.span`
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 12px;
+  font-size: 11px;
+  margin-right: 6px;
+  font-weight: 500;
+  background-color: #ddd;
+`;
+
+const CardStats = styled.div`
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #999;
+`;
+
+const ViewToggle = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 5px;
+`;
+
+const ViewButton = styled.button`
+  padding: 4px 7px;
+  border: 1px solid ${({ active, theme }) => (active ? theme.colors.secondary : "#ccc")};
+  background-color: ${({ active, theme }) => (active ? theme.colors.secondary : "white")};
+  color: ${({ active }) => (active ? "white" : "#444")};
+  font-size: 15px;
+  border-radius: 4px;
+  cursor: pointer;
+
+  &:hover {
+    background-color: ${({ active, theme }) => (active ? theme.colors.secondary : "#f0f0f0")};
+  }
+  svg {
+    position: relative;
+    top: 1px;
+  }
+`;
 // #endregion
 
 const PostList = () => {
   const navigate = useNavigate();
+  const userId = localStorage.getItem("userId");
   const [searchParams, setSearchParams] = useSearchParams();
   const { selectedCategory } = useCategoryStore();
 
   const [posts, setPosts] = useState([]);
-  const [page, setPage] = useState(0);
+  const [pendingPosts, setPendingPosts] = useState(null); // 임시 저장
+  const [pendingCategoryCode, setPendingCategoryCode] = useState(null);
+  const { page, setPage, resetPage } = usePageStore();
   const [totalPages, setTotalPages] = useState(1);
   const searchRef = useRef(null);
   const [searchType, setSearchType] = useState("title_content"); // 기본값: 제목 + 내용
   const [searchKeyword, setSearchKeyword] = useState(searchParams.get("search") || "");
+  const { isCardView, setCardView } = useViewStore();
 
 
   useEffect(() => {
-    const rawPage = parseInt(searchParams.get("page"));
-    const safePage = isNaN(rawPage) || rawPage < 1 ? 1 : rawPage;
+    const raw = parseInt(searchParams.get("page"));
+    const urlPage = isNaN(raw) || raw < 1 ? null : raw - 1;
 
-    // page 상태 동기화
-    setPage(safePage - 1);
-
-    // URL 정정도 여기서 같이 처리
-    if (safePage !== rawPage) {
-      searchParams.set("page", safePage);
+    if (urlPage !== null) {
+      setPage(urlPage); // URL 우선
+    } else {
+      // page 쿼리 없거나 잘못된 경우 → store 값 사용해서 URL 설정
+      searchParams.set("page", page + 1);
       setSearchParams(searchParams, { replace: true });
     }
-  }, [searchParams, setSearchParams]);
+  }, [searchParams]);
 
   useEffect(() => {
-    if (page >= totalPages && totalPages > 0) {
-      searchParams.set("page", "1");
-      setSearchParams(searchParams, { replace: true });
-      setPage(0);
-    }
-
+    if (!selectedCategory) return;
     const fetchPosts = async () => {
+      if (!selectedCategory) return;
       try {
         const data = await postAPI.getPostsByCategory(
           selectedCategory.code,
           page,
-          10, // 10은 페이지 당 게시글 수
+          20, // 페이지 당 게시글 수
           searchParams.get("searchType") || "title_content",
           searchParams.get("search") || ""
         );
-        setPosts(data.content);
+        setPendingPosts(data.content);                 // 임시 저장
         setTotalPages(data.totalPages);
-
+        setPendingCategoryCode(selectedCategory.code); // 어떤 카테고리용인지 기억
       } catch (err) {
         console.error("게시글 목록 조회 실패", err);
       }
     };
 
-    if (selectedCategory) {
-      fetchPosts();
-    }
+    fetchPosts();
+
   }, [selectedCategory, page, searchParams]);
 
+  useEffect(() => {
+    if (pendingCategoryCode === selectedCategory?.code && pendingPosts) {
+      setPosts(pendingPosts);
+      setPendingPosts(null);
+    }
+  }, [pendingPosts, pendingCategoryCode, selectedCategory]);
 
   const handlePageClick = (newPage) => {
     if (newPage >= 0 && newPage < totalPages) {
+      // store 업데이트
       setPage(newPage);
-      searchParams.set("page", newPage + 1); // URL에선 1부터 시작
-      setSearchParams(searchParams);
+
+      // URL 반영
+      const newParams = new URLSearchParams(searchParams);
+      newParams.set("page", newPage + 1);
+      setSearchParams(newParams);
 
       const offset = 90;
       const top = searchRef.current?.getBoundingClientRect().top + window.pageYOffset - offset;
@@ -286,6 +432,7 @@ const PostList = () => {
     newParams.set("searchType", searchType);
     newParams.set("search", searchKeyword);
     setSearchParams(newParams);
+    resetPage(); // store 초기화
   };
 
   return (
@@ -294,6 +441,10 @@ const PostList = () => {
         <CategoryLabel>{selectedCategory?.name}</CategoryLabel>
 
         <Controls>
+          <ViewToggle>
+            <ViewButton active={!isCardView} onClick={() => setCardView(false)}><FaListUl /></ViewButton>
+            <ViewButton active={isCardView} onClick={() => setCardView(true)}><FaThLarge /></ViewButton>
+          </ViewToggle>
           <Select value={searchType} onChange={(e) => setSearchType(e.target.value)}>
             <option value="title_content">제목 + 내용</option>
             <option value="title">제목</option>
@@ -313,42 +464,88 @@ const PostList = () => {
               <FaSearch />
             </SearchButton>
           </SearchBox>
-          <WriteButton onClick={() => navigate("/community/board/write")}>글쓰기</WriteButton>
+          <WriteButton onClick={() => {
+            if (!userId) {
+              if (window.confirm("로그인 후 이용 가능한 기능입니다.\n로그인하시겠습니까?")) {
+                navigate("/login");
+              }
+              return;
+            } else {
+              navigate("/community/board/write")
+            }
+          }}><FaPen /></WriteButton>
+          <GoHomeButton onClick={() => navigate("/community")}><FaHome />커뮤니티</GoHomeButton>
         </Controls>
       </Header>
 
-      <Table>
-        <TableHeader>
-          <Num>번호</Num>
-          <Category>카테고리</Category>
-          <Title>제목</Title>
-          <Author>작성자</Author>
-          <DateCol>날짜</DateCol>
-          <View>조회</View>
-        </TableHeader>
+      {isCardView ? (
+        <>  
+          <CardGrid>
+            {posts.map((post) => (
+              <CardItem key={post.id} onClick={() => navigate(`/community/post/${post.id}`)}>
+                <CardImage src={post.thumbnailUrl || "/api/placeholder/250/180"} alt={post.title} />
+                <CardContent>
+                  <CardTitle>
+                    {post.title}
+                    {post.isNew && <CardNewBadge>N</CardNewBadge>}
+                  </CardTitle>
+                  <CardMeta>
+                    <CardAuthor>
+                      <CardAuthorBadge className="purple">{post.authorNickname}</CardAuthorBadge>
+                    </CardAuthor>
+                  </CardMeta>
+                  <CardStats>
+                    <span>{post.categoryName} · {formatPostTimeSmart(post.createdAt)} · 조회 {post.views} · 댓글 {post.commentCount}</span>
+                  </CardStats>
+                </CardContent>
+              </CardItem>
+            ))}
+          </CardGrid>
+          {posts.length === 0 && pendingPosts === null && (
+            <NoData>검색 결과가 없습니다.</NoData>
+          )}
+        </>
+      ) : (
+        <Table>
+          <TableHeader>
+            <Num>번호</Num>
+            <Category>카테고리</Category>
+            <Title>제목</Title>
+            <Author>작성자</Author>
+            <DateCol>날짜</DateCol>
+            <View>조회</View>
+          </TableHeader>
 
-        {posts.length === 0 ? (
-          <NoData>게시글이 없습니다.</NoData>
-        ) : (
-          posts.map((post) => (
-            <TableRow key={post.id} className={post.notice ? "notice" : ""}>
-              <Num>{post.id}</Num>
-              <Category>{post.categoryName}</Category>
-              <Title>
-                <Link to={`/community/post/${post.id}`}>
-                  {post.title} {post.commentCount > 0 && <CommentCount>[{post.commentCount}]</CommentCount>}
-                  {post.isNew && <NewTag>N</NewTag>}
-                </Link>
-              </Title>
-              <Author>{post.authorNickname}</Author>
-              <DateCol>{formatPostTimeSmart(post.createdAt)}</DateCol>
-              <View>{post.views}</View>
-            </TableRow>
-          ))
-        )}
-      </Table>
+          {
+            posts.map((post) => (
+              <TableRow key={post.id} className={post.notice ? "notice" : ""}>
+                <Num>
+                  {post.categoryName === "공지사항" ? (
+                    <NoticeTag>공지</NoticeTag>
+                  ) : (
+                    post.id
+                  )}
+                </Num>
+                <Category>{post.categoryName}</Category>
+                <Title>
+                  <Link to={`/community/post/${post.id}`}>
+                    {post.title} {post.commentCount > 0 && <CommentCount>[{post.commentCount}]</CommentCount>}
+                  </Link>
+                </Title>
+                <Author>{post.authorNickname}</Author>
+                <DateCol>{formatPostTimeSmart(post.createdAt)}</DateCol>
+                <View>{post.views}</View>
+              </TableRow>
+            ))
+          }
 
-      <Pagination>
+          {posts.length === 0 && pendingPosts === null && (
+            <NoData>검색 결과가 없습니다.</NoData>
+          )}
+        </Table>
+      )}
+
+      < Pagination >
         {/* 현재 페이지 기준으로 블록 계산 */}
         {(() => {
           const pageSize = 10; // 블록당 페이지 수
@@ -389,7 +586,7 @@ const PostList = () => {
           );
         })()}
       </Pagination>
-    </Section>
+    </Section >
   );
 };
 

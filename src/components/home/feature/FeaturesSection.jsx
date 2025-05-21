@@ -1,5 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
+import { FaSearch, FaVoteYea, FaMapMarkerAlt, FaPuzzlePiece } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
 
 const Section = styled.section`
   padding: 60px 0;
@@ -38,7 +40,7 @@ const Card = styled.div`
 
 const CardImage = styled.div`
   height: 160px;
-  background-color: #e0e0e0;
+  background: linear-gradient(to left, #f0f0f0, #cccccc);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -78,29 +80,29 @@ const Button = styled.button`
 const featuresData = [
   {
     id: 1,
-    icon: '🔍',
+    icon: <FaSearch />,
     title: '후보 비교',
     description: '각 후보들의 정책, 경력, 공약을 한눈에 비교해보세요.',
     buttonText: '자세히 보기'
   },
   {
     id: 2,
-    icon: '🗳️',
-    title: '가상 투표',
+    icon: <FaVoteYea />,
+    title: '모의 투표',
     description: '실제 투표를 경험해보고 익명으로 통계 결과를 확인하세요.',
     buttonText: '체험하기'
   },
   {
     id: 3,
-    icon: '📍',
+    icon: <FaMapMarkerAlt />,
     title: '투표소 찾기',
     description: '내 위치에서 가장 가까운 투표소를 쉽게 찾아보세요.',
     buttonText: '위치 확인'
   },
   {
     id: 4,
-    icon: '🧩',
-    title: '정책 퀴즈',
+    icon: <FaPuzzlePiece />,
+    title: '선거 퀴즈',
     description: '재미있는 퀴즈로 정책을 이해하고 나의 성향을 파악해보세요.',
     buttonText: '퀴즈 풀기'
   }
@@ -121,9 +123,24 @@ const FeatureCard = ({ icon, title, description, buttonText, onClick }) => {
 };
 
 const FeaturesSection = () => {
+  const navigate = useNavigate();
+  const isLoggedIn = !!localStorage.getItem("userId");
+
   const handleFeatureClick = (id) => {
-    console.log(`Feature ${id} clicked`);
-    // 여기에 각 기능을 클릭했을 때의 동작을 구현할 수 있습니다.
+    if (id === 1) { // 후보 비교
+      navigate('/candidate-compare');
+
+    } else if (id === 2) { // 모의 투표
+      navigate('/mock-voting');
+
+    } else if (id === 3) { // 투표소 찾기
+      navigate('/find-polling-station');
+
+    } else if (id === 4) { // 선거 퀴즈
+      navigate('/electionQuiz');
+    }
+
+    window.scrollTo(0, 0);
   };
 
   return (
@@ -132,7 +149,7 @@ const FeaturesSection = () => {
         <Title>핵심 기능</Title>
         <FeatureCards>
           {featuresData.map(feature => (
-            <FeatureCard 
+            <FeatureCard
               key={feature.id}
               icon={feature.icon}
               title={feature.title}

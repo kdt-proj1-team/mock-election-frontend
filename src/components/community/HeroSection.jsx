@@ -86,18 +86,28 @@ const StatLable = styled.div`
 `;
 // #endregion
 
-const HeroSection = ({communityStats}) => {
+const HeroSection = ({ communityStats }) => {
     const navigate = useNavigate();
+    const userId = localStorage.getItem("userId");
 
     return (
         <Section>
             <Title>당신의 생각을 공유하는 공간</Title>
             <Subtitle>함께하는 이야기가 더욱 큰 가치를 만들어갑니다. 커뮤니티 멤버들과 함께 지식과 경험을 공유해보세요.</Subtitle>
-            
+
             <ButtonGroup>
-                <NewPostButton onClick={() => navigate("/community/board/write")}>게시글 작성하기</NewPostButton>
+                <NewPostButton onClick={() => {
+                    if (!userId) {
+                        if (window.confirm("로그인 후 이용 가능한 기능입니다.\n로그인하시겠습니까?")) {
+                            navigate("/login");
+                        }
+                        return;
+                    } else {
+                        navigate("/community/board/write")
+                    }
+                }}>게시글 작성하기</NewPostButton>
             </ButtonGroup>
-            
+
             <StatContainer>
                 <StatItem>
                     <StatNumber>{communityStats.userCount}</StatNumber>

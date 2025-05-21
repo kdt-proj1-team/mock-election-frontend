@@ -19,6 +19,10 @@ const HeaderContainer = styled.header`
   z-index: 100;
 `;
 
+const LeftGroup = styled.div`
+  display: flex;
+`;
+const RightGroup = styled.div``;
 const DisclaimerBar = styled.div`
   background-color: #f9f9f9;
   color: #555;
@@ -53,11 +57,11 @@ const Navigation = styled.nav`
   display: flex;
   align-items: center;
 
-  @media (max-width: 768px) {
+  @media (max-width: 1400px) {
     display: ${props => (props.$isOpen ? 'flex' : 'none')};
     flex-direction: column;
     position: absolute;
-    top: 60px;
+    top: 85px;
     left: 0;
     right: 0;
     background-color: #ffffff;
@@ -73,7 +77,7 @@ const NavList = styled.ul`
   margin-right: 30px;
   padding: 0;
 
-  @media (max-width: 768px) {
+  @media (max-width: 1400px) {
     flex-direction: column;
     width: 100%;
   }
@@ -110,6 +114,13 @@ const UserName = styled.span`
   font-size: 14px;
   color: #666;
   margin-right: 10px;
+
+  @media (max-width: 1680px) {
+    display: none;
+  }
+  @media (max-width: 1400px) {
+    display: inline;
+  }
 `;
 
 const UserAvatar = styled.div`
@@ -295,7 +306,7 @@ const MobileMenuButton = styled.button`
   font-size: 24px;
   cursor: pointer;
 
-  @media (max-width: 768px) {
+  @media (max-width: 1400px) {
     display: block;
   }
 `;
@@ -427,7 +438,6 @@ const Header = () => {
       console.log("메타마스크 연결 성공:", address);
 
       // 토큰 발급 상태에 따라 메시지 설정
-      // 이 부분은 백엔드 응답으로 판단 (토큰 발급 여부에 따라 응답이 달라짐)
       setWalletMessage("지갑이 성공적으로 연결되었습니다.");
       closeWalletModal();
     } catch (error) {
@@ -484,10 +494,14 @@ const Header = () => {
   return (
       <HeaderContainer>
 
+        <LeftGroup>
         <Logo onClick={() => navigate('/')}><img src={logo} alt="logo"/> </Logo>
         <DisclaimerBar>
           본 사이트는 <strong>교육 목적</strong>으로 제작된 모의 플랫폼이며, 특정 정당이나 후보를 지지하지 않습니다.
         </DisclaimerBar>
+        </LeftGroup>
+
+        <RightGroup>
         <MobileMenuButton onClick={toggleMobileMenu}>
           ☰
         </MobileMenuButton>
@@ -495,32 +509,32 @@ const Header = () => {
         <Navigation $isOpen={mobileMenuOpen}>
           <NavList>
             <NavItem>
-              <NavLink to="/candidate-compare">후보비교</NavLink>
+              <NavLink to="/candidate-compare" onClick={() => window.scrollTo(0, 0)}>후보비교</NavLink>
             </NavItem>
             <NavItem>
-              <NavLink to="/mock-voting">모의투표</NavLink>
+              <NavLink to="/mock-voting" onClick={() => window.scrollTo(0, 0)}>모의투표</NavLink>
             </NavItem>
             <NavItem>
-              <NavLink to="/find-polling-station">투표소찾기</NavLink>
+              <NavLink to="/find-polling-station" onClick={() => window.scrollTo(0, 0)}>투표소찾기</NavLink>
             </NavItem>
             <NavItem>
-              <NavLink to="/electionQuiz">정책퀴즈</NavLink>
+              <NavLink to="/electionQuiz" onClick={() => window.scrollTo(0, 0)}>선거퀴즈</NavLink>
             </NavItem>
             <NavItem>
-              <NavLink to="/community">커뮤니티</NavLink>
+              <NavLink to="/community" onClick={() => window.scrollTo(0, 0)}>커뮤니티</NavLink>
             </NavItem>
             <NavItem>
-              <NavLink to="/chatbot">챗봇</NavLink>
+              <NavLink to="/chatbot" onClick={() => window.scrollTo(0, 0)}>챗봇</NavLink>
             </NavItem>
             {role && role.toUpperCase() === 'USER' && (
                 <NavItem>
-                  <NavLink to="/mypage">마이페이지</NavLink>
+                  <NavLink to="/mypage" onClick={() => window.scrollTo(0, 0)}>마이페이지</NavLink>
                 </NavItem>
             )}
             {/* 관리자 전용 메뉴 */}
             {role && role.toUpperCase() === 'ADMIN' && (
                 <NavItem>
-                  <NavLink to="/admin">
+                  <NavLink to="/admin" onClick={() => window.scrollTo(0, 0)}>
                     관리자페이지
                   </NavLink>
                 </NavItem>
@@ -605,15 +619,6 @@ const Header = () => {
                           <InfoLabel>복구 구문 (니모닉)</InfoLabel>
                           <InfoValue>{newWalletInfo.mnemonic}</InfoValue>
                         </InfoItem>
-                        <InfoItem>
-                          <InfoLabel>토큰 잔액</InfoLabel>
-                          <InfoValue>
-                            {newWalletInfo.alreadyReceived ?
-                                "0 VT (이미 토큰을 발급받은 계정입니다)" :
-                                `${newWalletInfo.tokenBalance} VT (초기 토큰이 발급되었습니다!)`
-                            }
-                          </InfoValue>
-                        </InfoItem>
                         <WarningText>
                           중요: 복구 구문을 안전한 곳에 보관하세요. 이 정보는 지갑 복구에 필요하며, 이 창을 닫으면 다시 볼 수 없습니다!
                         </WarningText>
@@ -668,6 +673,7 @@ const Header = () => {
               </ModalContent>
             </ModalOverlay>
         )}
+        </RightGroup>
       </HeaderContainer>
   );
 };
