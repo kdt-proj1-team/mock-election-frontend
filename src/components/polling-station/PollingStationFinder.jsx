@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import styled from 'styled-components';
 import useDeviceDetect from "../../hooks/useDeviceDetect";
-import pollingStationAPI from '../../api/PollingStationAPI';
+import pollingStationAPI, { reverseGeocode } from '../../api/PollingStationAPI';
 import axios from 'axios';
 
 // 스타일 컴포넌트 정의 (간략화)
@@ -38,6 +38,7 @@ const Title = styled.h2`
 `;
 
 const SearchBox = styled.div`
+  display: none;  
   padding: 1rem;
   border-bottom: 1px solid #e0e0e0;
 `;
@@ -60,7 +61,7 @@ const LocationInfo = styled.div`
 
 const GetLocationButton = styled.button`
   padding: 0.5rem 1rem;
-  background-color: #4dabf7;
+  background-color: #888888;
   color: white;
   border: none;
   border-radius: 4px;
@@ -68,7 +69,7 @@ const GetLocationButton = styled.button`
   font-size: 0.9rem;
   
   &:hover {
-    background-color: #339af0;
+    background-color: #888888;
   }
 `;
 
@@ -153,34 +154,6 @@ const PollingStationFinder = () => {
     }, []);
 
 
-    // 프론트엔드에서 백엔드 API 호출
-    const reverseGeocode = async (latitude, longitude) => {
-        try {
-            const response = await axios.get('/api/map/reverse-geocode', {
-                params: {
-                    latitude,
-                    longitude
-                }
-            });
-
-            // 응답 처리
-            if (response.data && response.data.results && response.data.results.length > 0) {
-                const admResult = response.data.results.find(result => result.name === 'admcode');
-                if (admResult && admResult.region) {
-                    return {
-                        sdName: admResult.region.area1.name,
-                        wiwName: admResult.region.area2.name
-                    };
-                }
-            }
-
-            throw new Error('행정구역 정보를 찾을 수 없습니다.');
-        } catch (error) {
-            console.error('역지오코딩 API 호출 실패:', error);
-            throw error;
-        }
-    };
-
     // 모든 투표소에 위도/경도 정보 추가 후 지도에 표시
     const addGeocodingToStationsAndShowMarkers = useCallback(async (stations) => {
         const stationsWithCoords = [...stations];
@@ -217,7 +190,7 @@ const PollingStationFinder = () => {
                                 map: map,
                                 title: stations[i].name,
                                 icon: {
-                                    content: `<div style="background-color: #4dabf7; color: white; padding: 5px; border-radius: 50%; width: 10px; height: 10px; text-align: center; font-weight: bold;">${i+1}</div>`,
+                                    content: `<div style="background-color: #888888; color: white; padding: 5px; border-radius: 50%; width: 10px; height: 10px; text-align: center; font-weight: bold;">${i+1}</div>`,
                                     anchor: new window.naver.maps.Point(12, 12)
                                 }
                             });
@@ -255,7 +228,7 @@ const PollingStationFinder = () => {
                         map: map,
                         title: stations[i].name,
                         icon: {
-                            content: `<div style="background-color: #4dabf7; color: white; padding: 5px; border-radius: 50%; width: 10px; height: 10px; text-align: center; font-weight: bold;">${i+1}</div>`,
+                            content: `<div style="background-color: #888888; color: white; padding: 5px; border-radius: 50%; width: 10px; height: 10px; text-align: center; font-weight: bold;">${i+1}</div>`,
                             anchor: new window.naver.maps.Point(12, 12)
                         }
                     });
@@ -361,32 +334,8 @@ const PollingStationFinder = () => {
 
             console.log("API 응답:", response);
 
-            // XML 응답 또는 JSON 응답 처리
-            let stationItems = [];
-
-            // 백엔드에서 제공하는 데이터 구조에 맞게 처리
-            if (response && response.response && response.response.body) {
-                // 이미 JSON으로 파싱된 경우
-                const items = response.response.body.items.item || [];
-                stationItems = Array.isArray(items) ? items : [items];
-            } else if (response && response.data && response.data.response) {
-                // 다른 형태의 JSON 응답
-                const items = response.data.response.body.items.item || [];
-                stationItems = Array.isArray(items) ? items : [items];
-            } else {
-                // 응답 구조를 확인하기 위해 로깅
-                console.log("예상치 못한 응답 형식:", response);
-
-                // 일반적인 데이터 탐색 시도
-                if (typeof response === 'object' && response !== null) {
-                    const keys = Object.keys(response);
-                    console.log("최상위 응답 키:", keys);
-
-                    if (keys.length > 0 && response[keys[0]]) {
-                        console.log(`${keys[0]} 내부 구조:`, response[keys[0]]);
-                    }
-                }
-            }
+            // 데이터가 배열로 왔으므로 바로 처리
+            const stationItems = response || []; // 응답이 배열일 경우 그대로 사용
 
             console.log("찾은 투표소 아이템:", stationItems);
 
@@ -708,7 +657,7 @@ const PollingStationFinder = () => {
                             <PollingStationItem key={station.id}>
                                 <h3>{station.name}</h3>
                                 <p>{station.address}</p>
-                                <p>거리 : {station.distanceText}</p>
+                                {/*<p>거리 : {station.distanceText}</p>*/}
                             </PollingStationItem>
                         ))
                     ) : (
