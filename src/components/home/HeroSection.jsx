@@ -60,6 +60,15 @@ const Button = styled.button`
   }
 `;
 
+// const Countdown = styled.div`
+//   background: #e0e5ec;
+//   border-radius: 20px;
+//   padding: 30px;
+//   margin-top: 40px;
+//   display: inline-block;
+//   box-shadow: 9px 9px 16px #a3b1c6, -9px -9px 16px #ffffff;
+// `;
+
 const Countdown = styled.div`
   background: #e0e5ec;
   border-radius: 20px;
@@ -67,23 +76,84 @@ const Countdown = styled.div`
   margin-top: 40px;
   display: inline-block;
   box-shadow: 9px 9px 16px #a3b1c6, -9px -9px 16px #ffffff;
+  
+  @media (max-width: 768px) {
+    padding: 20px;
+    width: 90%;
+    max-width: 400px;
+  }
+  
+  @media (max-width: 480px) {
+    padding: 15px;
+    width: 95%;
+  }
 `;
+
+// const CountdownTitle = styled.h2`
+//   margin-bottom: 20px;
+//   font-size: 24px;
+//   color: #333;
+// `;
 
 const CountdownTitle = styled.h2`
   margin-bottom: 20px;
   font-size: 24px;
   color: #333;
+  
+  @media (max-width: 768px) {
+    font-size: 20px;
+    margin-bottom: 15px;
+  }
+  
+  @media (max-width: 480px) {
+    font-size: 18px;
+  }
 `;
+
+// const CountdownTimer = styled.div`
+//   display: flex;
+//   justify-content: center;
+//   gap: 20px;
+// `;
 
 const CountdownTimer = styled.div`
   display: flex;
   justify-content: center;
   gap: 20px;
+  
+  @media (max-width: 768px) {
+    gap: 15px;
+  }
+  
+  @media (max-width: 480px) {
+    gap: 10px;
+    flex-wrap: wrap;
+  }
 `;
+
+// const CountdownItem = styled.div`
+//   text-align: center;
+// `;
 
 const CountdownItem = styled.div`
   text-align: center;
+  
+  @media (max-width: 480px) {
+    flex: 0 0 45%;
+    margin-bottom: 10px;
+  }
 `;
+
+// const CountdownNumber = styled.div`
+//   font-size: 40px;
+//   font-weight: bold;
+//   background: #e0e5ec;
+//   padding: 20px 30px;
+//   border-radius: 15px;
+//   box-shadow: inset 5px 5px 10px #a3b1c6, inset -5px -5px 10px #ffffff;
+//   min-width: 80px;
+//   display: inline-block;
+// `;
 
 const CountdownNumber = styled.div`
   font-size: 40px;
@@ -94,14 +164,36 @@ const CountdownNumber = styled.div`
   box-shadow: inset 5px 5px 10px #a3b1c6, inset -5px -5px 10px #ffffff;
   min-width: 80px;
   display: inline-block;
+  
+  @media (max-width: 768px) {
+    font-size: 32px;
+    padding: 15px 20px;
+    min-width: 60px;
+  }
+  
+  @media (max-width: 480px) {
+    font-size: 28px;
+    padding: 10px 15px;
+    min-width: 50px;
+  }
 `;
 
+
+// const CountdownLabel = styled.div`
+//   font-size: 14px;
+//   margin-top: 10px;
+//   color: #666;
+// `;
 const CountdownLabel = styled.div`
   font-size: 14px;
   margin-top: 10px;
   color: #666;
+  
+  @media (max-width: 480px) {
+    font-size: 12px;
+    margin-top: 5px;
+  }
 `;
-
 
 
 const HeroSection = () => {
