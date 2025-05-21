@@ -4,7 +4,7 @@ import axios from 'axios';
 // API 인스턴스 생성
 const api = axios.create({
     // 백엔드 프록시 URL 또는 직접 API URL 설정
-    baseURL: process.env.REACT_APP_POLLING_API_URL || 'http://localhost:80/api/polling',
+    baseURL: process.env.REACT_APP_POLLING_API_URL || 'http://localhost/api/polling',
     headers: {
         'Content-Type': 'application/json',
     },
@@ -75,27 +75,32 @@ const pollingStationAPI = {
     // 사전투표소 정보 조회
     getPrePollingStations: async (params) => {
         console.log("사전투표소 API 호출 시도:", params);
-        const response = await axios.get(`/api/polling/getPrePolplcOtlnmapTrnsportInfoInqire`, {
+        const response = await api.get(`/getPrePolplcOtlnmapTrnsportInfoInqire`, {
             params: {
                 ...params,
-                resultType: params.resultType || 'json'
+                resultType: 'json'
             }
         });
-        console.log("API 응답 성공:", response.data);
-        return response.data;
+
+        console.log("API 응답 상태:", response.status);  // 상태 코드 확인
+        console.log("API 응답 데이터:", response.response.body.items.item);  // 실제 데이터 확인
+        console.log("API 응답 성공:", response);  // 전체 응답 객체 확인
+
+        // 응답 데이터가 있으면 반환
+        return response.response.body.items.item;  // 실제 데이터 반환
     },
 
     // 선거일투표소 정보 조회
     getPollingStations: async (params) => {
         console.log("선거일투표소 API 호출 시도:", params);
-        const response = await axios.get(`/api/polling/getPolplcOtlnmapTrnsportInfoInqire`, {
+        const response = await api.get(`/getPolplcOtlnmapTrnsportInfoInqire`, {
             params: {
                 ...params,
-                resultType: params.resultType || 'json'
+                resultType: 'json'
             }
         });
-        console.log("API 응답 성공:", response.data);
-        return response.data;
+        // 응답 데이터가 있으면 반환
+        return response.response.body.items.item;  // 실제 데이터 반환
     }
 };
 

@@ -361,32 +361,8 @@ const PollingStationFinder = () => {
 
             console.log("API 응답:", response);
 
-            // XML 응답 또는 JSON 응답 처리
-            let stationItems = [];
-
-            // 백엔드에서 제공하는 데이터 구조에 맞게 처리
-            if (response && response.response && response.response.body) {
-                // 이미 JSON으로 파싱된 경우
-                const items = response.response.body.items.item || [];
-                stationItems = Array.isArray(items) ? items : [items];
-            } else if (response && response.data && response.data.response) {
-                // 다른 형태의 JSON 응답
-                const items = response.data.response.body.items.item || [];
-                stationItems = Array.isArray(items) ? items : [items];
-            } else {
-                // 응답 구조를 확인하기 위해 로깅
-                console.log("예상치 못한 응답 형식:", response);
-
-                // 일반적인 데이터 탐색 시도
-                if (typeof response === 'object' && response !== null) {
-                    const keys = Object.keys(response);
-                    console.log("최상위 응답 키:", keys);
-
-                    if (keys.length > 0 && response[keys[0]]) {
-                        console.log(`${keys[0]} 내부 구조:`, response[keys[0]]);
-                    }
-                }
-            }
+            // 데이터가 배열로 왔으므로 바로 처리
+            const stationItems = response || []; // 응답이 배열일 경우 그대로 사용
 
             console.log("찾은 투표소 아이템:", stationItems);
 
