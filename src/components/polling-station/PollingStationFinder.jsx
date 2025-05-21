@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import styled from 'styled-components';
 import useDeviceDetect from "../../hooks/useDeviceDetect";
-import pollingStationAPI from '../../api/PollingStationAPI';
+import pollingStationAPI, { reverseGeocode } from '../../api/PollingStationAPI';
 import axios from 'axios';
 
 // 스타일 컴포넌트 정의 (간략화)
@@ -152,34 +152,6 @@ const PollingStationFinder = () => {
         }
     }, []);
 
-
-    // 프론트엔드에서 백엔드 API 호출
-    const reverseGeocode = async (latitude, longitude) => {
-        try {
-            const response = await axios.get('/api/map/reverse-geocode', {
-                params: {
-                    latitude,
-                    longitude
-                }
-            });
-
-            // 응답 처리
-            if (response.data && response.data.results && response.data.results.length > 0) {
-                const admResult = response.data.results.find(result => result.name === 'admcode');
-                if (admResult && admResult.region) {
-                    return {
-                        sdName: admResult.region.area1.name,
-                        wiwName: admResult.region.area2.name
-                    };
-                }
-            }
-
-            throw new Error('행정구역 정보를 찾을 수 없습니다.');
-        } catch (error) {
-            console.error('역지오코딩 API 호출 실패:', error);
-            throw error;
-        }
-    };
 
     // 모든 투표소에 위도/경도 정보 추가 후 지도에 표시
     const addGeocodingToStationsAndShowMarkers = useCallback(async (stations) => {

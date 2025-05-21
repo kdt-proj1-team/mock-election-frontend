@@ -104,4 +104,28 @@ const pollingStationAPI = {
     }
 };
 
+
+/**
+ * 역지오코딩 API - 좌표를 주소로 변환 (네이버 맵 API 사용)
+ * @param {number} latitude - 위도
+ * @param {number} longitude - 경도
+ * @returns {Promise<Object>} - 주소 정보
+ */
+export const reverseGeocode = async (latitude, longitude) => {
+    try {
+        console.log(`역지오코딩 요청: 위도=${latitude}, 경도=${longitude}`);
+
+        const response = await api.get(`/reverse-geocode`, {
+            params: { latitude, longitude }
+        });
+
+        console.log('역지오코딩 응답:', response);
+        return response;
+    } catch (error) {
+        console.error('역지오코딩 API 호출 실패:', error);
+        throw error;
+    }
+};
+
+
 export default pollingStationAPI;
