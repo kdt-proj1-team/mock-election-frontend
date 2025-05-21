@@ -479,7 +479,7 @@ const PostList = () => {
       </Header>
 
       {isCardView ? (
-        <>
+        <>  
           <CardGrid>
             {posts.map((post) => (
               <CardItem key={post.id} onClick={() => navigate(`/community/post/${post.id}`)}>
