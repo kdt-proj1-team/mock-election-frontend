@@ -35,8 +35,49 @@ const DisclaimerBar = styled.div`
     font-weight: bold;
     color: #000000;
   }
+
+  /* 태블릿 사이즈 */
+  @media (max-width: 768px) {
+    width: 250px;
+    font-size: 13px;
+    padding: 6px 12px;
+  }
+
+  /* 모바일 사이즈 */
+  @media (max-width: 450px) {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    
+    max-width:180px;
+    width: 100%;
+    font-size: 11px;
+    padding: 4px 8px;
+    line-height: 1.2;
+  }
+  
 `;
 
+// 모바일에서 짧은 텍스트 사용하려면 컴포넌트도 수정
+const DisclaimerContent = styled.span`
+  .full-text {
+    display: inline;
+  }
+  
+  .short-text {
+    display: none;
+  }
+
+  @media (max-width: 450px) {
+    .full-text {
+      display: none;
+    }
+    
+    .short-text {
+      display: inline;
+    }
+  }
+`;
 
 const Logo = styled.h1`
   font-size: 22px;
@@ -496,9 +537,16 @@ const Header = () => {
 
         <LeftGroup>
         <Logo onClick={() => navigate('/')}><img src={logo} alt="logo"/> </Logo>
-        <DisclaimerBar>
-          본 사이트는 <strong>교육 목적</strong>으로 제작된 모의 플랫폼이며, 특정 정당이나 후보를 지지하지 않습니다.
-        </DisclaimerBar>
+          <DisclaimerBar>
+            <DisclaimerContent>
+              <span className="full-text">
+                본 사이트는 <strong>교육 목적</strong>으로 제작된 모의 플랫폼이며, 특정 정당이나 후보를 지지하지 않습니다.
+              </span>
+              <span className="short-text">
+                <strong>교육용</strong> 모의 플랫폼
+              </span>
+            </DisclaimerContent>
+          </DisclaimerBar>
         </LeftGroup>
 
         <RightGroup>
