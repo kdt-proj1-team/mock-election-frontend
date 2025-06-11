@@ -10,7 +10,8 @@ const Container = styled.div`
   display: flex;
   flex-direction: ${({ isMobile }) => (isMobile ? 'column' : 'row')};
   height: ${({ isMobile }) => (isMobile ? 'auto' : 'calc(100vh - 60px)')};
-  width: 100%;
+    min-height: ${({ isMobile }) => (isMobile ? '100vh' : 'calc(100vh - 60px)')};
+    width: 100%;
 `;
 
 const Sidebar = styled.div`
@@ -25,7 +26,8 @@ const Sidebar = styled.div`
 const MapContainer = styled.div`
   flex: 1;
   height: ${({ isMobile }) => (isMobile ? '60vh' : '100%')};
-  position: relative;
+    min-height: ${({ isMobile }) => (isMobile ? '60vh' : '100%')};    
+    position: relative;
   z-index: 0;
 `;
 
